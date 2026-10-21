@@ -1,0 +1,89 @@
+.card {
+  position: relative;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+/* 오른쪽 위 삭제 버튼 자리를 비워 둔다. */
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: 64px;
+}
+
+.name {
+  min-width: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+
+.badge {
+  flex: none;
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--color-badge-bg);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.condition {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-2);
+}
+
+.figure {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 14px;
+}
+
+.figure dt {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.figure dd {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.emphasisFigure {
+  composes: figure;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.deleteButton {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  min-width: 56px;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-error);
+  font-size: 14px;
+}

@@ -1,0 +1,46 @@
+import styles from "./ChoiceGroup.module.css";
+
+type ChoiceOption<T extends string> = { value: T; label: string };
+
+type ChoiceGroupProps<T extends string> = {
+  name: string;
+  legend: string;
+  options: ChoiceOption<T>[];
+  value: T;
+  /** 한 줄에 놓을 선택지 수 */
+  columns: number;
+  onChange: (value: T) => void;
+};
+
+/** 네이티브 라디오 그룹. 칩 모양이지만 화살표 키 이동과 스크린리더 동작은 라디오 그대로다. */
+function ChoiceGroup<T extends string>({
+  name,
+  legend,
+  options,
+  value,
+  columns,
+  onChange,
+}: ChoiceGroupProps<T>) {
+  return (
+    <fieldset className={styles.group}>
+      <legend className={styles.legend}>{legend}</legend>
+      <div className={styles.options} style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+        {options.map((option) => (
+          <label key={option.value} className={styles.option}>
+            <input
+              className={styles.input}
+              type="radio"
+              name={name}
+              value={option.value}
+              checked={option.value === value}
+              onChange={() => onChange(option.value)}
+            />
+            <span className={styles.label}>{option.label}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+export default ChoiceGroup;
