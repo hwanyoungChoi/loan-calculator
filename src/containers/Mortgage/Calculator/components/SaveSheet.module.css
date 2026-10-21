@@ -1,0 +1,106 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 40%);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 100%;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--color-surface);
+}
+
+.title {
+  margin-bottom: var(--space-4);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.error,
+.writeError {
+  color: var(--color-error);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}

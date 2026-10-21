@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
-import MortgageCalculator from "./MortgageCalculator";
+import AppRoutes from "@/AppRoutes";
 
 function resultCard() {
   return screen.getByRole("region", { name: "계산 결과" });
@@ -16,9 +16,15 @@ function rowValue(label: string): string {
 }
 
 describe("계산 화면 (통합)", () => {
+  // draft가 localStorage에 남으므로 테스트마다 빈 저장소와 계산 화면에서 시작한다.
+  beforeEach(() => {
+    localStorage.clear();
+    window.location.hash = "#/";
+  });
+
   it("#1 매매가에 0을 입력하고 blur하면 그 필드 아래에 오류가 뜨고 저장 시트가 열리지 않는다 (AC-8b)", async () => {
     const user = userEvent.setup();
-    render(<MortgageCalculator />);
+    render(<AppRoutes />);
 
     const salePrice = screen.getByLabelText("매매가");
     const kbPrice = screen.getByLabelText("KB시세");
@@ -31,6 +37,14 @@ describe("계산 화면 (통합)", () => {
     expect(kbPrice).toHaveValue("125,000");
     expect(kbPrice).toHaveAccessibleDescription("12억 5,000만원");
 
+    // 대조군: 두 금액이 유효하면 저장 버튼이 활성이고 누르면 저장 시트가 열린다.
+    await user.type(salePrice, "125000");
+    await user.click(screen.getByRole("button", { name: "저장" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "취소" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    await user.clear(salePrice);
     await user.type(salePrice, "0");
     // 오류는 입력 중이 아니라 blur 시점에 뜬다.
     expect(screen.queryByText("0보다 큰 금액을 입력하세요")).not.toBeInTheDocument();
@@ -50,12 +64,12 @@ describe("계산 화면 (통합)", () => {
     expect(saveButton).toBeDisabled();
     await user.click(saveButton);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.queryByRole("textbox", { name: /이름/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "매물 이름" })).not.toBeInTheDocument();
   });
 
   it("#3 처음 열면 규제지역·무주택이 선택돼 있고, 보유 상태 라디오 4개가 각각 대응하는 borrower로 계산된다 (AC-2)", async () => {
     const user = userEvent.setup();
-    render(<MortgageCalculator />);
+    render(<AppRoutes />);
 
     expect(screen.getByRole("radio", { name: "규제지역" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "무주택" })).toBeChecked();

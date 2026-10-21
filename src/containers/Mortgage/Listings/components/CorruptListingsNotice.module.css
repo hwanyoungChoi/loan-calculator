@@ -1,0 +1,63 @@
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.title {
+  color: var(--color-error);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 14px;
+}
+
+.rawText {
+  width: 100%;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-bg);
+  font-family: ui-monospace, monospace;
+  /* iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다. */
+  font-size: 16px;
+  resize: vertical;
+}
+
+.status {
+  font-size: 14px;
+}
+
+.error {
+  color: var(--color-error);
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.secondaryButton,
+.dangerButton {
+  flex: 1;
+  min-height: 48px;
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.dangerButton {
+  border: 0;
+  background: var(--color-error);
+  color: #fff;
+}

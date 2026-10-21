@@ -30,3 +30,16 @@
 - 사용량: tester 1-5·1-6 테스트 작성 · 기본(opus) · 94k 토큰 · 3분 40초
 - AI: 테스트 5개 파일, 166개 통과. AC-1~4, AC-5(a)(b)(c)(d 계산 화면), AC-8(a)(b) 통과. 미검증: AC-5(d) 목록 화면 기준일, #1 "저장 시트 미열림"(태스크 2에서 재확인).
 - AI: tester 메모: MortgageCalculator가 LOAN_REGULATIONS를 직접 import해 화면 단위로 fixture를 넣을 수 없음 → 2-2에서 주입 경로 필요.
+
+## 태스크 2
+
+- 요청: GitHub private 저장소 hwanyoungChoi/loan-calculator 생성, 태스크마다 push. main·작업 브랜치 push 완료, delete-branch-on-merge 설정.
+- 요청: Cloudflare Pages Git 연동으로 배포(대시보드 연결은 사용자가 직접). PR 생성·CI 통과 후 머지는 skill 흐름대로 진행.
+- 사용량: client-dev 태스크 2-1~2-3b 구현 · 기본(opus) · 150k 토큰 · 9분 35초
+- AI: client-dev가 주입 경로 `<AppRoutes storage regulations />` 추가, 훅은 `useListings(store)`/`useDraft(store)`로 스토어를 인자로 받음(스펙 계약과 다름). ChoiceGroup을 src/components/로 승격(목록 정렬에서 재사용). getBrowserStorage()는 쿠키 차단 시 localStorage 접근 자체가 throw하는 경우를 unavailable로 처리.
+- AI: 기존 MortgageCalculator.test.tsx를 AppRoutes 렌더로 바꿈(단언은 그대로).
+- AI: 리드 화면 확인(360×780). 통과: 빈 이름 오류, 글자 수 8/40, Enter 저장 → 계산 화면 유지 + "저장됨" 비활성, 값 변경 시 시트에 이름 채움 + 덮어쓰기/새로 저장, 덮어쓰기 후 1개 유지·createdAt 유지, 새 계산(금액만 비우고 조건 유지), 목록 자기자금순·기준일, 카드 → #/ 값 채움·저장됨, 뒤로 가기 → 목록, 삭제 후 계산 화면 "저장" 활성(listingId null 취급), 새로고침 후 입력·조건 유지, #/listing/abc → #/, M7 손상({) → 저장 비활성 + 이유 설명, 목록 손상 문구·원문·원문 복사·목록 초기화 → 빈 목록, 가로 스크롤 없음.
+- AI: 삭제·초기화 확인창은 JS로 window.confirm을 대체해 확인함. 시크릿 모드 unavailable, M6(휴대폰 LAN 주소 저장)은 못 함.
+- 사용량: tester 2-4·2-5 테스트 작성 · 기본(opus) · 토큰 미기록
+- AI: 테스트 14개 파일, 349개 통과. 통합 #1~#5 완성(ADR-008 상한). AC-6, AC-7, AC-5(d), AC-8(c)(d) 통과. 변이 확인을 scratchpad 복사본에서 수행해 21건 중 의미 있는 변이는 모두 잡음.
+- AI: 미검증(자동): 쓰기 실패 시 시트 문구, 목록 unavailable 화면, 새 매물 add 직후 "저장됨"(리드가 화면에서 확인함), useHashRoute replace·탭·정렬 쿼리·스크롤 복원(태스크 3).

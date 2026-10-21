@@ -386,7 +386,7 @@ HTTP API는 없다(백엔드 없음). react-query·axios는 쓰지 않는다. �
 
 ## 태스크
 
-- [ ] 1. 계산 엔드투엔드 최소 버전(타입·시그니처 + 규제 파일 + 계산 + 입력 검증·금액 입력 + 계산 화면 + 기준일 + 미확인 처리) — AC-1~5, AC-8(a)(b), 수동 M1·M2·M3·M5
+- [x] 1. 계산 엔드투엔드 최소 버전(타입·시그니처 + 규제 파일 + 계산 + 입력 검증·금액 입력 + 계산 화면 + 기준일 + 미확인 처리) — AC-1~5, AC-8(a)(b), 수동 M1·M2·M3·M5
   - [ ] 1-1. 골격과 계약 선행 (담당: client)
     - ADR-003 디렉토리 골격. `@/` alias는 `tsconfig.app.json`의 `paths`(TS 6에서 `baseUrl` 없는 형태 우선)와 `vite.config.ts`의 alias 양쪽에 넣고, `pnpm build`와 vitest에서 모두 동작하는지 확인한다
     - 템플릿 정리: `App.css`와 `index.css`의 템플릿 스타일 제거(전역 CSS는 리셋과 변수만, 스타일은 CSS Modules), `assets/*` 제거, `index.html`의 `lang="ko"`·`title`, 존재하지 않는 `/favicon.svg` 링크 정리, 모바일 viewport meta 확인
