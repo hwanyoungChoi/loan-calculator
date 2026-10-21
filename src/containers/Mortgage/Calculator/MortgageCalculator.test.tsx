@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
+import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
 
 function resultCard() {
   return screen.getByRole("region", { name: "계산 결과" });
@@ -24,7 +25,12 @@ describe("계산 화면 (통합)", () => {
 
   it("#1 매매가에 0을 입력하고 blur하면 그 필드 아래에 오류가 뜨고 저장 시트가 열리지 않는다 (AC-8b)", async () => {
     const user = userEvent.setup();
+    // AC-8c: 알 수 없는 해시로 들어오면 계산 화면을 보이고 주소를 #/로 replace한다(이력이 늘지 않는다).
+    window.location.hash = "#/listing/abc";
+    const historyLength = window.history.length;
     render(<AppRoutes />);
+    await waitFor(() => expect(window.location.hash).toBe("#/"));
+    expect(window.history.length).toBe(historyLength);
 
     const salePrice = screen.getByLabelText("매매가");
     const kbPrice = screen.getByLabelText("KB시세");
@@ -39,10 +45,34 @@ describe("계산 화면 (통합)", () => {
 
     // 대조군: 두 금액이 유효하면 저장 버튼이 활성이고 누르면 저장 시트가 열린다.
     await user.type(salePrice, "125000");
-    await user.click(screen.getByRole("button", { name: "저장" }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "취소" }));
+    const barSaveButton = screen.getByRole("button", { name: "저장" });
+    await user.click(barSaveButton);
+    let sheet = screen.getByRole("dialog");
+    // 시트가 열린 동안 뒤 화면은 inert다.
+    expect(salePrice.closest("[inert]")).not.toBeNull();
+    expect(barSaveButton.closest("[inert]")).not.toBeNull();
+    expect(sheet.closest("[inert]")).toBeNull();
+
+    // 이름 없이 제출하면 저장하지 않고 포커스를 이름 필드(첫 오류 필드)로 옮긴다.
+    const nameInput = within(sheet).getByRole("textbox", { name: "매물 이름" });
+    const submitButton = within(sheet).getByRole("button", { name: "저장" });
+    await user.click(submitButton);
+    expect(within(sheet).getByText("매물 이름을 입력하세요")).toBeInTheDocument();
+    expect(localStorage.getItem(LISTINGS_STORAGE_KEY)).toBeNull();
+    expect(nameInput).toHaveFocus();
+    expect(nameInput).toHaveAttribute("aria-invalid", "true");
+
+    // Esc는 취소다. 시트가 닫히고 포커스가 저장 버튼으로 돌아온다.
+    await user.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(barSaveButton).toHaveFocus();
+    expect(salePrice.closest("[inert]")).toBeNull();
+
+    await user.click(barSaveButton);
+    sheet = screen.getByRole("dialog");
+    await user.click(within(sheet).getByRole("button", { name: "취소" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(barSaveButton).toHaveFocus();
 
     await user.clear(salePrice);
     await user.type(salePrice, "0");

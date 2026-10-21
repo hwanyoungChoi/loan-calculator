@@ -327,6 +327,7 @@ HTTP API는 없다(백엔드 없음). react-query·axios는 쓰지 않는다. �
   - (비수도권·생애최초, 50000/48000) → 담보 48000, ltvAmount 38400, `cap`은 `null`, 한도 38400, 자기자금 11600
   - (수도권 비규제·1주택 미처분, 80000/80000) → LTV 0%는 미확인이 아니므로 `status: "ok"`, 한도 0, 자기자금 80000
   - 내림: (비수도권·무주택 70%, 99999/99999) → ltvAmount 69999(69999.3 내림), 한도 69999, 자기자금 30000
+  - 내림(반올림과 구분): (비수도권·무주택 70%) 99995→69996(69996.5), 99997→69997(69997.9), 15→10(10.5)
   - 정수 연산: (비수도권·무주택 70%) 90→63, 170→119, 180→126 (소수 곱셈의 부동소수점 오차 방지)
   - 매매가 < KB시세: (규제·무주택, 100000/120000) → 담보 100000(`salePrice`), ltvAmount 40000, 한도 40000, 자기자금 60000
   - 매매가 > KB시세: (규제·무주택, 120000/100000) → 담보 100000(`kbPrice`), 한도 40000, 자기자금 80000
@@ -398,7 +399,7 @@ HTTP API는 없다(백엔드 없음). react-query·axios는 쓰지 않는다. �
   - [ ] 1-4b. 결과 카드(조건 요약, 담보 기준 출처, 구간 기준 가격 표시, 경계 문구, 라벨 "필요한 자기자금(부대비용 제외)"), 기준일·근거 보기(`rel="noopener noreferrer"`), 미확인/0% 표시, 빈 상태, 하단 고정 요약 바(저장 버튼은 비활성 자리만). 결과 카드는 `regulations`를 prop으로 받는다 (담당: client)
   - [ ] 1-5. 순수 함수 단위 테스트: AC-1 예시, AC-3 표와 `findCapTier`·`selectCapReferencePrice`, AC-4(미확인·`rate: 0` fixture), AC-2 하드코딩 12개, AC-5 무결성, `validateAmount` 규칙표, `formatManwon` 경계표 (담당: test)
   - [ ] 1-6. 통합 테스트 #1(필드 오류), #2(미확인 카드 + 기준일·링크), #3(라디오·기본값), 수동 체크리스트 M1·M2·M3·M5 실행 (담당: test)
-- [ ] 2. 매물 저장과 비교 — AC-6, AC-7, 수동 M6·M7
+- [x] 2. 매물 저장과 비교 — AC-6, AC-7, 수동 M6·M7
   - [ ] 2-1. React 밖의 모듈: `loadListings`/`saveListings`, `createListingStore`(원문 기준 스냅샷 캐시, 통지, 손상 시 쓰기 차단, `reset`, `update` 규칙), `validateListingName`, `parseDraft`/`loadDraft`/`saveDraft`/`createDraftStore`, `sortListings`, `describeCondition`, 기본 id 생성기(`crypto.getRandomValues` 16바이트 hex) (담당: client)
   - [ ] 2-2. 훅과 라우팅: `useListings`/`useDraft`(`useSyncExternalStore`, `storage` 이벤트 통지), `parseRoute`·`useHashRoute`(알 수 없는 해시 `replace`), `src/AppRoutes.tsx`, 계산 화면 입력 상태를 draft로 교체(새로고침 후 유지), `listingId`가 목록에 없으면 `null` (담당: client)
   - [ ] 2-3a. 저장 시트와 계산 화면 연결: 이름 입력(글자 수, blur 오류), 저장/덮어쓰기/새로 저장, 저장 후 계산 화면 유지, "저장됨" 비활성, "새 계산", 쓰기 실패·손상·접근 불가 문구 (담당: client)

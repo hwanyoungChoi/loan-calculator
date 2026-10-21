@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { useDraft } from "@/hooks/useDraft";
@@ -44,6 +45,18 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
   const listings = useListings(listingStore);
   const [amountErrors, setAmountErrors] = useState(NO_ERRORS);
   const [isSaveSheetOpen, setIsSaveSheetOpen] = useState(false);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+
+  // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  /** 시트를 닫으면 포커스를 저장 버튼으로 돌려준다. 배경의 inert가 먼저 풀려야 포커스할 수 있다. */
+  const closeSaveSheet = () => {
+    flushSync(() => setIsSaveSheetOpen(false));
+    saveButtonRef.current?.focus();
+  };
 
   // 오류는 blur에서 띄우고, 고쳐지면 입력 중에도 바로 걷는다.
   const handleAmountChange = (field: AmountField, raw: string) => {
@@ -77,69 +90,80 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
         editingListing === null
           ? { ok: false, reason: "notFound" }
           : listingStore.update(editingListing.id, input);
-      if (updated.ok) setIsSaveSheetOpen(false);
+      if (updated.ok) closeSaveSheet();
       return updated;
     }
     const added = listingStore.add(input);
     if (!added.ok) return added;
     draftStore.update({ listingId: added.listing.id });
-    setIsSaveSheetOpen(false);
+    closeSaveSheet();
     return { ok: true };
   };
 
+  // 시트가 열린 동안 뒤 화면은 inert로 키보드·보조기기에서 빼낸다(aria-modal이 약속하는 동작).
   return (
-    <div className={saveButton.message === null ? styles.page : styles.pageWithBarMessage}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>주담대 한도·자기자금 계산기</h1>
-        <button type="button" className={styles.newButton} onClick={handleNewCalculation}>
-          새 계산
-        </button>
+    <>
+      <div
+        className={saveButton.message === null ? styles.page : styles.pageWithBarMessage}
+        inert={isSaveSheetOpen}
+      >
+        <div className={styles.header}>
+          <h1 className={styles.title}>주담대 한도·자기자금 계산기</h1>
+          <button type="button" className={styles.newButton} onClick={handleNewCalculation}>
+            새 계산
+          </button>
+        </div>
+        <section className={styles.inputs} aria-label="입력">
+          <AmountInput
+            id="salePrice"
+            label="매매가"
+            value={draft.salePrice}
+            error={amountErrors.salePrice}
+            onChange={(raw) => handleAmountChange("salePrice", raw)}
+            onBlur={() => handleAmountBlur("salePrice")}
+          />
+          <AmountInput
+            id="kbPrice"
+            label="KB시세"
+            value={draft.kbPrice}
+            error={amountErrors.kbPrice}
+            onChange={(raw) => handleAmountChange("kbPrice", raw)}
+            onBlur={() => handleAmountBlur("kbPrice")}
+          />
+          <ChoiceGroup
+            name="region"
+            legend="주택 소재지"
+            options={REGION_OPTIONS}
+            value={draft.region}
+            columns={3}
+            onChange={(region) => draftStore.update({ region })}
+          />
+          <ChoiceGroup
+            name="borrower"
+            legend="보유 상태"
+            options={BORROWER_OPTIONS}
+            value={draft.borrower}
+            columns={2}
+            onChange={(borrower) => draftStore.update({ borrower })}
+          />
+        </section>
+        <ResultCard input={loanInput} regulations={regulations} />
+        <SummaryBar
+          result={result}
+          save={saveButton}
+          saveButtonRef={saveButtonRef}
+          onSave={() => setIsSaveSheetOpen(true)}
+        />
       </div>
-      <section className={styles.inputs} aria-label="입력">
-        <AmountInput
-          id="salePrice"
-          label="매매가"
-          value={draft.salePrice}
-          error={amountErrors.salePrice}
-          onChange={(raw) => handleAmountChange("salePrice", raw)}
-          onBlur={() => handleAmountBlur("salePrice")}
-        />
-        <AmountInput
-          id="kbPrice"
-          label="KB시세"
-          value={draft.kbPrice}
-          error={amountErrors.kbPrice}
-          onChange={(raw) => handleAmountChange("kbPrice", raw)}
-          onBlur={() => handleAmountBlur("kbPrice")}
-        />
-        <ChoiceGroup
-          name="region"
-          legend="주택 소재지"
-          options={REGION_OPTIONS}
-          value={draft.region}
-          columns={3}
-          onChange={(region) => draftStore.update({ region })}
-        />
-        <ChoiceGroup
-          name="borrower"
-          legend="보유 상태"
-          options={BORROWER_OPTIONS}
-          value={draft.borrower}
-          columns={2}
-          onChange={(borrower) => draftStore.update({ borrower })}
-        />
-      </section>
-      <ResultCard input={loanInput} regulations={regulations} />
-      <SummaryBar result={result} save={saveButton} onSave={() => setIsSaveSheetOpen(true)} />
       {isSaveSheetOpen && loanInput !== null && (
         <SaveSheet
           initialName={editingListing?.name ?? ""}
           isEditing={editingListing !== null}
           onSave={(action, name) => saveListing(action, { ...loanInput, name })}
-          onCancel={() => setIsSaveSheetOpen(false)}
+          onCancel={closeSaveSheet}
         />
       )}
-    </div>
+    </>
   );
 }
 

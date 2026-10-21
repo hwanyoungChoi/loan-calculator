@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 
 import {
   countChars,
@@ -36,8 +36,11 @@ function nameErrorOf(raw: string): string | null {
   return validation.ok ? null : validation.message;
 }
 
-/** 저장 시트. 히스토리에 넣지 않고 취소 버튼으로만 닫는다(모바일 뒤로 가기는 이전 화면 이동). */
+/**
+ * 저장 시트. 히스토리에 넣지 않고 취소 버튼(키보드에서는 Esc)으로만 닫는다(모바일 뒤로 가기는 이전 화면 이동).
+ */
 function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps) {
+  const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
   const [nameError, setNameError] = useState<string | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
@@ -53,6 +56,8 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
     const validation = validateListingName(name);
     if (!validation.ok) {
       setNameError(validation.message);
+      // 버튼을 눌러 제출하면 포커스가 버튼에 있다. 고칠 곳(첫 오류 필드)으로 옮긴다.
+      nameInputRef.current?.focus();
       return;
     }
     const result = onSave(action, validation.name);
@@ -64,6 +69,10 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
     submit(primaryAction);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") onCancel();
+  };
+
   const describedBy = nameError === null ? NAME_COUNT_ID : `${NAME_COUNT_ID} ${NAME_ERROR_ID}`;
 
   return (
@@ -73,6 +82,7 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
         role="dialog"
         aria-modal="true"
         aria-labelledby="save-sheet-title"
+        onKeyDown={handleKeyDown}
       >
         <h2 id="save-sheet-title" className={styles.title}>
           {isEditing ? "매물 저장(수정 중)" : "매물 저장"}
@@ -88,6 +98,7 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
               </span>
             </div>
             <input
+              ref={nameInputRef}
               id={NAME_INPUT_ID}
               className={styles.input}
               type="text"

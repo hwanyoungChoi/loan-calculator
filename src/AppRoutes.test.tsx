@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,6 +27,24 @@ function baseDateText() {
   return screen.getByText(new RegExp(`규제 기준일 ${REGULATION_BASE_DATE}`));
 }
 
+function listingNames(list: HTMLElement) {
+  return within(list)
+    .getAllByRole("listitem")
+    .map((item) => within(item).getByRole("strong").textContent);
+}
+
+/** jsdom의 scrollY는 늘 0이다. 브라우저처럼 scrollTo가 scrollY를 바꾸게 해서 복원 순서까지 본다. */
+function setScrollY(y: number) {
+  Object.defineProperty(window, "scrollY", { value: y, configurable: true, writable: true });
+}
+
+function mockBrowserScroll() {
+  return vi.spyOn(window, "scrollTo").mockImplementation(((x: number, y: number) => {
+    void x;
+    setScrollY(y);
+  }) as typeof window.scrollTo);
+}
+
 describe("저장 흐름 (통합)", () => {
   // jsdom은 테스트 사이에 해시가 남는다.
   beforeEach(() => {
@@ -35,6 +53,7 @@ describe("저장 흐름 (통합)", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    setScrollY(0);
   });
 
   it("#4 손상된 Storage를 주입하면 저장 버튼이 disabled이고 목록에 setItem하지 않으며, 목록 화면에 손상 문구와 초기화가 보인다 (AC-6d)", async () => {
@@ -119,16 +138,29 @@ describe("저장 흐름 (통합)", () => {
       [LISTINGS_STORAGE_KEY]: JSON.stringify([raemian, xi]),
     });
     window.location.hash = "#/listings";
+    const scrollTo = mockBrowserScroll();
     render(<AppRoutes storage={storage} />);
 
     // 목록: 기준일, 2개, 자기자금순
     expect(baseDateText()).toBeInTheDocument();
-    const list = screen.getByRole("list", { name: "저장한 매물 2개" });
-    expect(
-      within(list)
-        .getAllByRole("listitem")
-        .map((item) => within(item).getByRole("strong").textContent),
-    ).toEqual(["자이 3단지", "래미안 101동"]);
+    let list = screen.getByRole("list", { name: "저장한 매물 2개" });
+    expect(listingNames(list)).toEqual(["자이 3단지", "래미안 101동"]);
+
+    // 스크롤 복원 (AC-8e): 목록 → 카드(push) → 계산 화면은 맨 위 → 뒤로 가기 → 같은 위치
+    setScrollY(1500);
+    const historyBeforeCard = window.history.length;
+    await user.click(within(list).getByRole("link", { name: /래미안 101동/ }));
+    expect(await screen.findByLabelText("KB시세")).toBeInTheDocument();
+    expect(window.location.hash).toBe("#/");
+    expect(window.history.length).toBe(historyBeforeCard + 1);
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
+    expect(window.scrollY).toBe(0);
+
+    window.history.back();
+    list = await screen.findByRole("list", { name: "저장한 매물 2개" });
+    expect(window.location.hash).toBe("#/listings");
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 1500);
+    expect(window.scrollY).toBe(1500);
 
     // 카드를 누르면 계산 화면에 그 매물 값이 채워지고 "저장됨"
     await user.click(within(list).getByRole("link", { name: /래미안 101동/ }));
@@ -168,15 +200,43 @@ describe("저장 흐름 (통합)", () => {
     expect(Number.isNaN(Date.parse(saved[0].updatedAt))).toBe(false);
     expect(saved[1]).toEqual(xi);
 
-    // 목록 화면: 개수 그대로, 기준일 표시
+    // 목록 화면: 개수 그대로, 기준일 표시.
+    // 탭 이동은 replace라 이력이 쌓이지 않고, 탭으로 들어온 목록은 저장된 위치(1500)가 아니라 맨 위에서 시작한다.
+    const historyBeforeTab = window.history.length;
+    scrollTo.mockClear();
     await user.click(screen.getByRole("link", { name: "저장 목록" }));
-    expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
+    list = await screen.findByRole("list", { name: "저장한 매물 2개" });
     expect(baseDateText()).toBeInTheDocument();
+    expect(window.location.hash).toBe("#/listings");
+    expect(window.history.length).toBe(historyBeforeTab);
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
+    expect(window.scrollY).toBe(0);
+
+    // 정렬 변경은 주소(#/listings?sort=)에 replace로 남고, 주소의 정렬이 화면에 반영된다.
+    // 덮어쓰기로 래미안의 updatedAt이 가장 최근이다.
+    await user.click(screen.getByRole("radio", { name: "최근 저장순" }));
+    expect(window.location.hash).toBe("#/listings?sort=recent");
+    await waitFor(() => expect(screen.getByRole("radio", { name: "최근 저장순" })).toBeChecked());
+    expect(screen.getByRole("radio", { name: "자기자금순" })).not.toBeChecked();
+    expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
+      "래미안 101동",
+      "자이 3단지",
+    ]);
+    await user.click(screen.getByRole("radio", { name: "자기자금순" }));
+    expect(window.location.hash).toBe("#/listings");
+    await waitFor(() => expect(screen.getByRole("radio", { name: "자기자금순" })).toBeChecked());
+    expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
+      "자이 3단지",
+      "래미안 101동",
+    ]);
+    expect(window.history.length).toBe(historyBeforeTab);
 
     // "새 계산"은 금액과 listingId를 비우고 조건은 유지한다:
     // 같은 값을 다시 입력해도 더는 그 매물의 "저장됨"이 아니다.
     await user.click(screen.getByRole("link", { name: "계산" }));
     await user.click(await screen.findByRole("button", { name: "새 계산" }));
+    expect(window.location.hash).toBe("#/");
+    expect(window.history.length).toBe(historyBeforeTab);
     expect(screen.getByLabelText("매매가")).toHaveValue("");
     expect(screen.getByLabelText("KB시세")).toHaveValue("");
     expect(screen.getByRole("radio", { name: "무주택·생애최초" })).toBeChecked();

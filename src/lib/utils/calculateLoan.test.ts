@@ -88,6 +88,20 @@ describe("calculateLoan (AC-1)", () => {
   });
 
   it.each([
+    [99995, 69996], // 69996.5: 반올림이면 69997
+    [99997, 69997], // 69997.9: 반올림·올림이면 69998
+    [15, 10], // 10.5
+  ])(
+    "내림: 비수도권·무주택(70%) %i → LTV 금액 %i (소수부가 .5 이상이어도 내린다)",
+    (price, expected) => {
+      const result = calculateLoan(input("nonCapital", "noHome", price, price));
+      expect(result.ltvAmount).toBe(expected);
+      expect(result.loanLimit).toBe(expected);
+      expect(result.ownFunds).toBe(price - expected);
+    },
+  );
+
+  it.each([
     [90, 63],
     [170, 119],
     [180, 126],

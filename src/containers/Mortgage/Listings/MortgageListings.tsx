@@ -9,6 +9,7 @@ import { sortListings } from "@/lib/utils/sortListings";
 import styles from "./MortgageListings.module.css";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import ListingCard from "./components/ListingCard";
+import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 
 import type { DraftStore } from "@/lib/types/draft";
 import type { Listing, ListingSort, ListingStore, ListingWriteFailure } from "@/lib/types/listing";
@@ -18,6 +19,8 @@ type MortgageListingsProps = {
   listingStore: ListingStore;
   draftStore: DraftStore;
   regulations: Regulations;
+  /** 주소(`#/listings?sort=`)에서 읽은 정렬. 정렬의 단일 출처다. */
+  sort: ListingSort;
 };
 
 const SORT_OPTIONS: { value: ListingSort; label: string }[] = [
@@ -35,11 +38,15 @@ const DELETE_FAILURE_MESSAGES: Record<ListingWriteFailure["reason"], string | nu
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
 /** 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007). */
-function MortgageListings({ listingStore, draftStore, regulations }: MortgageListingsProps) {
+function MortgageListings({ listingStore, draftStore, regulations, sort }: MortgageListingsProps) {
   const snapshot = useListings(listingStore);
-  // 태스크 3-1에서 `#/listings?sort=` 쿼리로 옮긴다.
-  const [sort, setSort] = useState<ListingSort>("ownFunds");
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  useListingsScrollRestoration();
+
+  /** 정렬은 새로고침해도 남게 주소에 두고, 바꿀 때 히스토리는 쌓지 않는다. */
+  const handleSortChange = (nextSort: ListingSort) => {
+    window.location.replace(PATHS.listings(nextSort));
+  };
 
   /** 카드 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
   const handleOpen = (listing: Listing) => {
@@ -80,7 +87,7 @@ function MortgageListings({ listingStore, draftStore, regulations }: MortgageLis
           options={SORT_OPTIONS}
           value={sort}
           columns={2}
-          onChange={setSort}
+          onChange={handleSortChange}
         />
         {deleteError !== null && (
           <p role="alert" className={styles.error}>

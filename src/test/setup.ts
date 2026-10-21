@@ -6,3 +6,8 @@ import { afterEach } from "vitest";
 afterEach(() => {
   cleanup();
 });
+
+// jsdom은 scrollTo를 구현하지 않아 부를 때마다 "Not implemented" 오류를 찍는다. 스크롤 확인은 vi.spyOn으로 한다.
+if (typeof window !== "undefined") {
+  window.scrollTo = () => {};
+}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import TabNav from "@/components/TabNav";
 import MortgageCalculator from "@/containers/Mortgage/Calculator/MortgageCalculator";
 import MortgageListings from "@/containers/Mortgage/Listings/MortgageListings";
+import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useListingsScrollRestoration";
 import { useHashRoute } from "@/hooks/useHashRoute";
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 import { getBrowserStorage } from "@/lib/utils/browserStorage";
@@ -35,13 +36,14 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
   const [stores] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
 
+  // 탭으로 들어온 목록은 맨 위에서 시작한다. 스크롤 복원은 카드 → 계산 → 뒤로 가기에서만 일어난다.
   return (
     <>
-      <TabNav current={route.name} />
+      <TabNav current={route.name} onNavigate={resetListingsScroll} />
       {route.name === "calculator" ? (
         <MortgageCalculator {...stores} regulations={regulations} />
       ) : (
-        <MortgageListings {...stores} regulations={regulations} />
+        <MortgageListings {...stores} regulations={regulations} sort={route.sort} />
       )}
     </>
   );

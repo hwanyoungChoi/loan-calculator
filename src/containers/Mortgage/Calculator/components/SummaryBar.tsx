@@ -4,17 +4,20 @@ import styles from "./SummaryBar.module.css";
 
 import type { SaveButtonState } from "../saveButtonState";
 import type { LoanResult } from "@/lib/types/loan";
+import type { Ref } from "react";
 
 type SummaryBarProps = {
   result: LoanResult | null;
   save: SaveButtonState;
+  /** 저장 시트를 닫은 뒤 포커스를 돌려줄 자리 */
+  saveButtonRef: Ref<HTMLButtonElement>;
   onSave: () => void;
 };
 
 const SAVE_MESSAGE_ID = "save-unavailable-message";
 
 /** 화면 하단 고정 요약. 키보드가 덮는 것은 허용한다(visualViewport 대응 없음). */
-function SummaryBar({ result, save, onSave }: SummaryBarProps) {
+function SummaryBar({ result, save, saveButtonRef, onSave }: SummaryBarProps) {
   return (
     <div className={styles.bar}>
       {save.message !== null && (
@@ -33,6 +36,7 @@ function SummaryBar({ result, save, onSave }: SummaryBarProps) {
         </div>
       </dl>
       <button
+        ref={saveButtonRef}
         type="button"
         className={styles.saveButton}
         disabled={save.isDisabled}

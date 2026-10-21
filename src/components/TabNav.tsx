@@ -3,11 +3,14 @@ import { PATHS } from "@/lib/constants/paths";
 import styles from "./TabNav.module.css";
 
 import type { Route } from "@/lib/types/route";
+import type { MouseEvent } from "react";
 
 type RouteName = Route["name"];
 
 type TabNavProps = {
   current: RouteName;
+  /** 탭으로 화면을 바꾸기 직전에 부른다. */
+  onNavigate: () => void;
 };
 
 const TABS: Record<RouteName, { label: string; href: string }> = {
@@ -17,8 +20,20 @@ const TABS: Record<RouteName, { label: string; href: string }> = {
 
 const TAB_ORDER: RouteName[] = ["calculator", "listings"];
 
-/** 상단 탭 "계산 | 저장 목록" */
-function TabNav({ current }: TabNavProps) {
+/** 새 탭에서 열기 같은 브라우저 기본 동작은 막지 않는다. */
+function isModifiedClick(event: MouseEvent) {
+  return event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+}
+
+/** 상단 탭 "계산 | 저장 목록". 탭을 오가도 뒤로 가기 이력이 쌓이지 않게 replace로 이동한다. */
+function TabNav({ current, onNavigate }: TabNavProps) {
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (isModifiedClick(event)) return;
+    event.preventDefault();
+    onNavigate();
+    window.location.replace(href);
+  };
+
   return (
     <nav className={styles.nav} aria-label="화면">
       <ul className={styles.tabs}>
@@ -28,6 +43,7 @@ function TabNav({ current }: TabNavProps) {
               className={styles.tab}
               href={TABS[name].href}
               aria-current={name === current ? "page" : undefined}
+              onClick={(event) => handleClick(event, TABS[name].href)}
             >
               {TABS[name].label}
             </a>
