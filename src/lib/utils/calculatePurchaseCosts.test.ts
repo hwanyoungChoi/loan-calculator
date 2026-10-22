@@ -90,29 +90,27 @@ describe("calculatePurchaseCosts: 취득세 (만원, 항목별 올림)", () => {
   });
 });
 
-describe("calculatePurchaseCosts: 중개보수 (상한 요율, 부가세 10% 포함, 이상/미만)", () => {
-  it.each<[number, number, boolean, number, number]>([
-    // 매매가, 요율 bp, 한도 적용, 보수, 부가세
-    [4000, 60, false, 24, 3],
-    [4999, 60, true, 25, 3],
-    [5000, 50, false, 25, 3],
-    [15000, 50, false, 75, 8],
-    [19000, 50, true, 80, 8],
-    [19999, 50, true, 80, 8],
-    [20000, 40, false, 80, 8],
-    [50000, 40, false, 200, 20],
-    [89999, 40, false, 360, 36],
-    [90000, 50, false, 450, 45],
-    [119999, 50, false, 600, 60],
-    [120000, 60, false, 720, 72],
-    [150000, 70, false, 1050, 105],
-  ])("%i만원 → %ibp, 한도 %s, 보수 %i + 부가세 %i", (salePrice, rateBp, isCapped, fee, vat) => {
+describe("calculatePurchaseCosts: 중개보수 (상한 요율, 부가세 별도, 이상/미만)", () => {
+  it.each<[number, number, boolean, number]>([
+    // 매매가, 요율 bp, 한도 적용, 보수
+    [4000, 60, false, 24],
+    [4999, 60, true, 25],
+    [5000, 50, false, 25],
+    [15000, 50, false, 75],
+    [19000, 50, true, 80],
+    [19999, 50, true, 80],
+    [20000, 40, false, 80],
+    [50000, 40, false, 200],
+    [89999, 40, false, 360],
+    [90000, 50, false, 450],
+    [119999, 50, false, 600],
+    [120000, 60, false, 720],
+    [150000, 70, false, 1050],
+  ])("%i만원 → %ibp, 한도 %s, 보수 %i", (salePrice, rateBp, isCapped, total) => {
     expect(calculatePurchaseCosts(input(salePrice), LOAN_REGULATIONS).brokerageFee).toEqual({
       rateBp,
       isCapped,
-      fee,
-      vat,
-      total: fee + vat,
+      total,
     });
   });
 });

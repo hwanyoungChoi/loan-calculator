@@ -209,11 +209,11 @@ describe("계산 화면 (통합)", () => {
     // 기본값은 LTV 직접 입력 70%다(ADR-022). 보유 상태별 규제 LTV를 보려고 끈다.
     await user.click(screen.getByRole("switch", { name: "LTV 직접 입력(기본 70%)" }));
 
-    // 규제지역·무주택 40%로 계산된다. 자기자금 = 매매가 − 한도 + 취득세 등·중개보수 4,950
+    // 규제지역·무주택 40%로 계산된다. 자기자금 = 매매가 − 한도 + 취득세 등·중개보수 4,875
     expect(within(resultCard()).getByRole("heading")).toHaveTextContent("규제지역 · 무주택");
     expect(rowValue("적용 LTV")).toBe("40%");
     expect(rowValue("예상 한도")).toBe("4억 8,000만원");
-    expect(rowValue("필요한 자기자금")).toBe("8억 1,950만원");
+    expect(rowValue("필요한 자기자금")).toBe("8억 1,875만원");
 
     const cases = [
       // 라디오 이름, 조건 요약, 적용 LTV, LTV 금액, 예상 한도, 자기자금
@@ -223,7 +223,7 @@ describe("계산 화면 (통합)", () => {
         "70%",
         "8억 4,000만원",
         "6억원",
-        "6억 9,950만원",
+        "6억 9,875만원",
       ],
       [
         "1주택 처분조건부",
@@ -231,7 +231,7 @@ describe("계산 화면 (통합)", () => {
         "40%",
         "4억 8,000만원",
         "4억 8,000만원",
-        "8억 1,950만원",
+        "8억 1,875만원",
       ],
       [
         "1주택 미처분(추가구입)",
@@ -239,10 +239,10 @@ describe("계산 화면 (통합)", () => {
         "LTV 0% · 주택구입 목적 주담대 불가",
         "0만원",
         "0만원",
-        // 조정대상지역 2주택 중과 8%: 부대비용 11,325
-        "13억 6,325만원",
+        // 조정대상지역 2주택 중과 8%: 부대비용 11,250
+        "13억 6,250만원",
       ],
-      ["무주택", "규제지역 · 무주택", "40%", "4억 8,000만원", "4억 8,000만원", "8억 1,950만원"],
+      ["무주택", "규제지역 · 무주택", "40%", "4억 8,000만원", "4억 8,000만원", "8억 1,875만원"],
     ];
 
     for (const [radio, condition, ltv, ltvAmount, loanLimit, ownFunds] of cases) {
@@ -264,7 +264,7 @@ describe("계산 화면 (통합)", () => {
     expect(rowValue("적용 LTV")).toBe("80%");
     expect(rowValue("한도 상한")).toBe("적용 안 함");
     expect(rowValue("예상 한도")).toBe("9억 6,000만원");
-    expect(rowValue("필요한 자기자금")).toBe("3억 3,950만원");
+    expect(rowValue("필요한 자기자금")).toBe("3억 3,875만원");
 
     // 서민·실수요자(시나리오 1): 규제지역 7억 → 요건 안내 3줄, LTV 60%, 결과 카드의 "확인 안 함" 문구
     await user.click(screen.getByRole("radio", { name: "규제지역" }));
@@ -281,7 +281,7 @@ describe("계산 화면 (통합)", () => {
     expect(within(resultCard()).getByText(UNVERIFIED_REQUIREMENTS)).toBeInTheDocument();
     expect(rowValue("적용 LTV")).toBe("60%");
     expect(rowValue("예상 한도")).toBe("4억 2,000만원");
-    expect(rowValue("필요한 자기자금")).toBe("2억 9,594만원");
+    expect(rowValue("필요한 자기자금")).toBe("2억 9,566만원");
     expect(within(summaryBar()).queryByText("요건 미충족")).not.toBeInTheDocument();
 
     // 시나리오 2: 85000/84000 → 판정가 8억 5,000만원(매매가) 초과로 ineligible. 한도·자기자금은 정확히 "—"
@@ -360,10 +360,10 @@ describe("계산 화면 (통합)", () => {
     expect(within(resultCard()).getByText("규제 기준 40%")).toBeInTheDocument();
     expect(within(resultCard()).queryByText(/실제 대출은 규제 기준/)).not.toBeInTheDocument();
 
-    // 0: 한도는 "—"가 아니라 0만원, 자기자금은 매매가 전액 + 부대비용 3,850
+    // 0: 한도는 "—"가 아니라 0만원, 자기자금은 매매가 전액 + 부대비용 3,800
     await retype(user, ltvInput, "0");
     expect(rowValue("예상 한도")).toBe("0만원");
-    expect(rowValue("필요한 자기자금")).toBe("10억 3,850만원");
+    expect(rowValue("필요한 자기자금")).toBe("10억 3,800만원");
     expect(summaryValue("예상 한도")).toBe("0만원");
     expect(within(summaryBar()).getByText("사용자 지정 LTV 0%")).toBeInTheDocument();
 

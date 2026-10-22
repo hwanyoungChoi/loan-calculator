@@ -156,7 +156,7 @@ describe("calculateLoan (AC-1)", () => {
 });
 
 describe("필요한 자기자금 = 매매가 − 예상 한도 + 부대비용 (ADR-022 AC-4)", () => {
-  it("7억/6억 8,000·규제지역·무주택·70% → 22,400 + 1,286 + 308 = 23,994. 중과 농특세 미확인이면 그 항목만 빼고 계산한다", () => {
+  it("7억/6억 8,000·규제지역·무주택·70% → 22,400 + 1,286 + 280 = 23,966. 중과 농특세 미확인이면 그 항목만 빼고 계산한다", () => {
     const scenario: LoanInput = {
       ...input("regulated", "noHome", 70000, 68000),
       customLtvRate: 70,
@@ -165,15 +165,15 @@ describe("필요한 자기자금 = 매매가 − 예상 한도 + 부대비용 (A
       status: "ok",
       loanLimit: 47600,
       downPayment: 22400,
-      purchaseCosts: { acquisitionTax: { total: 1286 }, brokerageFee: { total: 308 }, total: 1594 },
-      ownFunds: 23994,
+      purchaseCosts: { acquisitionTax: { total: 1286 }, brokerageFee: { total: 280 }, total: 1566 },
+      ownFunds: 23966,
     });
 
     const heavyOver85: LoanInput = { ...scenario, borrower: "oneHomeKeep", isAreaOver85: true };
     const result = calculateLoan(heavyOver85);
     expect(result.purchaseCosts.acquisitionTax.ruralSpecialTax).toBeNull();
-    // 22,400 + 취득세 5,600 + 지방교육세 280 + 중개보수 308
-    expect(result.ownFunds).toBe(28588);
+    // 22,400 + 취득세 5,600 + 지방교육세 280 + 중개보수 280
+    expect(result.ownFunds).toBe(28560);
   });
 });
 

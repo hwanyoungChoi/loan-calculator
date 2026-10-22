@@ -1,6 +1,6 @@
 # LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 완료 · 마지막 업데이트: 2026-10-22 14:08
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 14:30
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-PR #5 머지 완료(운영 배포 진행). 대기: KB시세 기억 기능 여부(요청자), Worker 이름 mortgage-fit 변경·시크릿 Secret 재등록, U5 스크린샷
+fe가 목록 카드 내역(집값 중 내 돈·취득세 등·중개보수)과 라벨 '집값 중 내 돈' 추가 중 → PR #7에 push
 
 ## 최근 결정
 
@@ -33,9 +33,9 @@ PR #5 머지 완료(운영 배포 진행). 대기: KB시세 기억 기능 여부
 
 ## 사용자 확인 필요
 
-- U5: 네이버부동산 앱 매물 상세 화면 스크린샷 1~2장
-- Cloudflare Worker 이름 mortgage-fit 변경 + MOLIT_SERVICE_KEY Secret 재등록
-- 요청자에게: KB시세는 자동 조회 불가(공식 API 없음). 같은 단지 KB시세 기억 기능을 원하는지
+- mortgage-fit Worker에 MOLIT_SERVICE_KEY를 Secret으로 등록(실거래가 503)
+- 애드센스: 개인용 유지 vs conychoi.dev 공개 서비스 방향 결정
+- U5: 네이버부동산 앱 매물 상세 화면 스크린샷(면적 인식 보정)
 
 ## 막힌 것
 
@@ -43,6 +43,6 @@ PR #5 머지 완료(운영 배포 진행). 대기: KB시세 기억 기능 여부
 
 ## PR
 
-[#5](https://github.com/hwanyoungChoi/mortgage-fit/pull/5) · 통과 · 머지됨
+[#7](https://github.com/hwanyoungChoi/mortgage-fit/pull/7) · Auto-fix · CI 진행 중
 
 <!-- spec: specs/fees-and-default-ltv.md -->

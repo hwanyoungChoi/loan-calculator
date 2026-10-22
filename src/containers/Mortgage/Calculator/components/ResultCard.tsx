@@ -50,7 +50,7 @@ function describeStatus(result: LoanResult, regulations: Regulations): string | 
 const UNVERIFIED_REQUIREMENTS = "소득·무주택세대주 요건은 확인하지 않았습니다";
 
 /**
- * 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 매매가 − 예상 한도 → 취득세 등 → 중개보수 → 자기자금.
+ * 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 집값 중 내 돈(매매가 − 예상 한도) → 취득세 등 → 중개보수 → 자기자금.
  * 부대비용에 미확인 항목(다주택 중과 농특세)이 있으면 자기자금을 지우지 않고 그 항목만 뺀 값과 표시를 함께 보여 준다(ADR-022).
  */
 function ResultCard({ input, regulations }: ResultCardProps) {
@@ -87,7 +87,11 @@ function ResultCard({ input, regulations }: ResultCardProps) {
           value={formatManwonOrDash(result.loanLimit)}
           variant="emphasis"
         />
-        <ResultRow label="매매가 − 예상 한도" value={formatManwonOrDash(result.downPayment)} />
+        <ResultRow
+          label="집값 중 내 돈"
+          value={formatManwonOrDash(result.downPayment)}
+          details="매매가 − 예상 한도"
+        />
         <PurchaseCostRows input={input} costs={result.purchaseCosts} regulations={regulations} />
         <ResultRow
           label="필요한 자기자금"

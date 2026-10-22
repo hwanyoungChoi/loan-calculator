@@ -25,7 +25,7 @@ function PurchaseCostRows({ input, costs, regulations }: PurchaseCostRowsProps) 
   const { firstHomeReliefMax } = regulations.purchaseCosts.acquisitionTax;
   const taxLabel = acquisitionTax.isHeavy ? "다주택 중과" : "취득세";
   const feeBasis = brokerageFee.isCapped
-    ? `한도 ${formatManwon(brokerageFee.fee)}`
+    ? `한도 ${formatManwon(brokerageFee.total)}`
     : `상한 ${formatRateBp(brokerageFee.rateBp)}`;
 
   return (
@@ -55,7 +55,7 @@ function PurchaseCostRows({ input, costs, regulations }: PurchaseCostRowsProps) 
       <ResultRow
         label="중개보수"
         value={formatManwon(brokerageFee.total)}
-        details={`${feeBasis} 기준 추정 · 부가세 ${regulations.purchaseCosts.brokerageFee.vatPercent}% 포함`}
+        details={`${feeBasis} 기준 추정 · 부가세 별도`}
       />
     </>
   );

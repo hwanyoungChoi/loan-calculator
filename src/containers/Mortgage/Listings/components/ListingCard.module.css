@@ -80,6 +80,13 @@
   font-weight: 700;
 }
 
+/* 자기자금 내역. 위 행보다 작고 흐리게 둔다. */
+.breakdown {
+  composes: figure;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
 .actions {
   position: absolute;
   top: var(--space-2);

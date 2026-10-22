@@ -71,7 +71,6 @@ export const BROKERAGE_FEE = {
     { below: 150000, rateBp: 60, maxFee: null },
     { below: null, rateBp: 70, maxFee: null },
   ],
-  vatPercent: 10,
   sources: [
     {
       title: "공인중개사법 시행규칙 제20조 제1항 별표1",
