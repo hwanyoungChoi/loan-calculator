@@ -1,6 +1,6 @@
 # LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 14:26
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 14:30
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-중개보수 부가세 제외(요청자) — fe 수정 중(브랜치 cony/brokerage-no-vat)
+fe가 목록 카드 내역(집값 중 내 돈·취득세 등·중개보수)과 라벨 '집값 중 내 돈' 추가 중 → PR #7에 push
 
 ## 최근 결정
 
@@ -43,6 +43,6 @@
 
 ## PR
 
-[#6](https://github.com/hwanyoungChoi/mortgage-fit/pull/6) · 머지됨 · 운영 배포 확인(mortgage-fit.welcomechoi94.workers.dev)
+[#7](https://github.com/hwanyoungChoi/mortgage-fit/pull/7) · Auto-fix · CI 진행 중
 
 <!-- spec: specs/fees-and-default-ltv.md -->
