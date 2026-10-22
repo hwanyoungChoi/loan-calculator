@@ -13,6 +13,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       borrower: "noHomePreferred",
       listingId: "listing-a",
       customLtv: "55",
+      isCustomLtvInput: true,
       isAreaOver85: true,
     };
     expect(toNewCalculationDraft(draft)).toEqual({
@@ -22,6 +23,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       borrower: "noHomePreferred",
       listingId: null,
       customLtv: "70",
+      isCustomLtvInput: false,
       isAreaOver85: false,
     });
   });
@@ -34,6 +36,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       borrower: "noHome",
       listingId: null,
       customLtv: "",
+      isCustomLtvInput: false,
       isAreaOver85: false,
     };
     expect(toNewCalculationDraft(draft).customLtv).toBe("70");

@@ -62,3 +62,20 @@
   font-weight: 700;
   text-decoration: none;
 }
+
+.compactTable {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 열 제목은 줄(CompactListingRow)과 같은 좌우 여백·양끝 정렬을 쓴다. */
+.compactHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 12px;
+}

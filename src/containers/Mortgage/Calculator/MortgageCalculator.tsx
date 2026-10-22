@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useDraft } from "@/hooks/useDraft";
 import { useListings } from "@/hooks/useListings";
@@ -11,7 +11,7 @@ import styles from "./MortgageCalculator.module.css";
 import { applyListingText } from "./applyListingText";
 import EditingBanner from "./components/EditingBanner";
 import EmptyResultCard from "./components/EmptyResultCard";
-import LoanInputs, { KB_PRICE_INPUT_ID } from "./components/LoanInputs";
+import LoanInputs, { KB_PRICE_INPUT_ID, SALE_PRICE_INPUT_ID } from "./components/LoanInputs";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
 import ScreenshotSheet from "./components/ScreenshotSheet";
@@ -19,6 +19,7 @@ import SummaryBar from "./components/SummaryBar";
 import TradesSheet from "./components/TradesSheet";
 import { describeEmptyResult } from "./emptyResultMessage";
 import { useOpenSheet } from "./hooks/useOpenSheet";
+import { ltvChoiceOf } from "./ltvChoice";
 import { toNewCalculationDraft } from "./newCalculationDraft";
 import { pickSuggestedName } from "./pickSuggestedName";
 import { getSaveButtonState, selectSaveStatus } from "./saveButtonState";
@@ -35,7 +36,13 @@ type MortgageCalculatorProps = {
   draftStore: DraftStore;
   tradeLookupStore: TradeLookupStore;
   regulations: Regulations;
+  /** 저장 시트 이름 제안(스크린샷·매물 복사). 목록 화면의 복사가 채우므로 화면 밖에서 받는다. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다. */
+  suggestedName: string;
+  onSuggestedNameChange: (name: string) => void;
 };
+
+/** 저장 알림이 보이는 시간 */
+const SAVED_NOTICE_MS = 3000;
 
 /** 계산 화면은 항상 draft만 본다(ADR-004). */
 function MortgageCalculator({
@@ -43,6 +50,8 @@ function MortgageCalculator({
   draftStore,
   tradeLookupStore,
   regulations,
+  suggestedName,
+  onSuggestedNameChange: setSuggestedName,
 }: MortgageCalculatorProps) {
   const draft = useDraft(draftStore);
   const listings = useListings(listingStore);
@@ -51,8 +60,7 @@ function MortgageCalculator({
   const sheet = useOpenSheet();
   // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
   const [tradeAptName, setTradeAptName] = useState("");
-  // 스크린샷에서 만든 저장 이름 제안. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다.
-  const [suggestedName, setSuggestedName] = useState("");
+  const [savedNotice, setSavedNotice] = useState<string | null>(null);
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const screenshotButtonRef = useRef<HTMLButtonElement>(null);
   const tradesButtonRef = useRef<HTMLButtonElement>(null);
@@ -62,6 +70,12 @@ function MortgageCalculator({
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  useEffect(() => {
+    if (savedNotice === null) return;
+    const timer = window.setTimeout(() => setSavedNotice(null), SAVED_NOTICE_MS);
+    return () => window.clearTimeout(timer);
+  }, [savedNotice]);
 
   const handleNewCalculation = () => {
     draftStore.update(toNewCalculationDraft(draft));
@@ -91,24 +105,19 @@ function MortgageCalculator({
   const saveButton = getSaveButtonState(saveInput);
   const hasInputChanges = selectSaveStatus(saveInput) !== "saved";
 
-  /** 저장에 성공하면 시트를 닫고 계산 화면에 머문다. 새로 저장하면 draft가 새 매물을 가리킨다. */
+  /** 저장·덮어쓰기에 성공하면 "새 계산"과 같은 상태로 비우고 알린 뒤, 다음 매물을 바로 입력하게 매매가로 포커스를 옮긴다. */
   const saveListing = (action: SaveAction, input: ListingInput): ListingWriteResult => {
-    if (action === "overwrite") {
-      const updated: ListingWriteResult =
-        editingListing === null
-          ? { ok: false, reason: "notFound" }
+    const saved =
+      action === "add"
+        ? listingStore.add(input)
+        : editingListing === null
+          ? ({ ok: false, reason: "notFound" } as const)
           : listingStore.update(editingListing.id, input);
-      if (updated.ok) {
-        setSuggestedName("");
-        sheet.close();
-      }
-      return updated;
-    }
-    const added = listingStore.add(input);
-    if (!added.ok) return added;
-    draftStore.update({ listingId: added.listing.id });
-    setSuggestedName("");
+    if (!saved.ok) return saved;
+    handleNewCalculation();
+    setSavedNotice(`'${input.name}' 저장했습니다`);
     sheet.close();
+    document.getElementById(SALE_PRICE_INPUT_ID)?.focus();
     return { ok: true };
   };
 
@@ -174,6 +183,9 @@ function MortgageCalculator({
           onSave={() => sheet.open("save", saveButtonRef.current)}
         />
       </div>
+      <div role="status" className={styles.noticeRegion}>
+        {savedNotice !== null && <p className={styles.notice}>{savedNotice}</p>}
+      </div>
       {sheet.openSheet === "save" && loanInput !== null && (
         <SaveSheet
           initialName={pickSuggestedName(
@@ -191,7 +203,7 @@ function MortgageCalculator({
         <ScreenshotSheet
           currentSalePrice={draft.salePrice}
           isEditing={editingListing !== null}
-          isLtvDefault={draft.customLtv === DEFAULT_CUSTOM_LTV}
+          isLtvDefault={ltvChoiceOf(draft) === DEFAULT_CUSTOM_LTV}
           onApply={handleScreenshotApply}
           onClose={sheet.close}
         />

@@ -14,6 +14,7 @@ export function toNewCalculationDraft(draft: Draft): Draft {
     kbPrice: "",
     listingId: null,
     customLtv: DEFAULT_CUSTOM_LTV,
+    isCustomLtvInput: false,
     isAreaOver85: false,
   };
 }

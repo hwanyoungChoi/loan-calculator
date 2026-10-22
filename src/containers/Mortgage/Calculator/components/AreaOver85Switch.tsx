@@ -1,6 +1,6 @@
 import { formatRateBp } from "@/lib/utils/formatRateBp";
 
-import styles from "./CustomLtvField.module.css";
+import styles from "./AreaOver85Switch.module.css";
 
 type AreaOver85SwitchProps = {
   checked: boolean;

@@ -28,8 +28,8 @@ function toSnapshot(result: LoadListingsResult): ListingSnapshot {
 
 /**
  * 호출 쪽 객체에 다른 키가 섞여 있어도 저장 필드만 옮긴다.
- * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를 쓰지 않는다.
- * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022).
+ * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를 쓰지 않는다.
+ * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022). 메모만 `update`가 따로 이어 준다.
  */
 function toListingFields({
   name,
@@ -39,6 +39,7 @@ function toListingFields({
   borrower,
   customLtvRate,
   isAreaOver85,
+  memo,
 }: ListingInput): ListingInput {
   return {
     name,
@@ -48,6 +49,7 @@ function toListingFields({
     borrower,
     ...(typeof customLtvRate === "number" && { customLtvRate }),
     ...(isAreaOver85 === true && { isAreaOver85 }),
+    ...(typeof memo === "string" && memo !== "" && { memo }),
   };
 }
 
@@ -119,8 +121,10 @@ export function createListingStore({ storage, createId, now }: ListingStoreOptio
       if (!current.ok) return current;
       const index = current.listings.findIndex((listing) => listing.id === id);
       if (index === -1) return { ok: false, reason: "notFound" };
-      const { createdAt } = current.listings[index];
-      const updated: Listing = { id, ...toListingFields(input), createdAt, updatedAt: now() };
+      const { createdAt, memo } = current.listings[index];
+      // 계산 화면의 덮어쓰기는 memo 키를 넘기지 않으므로 기존 메모를 둔다. 메모 편집만 memo 키를 넘긴다.
+      const fields = toListingFields(Object.hasOwn(input, "memo") ? input : { ...input, memo });
+      const updated: Listing = { id, ...fields, createdAt, updatedAt: now() };
       return commit(current.listings.with(index, updated));
     },
 

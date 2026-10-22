@@ -11,17 +11,18 @@ const DRAFT: Draft = {
   borrower: "noHome",
   listingId: null,
   customLtv: "",
+  isCustomLtvInput: false,
   isAreaOver85: false,
 };
 
 describe("describeEmptyResult (결과 카드 빈 상태 안내)", () => {
   it("금액이 갖춰졌고 직접 입력이 켠 채 비었으면 LTV 안내", () => {
-    expect(describeEmptyResult(DRAFT)).toBe("LTV를 입력하거나 직접 입력을 끄세요");
+    expect(describeEmptyResult(DRAFT)).toBe("LTV를 입력하거나 다른 LTV를 고르세요");
   });
 
   it("직접 입력 값이 오류여도 LTV 안내", () => {
     expect(describeEmptyResult({ ...DRAFT, customLtv: "101" })).toBe(
-      "LTV를 입력하거나 직접 입력을 끄세요",
+      "LTV를 입력하거나 다른 LTV를 고르세요",
     );
   });
 

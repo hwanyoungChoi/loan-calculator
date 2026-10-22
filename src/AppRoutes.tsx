@@ -7,6 +7,7 @@ import { resetListingsScroll } from "@/containers/Mortgage/Listings/hooks/useLis
 import { useHashRoute } from "@/hooks/useHashRoute";
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 import { getBrowserStorage } from "@/lib/utils/browserStorage";
+import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
@@ -30,15 +31,18 @@ function createStores(storage: Storage) {
     }),
     draftStore: createDraftStore({ storage }),
     tradeLookupStore: createTradeLookupStore({ storage }),
+    budgetStore: createBudgetStore({ storage }),
   };
 }
 
 /** 라우트별 화면 선택은 이 파일 한 곳에서 한다. 두 화면은 같은 스토어를 공유한다. */
 function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) {
-  const [{ listingStore, draftStore, tradeLookupStore }] = useState(() =>
+  const [{ listingStore, draftStore, tradeLookupStore, budgetStore }] = useState(() =>
     createStores(storage ?? getBrowserStorage()),
   );
   const route = useHashRoute();
+  // 저장 시트 이름 제안. 목록의 "복사"가 채우고 계산 화면이 쓰므로 두 화면 위에 둔다.
+  const [suggestedName, setSuggestedName] = useState("");
 
   // 탭으로 들어온 목록은 맨 위에서 시작한다. 스크롤 복원은 카드 → 계산 → 뒤로 가기에서만 일어난다.
   return (
@@ -50,13 +54,18 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           draftStore={draftStore}
           tradeLookupStore={tradeLookupStore}
           regulations={regulations}
+          suggestedName={suggestedName}
+          onSuggestedNameChange={setSuggestedName}
         />
       ) : (
         <MortgageListings
           listingStore={listingStore}
           draftStore={draftStore}
+          budgetStore={budgetStore}
           regulations={regulations}
           sort={route.sort}
+          view={route.view}
+          onSuggestedNameChange={setSuggestedName}
         />
       )}
     </>

@@ -11,6 +11,7 @@ const DRAFT: Draft = {
   borrower: "noHome",
   listingId: null,
   customLtv: null,
+  isCustomLtvInput: false,
   isAreaOver85: false,
 };
 

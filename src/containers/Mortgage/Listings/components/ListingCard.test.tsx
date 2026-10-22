@@ -53,7 +53,10 @@ function renderCards(listings: Listing[]) {
           listing={listing}
           regulations={LOAN_REGULATIONS}
           onOpen={() => {}}
+          budget={null}
+          onCopy={() => {}}
           onDelete={() => {}}
+          onSaveMemo={() => ({ ok: true })}
         />
       ))}
     </ul>,

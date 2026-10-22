@@ -189,7 +189,8 @@ describe("계산 화면 (통합)", () => {
 
     expect(screen.getByRole("radio", { name: "규제지역" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "무주택" })).toBeChecked();
-    expect(screen.getAllByRole("radio", { checked: true })).toHaveLength(2);
+    expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
+    expect(screen.getAllByRole("radio", { checked: true })).toHaveLength(3);
 
     // 보유 상태 라디오는 5개이고 화면 순서가 스펙과 같다.
     const borrowerRadios = within(screen.getByRole("group", { name: "보유 상태" })).getAllByRole(
@@ -206,8 +207,8 @@ describe("계산 화면 (통합)", () => {
     await user.type(screen.getByLabelText("매매가"), "125000");
     await user.type(screen.getByLabelText("KB시세"), "120000");
 
-    // 기본값은 LTV 직접 입력 70%다(ADR-022). 보유 상태별 규제 LTV를 보려고 끈다.
-    await user.click(screen.getByRole("switch", { name: "LTV 직접 입력(기본 70%)" }));
+    // 기본값은 LTV 70% 칩이다(ADR-022). 보유 상태별 규제 LTV를 보려고 [규제대로]를 고른다.
+    await user.click(screen.getByRole("radio", { name: "규제대로(40%)" }));
 
     // 규제지역·무주택 40%로 계산된다. 자기자금 = 매매가 − 한도 + 취득세 등·중개보수 4,875
     expect(within(resultCard()).getByRole("heading")).toHaveTextContent("규제지역 · 무주택");
@@ -316,9 +317,10 @@ describe("계산 화면 (통합)", () => {
     await user.type(salePrice, "100000");
     await user.type(kbPrice, "100000");
 
-    // 기본값: 켜짐·70(ADR-022)
-    const ltvSwitch = screen.getByRole("switch", { name: "LTV 직접 입력(기본 70%)" });
-    expect(ltvSwitch).toBeChecked();
+    // 기본값: 70% 칩(ADR-022). [직접 입력]을 고르면 그 값을 이어받은 % 칸이 나타난다.
+    expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
+    expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("radio", { name: "직접 입력" }));
     const ltvInput = screen.getByLabelText("사용자 지정 LTV");
     expect(ltvInput).toHaveValue("70");
 
@@ -326,9 +328,9 @@ describe("계산 화면 (통합)", () => {
     await user.clear(ltvInput);
     expect(ltvInput).toHaveValue("");
     expect(ltvInput).toHaveAttribute("inputmode", "numeric");
-    expect(ltvInput).toHaveAccessibleDescription("값을 입력하거나 직접 입력을 끄세요");
+    expect(ltvInput).toHaveAccessibleDescription("값을 입력하거나 다른 LTV를 고르세요");
     expect(
-      within(resultCard()).getByText("LTV를 입력하거나 직접 입력을 끄세요"),
+      within(resultCard()).getByText("LTV를 입력하거나 다른 LTV를 고르세요"),
     ).toBeInTheDocument();
     expect(within(resultCard()).queryByRole("heading")).not.toBeInTheDocument();
     expect(summaryValue("예상 한도")).toBe("—");
@@ -373,7 +375,7 @@ describe("계산 화면 (통합)", () => {
     expect(ltvInput).toHaveAttribute("aria-invalid", "true");
     expect(ltvInput).toHaveAccessibleDescription("정수(%)로 입력하세요");
     expect(
-      within(resultCard()).getByText("LTV를 입력하거나 직접 입력을 끄세요"),
+      within(resultCard()).getByText("LTV를 입력하거나 다른 LTV를 고르세요"),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "저장" })).toBeDisabled();
 
@@ -397,20 +399,20 @@ describe("계산 화면 (통합)", () => {
     expect(within(resultCard()).queryByText("한도 상한은 규제대로 적용")).not.toBeInTheDocument();
     expect(rowValue("예상 한도")).toBe("5억 4,000만원");
 
-    // 끄면 규제 LTV로 돌아가고, 다시 켜면 기본 70이 채워진다.
-    await user.click(ltvSwitch);
+    // [규제대로]면 규제 LTV로 돌아가고, 다시 [직접 입력]을 고르면 기본 70이 채워진다.
+    await user.click(screen.getByRole("radio", { name: "규제대로(70%)" }));
     expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
     expect(rowValue("적용 LTV")).toBe("70%");
     expect(within(summaryBar()).queryByText(/사용자 지정 LTV/)).not.toBeInTheDocument();
-    await user.click(ltvSwitch);
+    await user.click(screen.getByRole("radio", { name: "직접 입력" }));
     expect(screen.getByLabelText("사용자 지정 LTV")).toHaveValue("70");
 
-    // "새 계산"은 직접 입력을 기본 70으로 되돌린다(소재지·보유 상태는 유지).
+    // "새 계산"은 LTV를 기본 70% 칩으로 되돌린다(소재지·보유 상태는 유지).
     await retype(user, screen.getByLabelText("사용자 지정 LTV"), "55");
     expect(within(summaryBar()).getByText("사용자 지정 LTV 55%")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "새 계산" }));
-    expect(screen.getByRole("switch", { name: "LTV 직접 입력(기본 70%)" })).toBeChecked();
-    expect(screen.getByLabelText("사용자 지정 LTV")).toHaveValue("70");
+    expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
+    expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "비수도권" })).toBeChecked();
     await user.type(screen.getByLabelText("매매가"), "100000");
     await user.type(screen.getByLabelText("KB시세"), "100000");
@@ -519,14 +521,18 @@ describe("계산 화면 (통합)", () => {
   it("#8 스크린샷: 이미지를 고르면 인식 중 진행과 취소가 보이고, 끝나면 미리보기에 매매가·단지·면적과 적용 안내가 보이며, 적용 전에는 입력이 그대로다. 적용하면 매매가를 채우고 KB시세를 비워 포커스하고 매물 연결을 풀고 LTV를 기본 70으로 되돌리며 저장 이름을 제안한다. 전세 화면이면 적용할 수 없고, 시트를 닫으면 인식을 멈춘다 (AC-2, AC-3)", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<AppRoutes />);
-    const salePrice = screen.getByLabelText("매매가");
-    const kbPrice = screen.getByLabelText("KB시세");
-    await user.type(salePrice, "100000");
-    await user.type(kbPrice, "98000");
-    // 저장해 두면 계산 화면이 그 매물을 편집 중이 된다.
+    await user.type(screen.getByLabelText("매매가"), "100000");
+    await user.type(screen.getByLabelText("KB시세"), "98000");
+    // 저장하면 새 계산으로 비워지므로, 목록에서 그 매물을 "수정"으로 열어 편집 중으로 만든다.
     await user.click(screen.getByRole("button", { name: "저장" }));
     await user.type(screen.getByRole("textbox", { name: "매물 이름" }), "이전 매물");
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "저장" }));
+    expect(screen.getByLabelText("매매가")).toHaveValue("");
+    await user.click(screen.getByRole("link", { name: "저장 목록" }));
+    await user.click(await screen.findByRole("link", { name: "이전 매물 수정" }));
+    const salePrice = await screen.findByLabelText("매매가");
+    const kbPrice = screen.getByLabelText("KB시세");
+    await user.click(screen.getByRole("radio", { name: "직접 입력" }));
     await retype(user, screen.getByLabelText("사용자 지정 LTV"), "55");
 
     let finishRecognition: (text: string) => void = () => {};
@@ -573,8 +579,8 @@ describe("계산 화면 (통합)", () => {
     const appliedKbPrice = screen.getByLabelText("KB시세");
     expect(appliedKbPrice).toHaveValue("");
     expect(appliedKbPrice).toHaveFocus();
-    expect(screen.getByRole("switch", { name: "LTV 직접 입력(기본 70%)" })).toBeChecked();
-    expect(screen.getByLabelText("사용자 지정 LTV")).toHaveValue("70");
+    expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
+    expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
 
     // KB시세를 채우고 저장 시트를 열면 덮어쓰기가 아닌 새 저장이고, 이름 칸에 제안 이름이 들어 있다.
     await user.type(appliedKbPrice, "120000");

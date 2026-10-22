@@ -1,5 +1,5 @@
 import { findFirstKoreanPrice, normalizeSpaces } from "./parseKoreanPrice";
-import { countChars, LISTING_NAME_MAX_LENGTH } from "./validateListingName";
+import { countChars, truncateListingName } from "./validateListingName";
 
 export type ParsedListingText = {
   ok: true;
@@ -91,7 +91,7 @@ function findComplexName(text: string): string | null {
 
 function suggestName(complexName: string | null, areaText: string | null): string {
   const name = [complexName, areaText].filter((part) => part !== null).join(" ");
-  return Array.from(name).slice(0, LISTING_NAME_MAX_LENGTH).join("").trim();
+  return truncateListingName(name);
 }
 
 /**

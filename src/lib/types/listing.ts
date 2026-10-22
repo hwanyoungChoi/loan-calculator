@@ -12,6 +12,8 @@ export type Listing = {
   customLtvRate?: number;
   /** 전용 85㎡ 초과일 때만 키를 쓴다. 키 없음 = 85㎡ 이하(ADR-022, ADR-012 규칙). */
   isAreaOver85?: true;
+  /** 1~500자(코드포인트). 메모가 없으면 키를 쓰지 않는다(ADR-012 규칙). */
+  memo?: string;
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */
@@ -22,9 +24,15 @@ export type Listing = {
 export type ListingInput = Pick<
   Listing,
   "name" | "salePrice" | "kbPrice" | "region" | "borrower" | "customLtvRate" | "isAreaOver85"
->;
+> & {
+  /** 키가 있으면 메모를 이 값으로 바꾸고(빈 문자열이면 지움), 키가 없으면 덮어쓰기에서도 기존 메모를 둔다. */
+  memo?: string;
+};
 
 export type ListingSort = "ownFunds" | "recent" | "name";
+
+/** 목록 보기: card는 카드, compact는 이름과 필요한 자기자금만 한 줄씩 */
+export type ListingView = "card" | "compact";
 
 export type LoadListingsResult =
   | { ok: true; listings: Listing[] }

@@ -1,18 +1,36 @@
+import { LTV_PRESETS } from "@/lib/constants/draft";
+
+import { isOneOf } from "./isOneOf";
+import { truncateListingName } from "./validateListingName";
+
 import type { Draft } from "@/lib/types/draft";
 import type { Listing, ListingSnapshot } from "@/lib/types/listing";
 import type { LoanInput } from "@/lib/types/loan";
 
-/** 저장 매물을 열 때 draft를 통째로 바꿀 값(ADR-004) */
+/** 저장 매물을 열 때 draft를 통째로 바꿀 값(ADR-004). 사용자 지정 LTV가 칩 값(40·70·80)이 아니면 [직접 입력]으로 연다. */
 export function listingToDraft(listing: Listing): Draft {
+  const customLtv =
+    typeof listing.customLtvRate === "number" ? String(listing.customLtvRate) : null;
   return {
     salePrice: String(listing.salePrice),
     kbPrice: String(listing.kbPrice),
     region: listing.region,
     borrower: listing.borrower,
     listingId: listing.id,
-    customLtv: typeof listing.customLtvRate === "number" ? String(listing.customLtvRate) : null,
+    customLtv,
+    isCustomLtvInput: customLtv !== null && !isOneOf(LTV_PRESETS, customLtv),
     isAreaOver85: listing.isAreaOver85 === true,
   };
+}
+
+/** 매물 복사: 값은 그대로 채우되 매물 연결이 없는 새 매물로 연다. 원본은 바뀌지 않는다. */
+export function listingToCopyDraft(listing: Listing): Draft {
+  return { ...listingToDraft(listing), listingId: null };
+}
+
+/** 복사한 매물의 저장 이름 제안. 40자를 넘으면 스크린샷 제안과 같은 규칙으로 자른다. */
+export function copiedListingName(name: string): string {
+  return truncateListingName(`${name} (복사)`);
 }
 
 /** draft.listingId가 가리키는 매물. 정상 로드된 목록에 없으면(삭제됨) null로 본다. */

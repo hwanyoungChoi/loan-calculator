@@ -1,3 +1,4 @@
-import type { ListingSort } from "./listing";
+import type { ListingSort, ListingView } from "./listing";
 
-export type Route = { name: "calculator" } | { name: "listings"; sort: ListingSort };
+export type Route =
+  { name: "calculator" } | { name: "listings"; sort: ListingSort; view: ListingView };
