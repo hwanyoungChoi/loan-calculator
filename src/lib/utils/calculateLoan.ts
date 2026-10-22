@@ -38,6 +38,15 @@ function findPriceSource(price: number, salePrice: number, kbPrice: number): Pri
   return price === salePrice ? "salePrice" : "kbPrice";
 }
 
+/** 담보 기준: 매매가와 KB시세 중 낮은 금액과 그 출처. 입력부의 기준 금액 줄도 이 함수를 쓴다. */
+export function selectCollateralBase(
+  salePrice: number,
+  kbPrice: number,
+): { collateralBase: number; collateralSource: PriceSource } {
+  const collateralBase = Math.min(salePrice, kbPrice);
+  return { collateralBase, collateralSource: findPriceSource(collateralBase, salePrice, kbPrice) };
+}
+
 function describeTier(tiers: CapTier[], index: number): string {
   const lower = index > 0 ? tiers[index - 1].upTo : null;
   const upper = tiers[index].upTo;
@@ -102,10 +111,10 @@ export function calculateLoan(
   regulations: Regulations = LOAN_REGULATIONS,
 ): LoanResult {
   const { salePrice, kbPrice, customLtvRate } = input;
-  const collateralBase = Math.min(salePrice, kbPrice);
+  const collateral = selectCollateralBase(salePrice, kbPrice);
+  const { collateralBase } = collateral;
   const base = {
-    collateralBase,
-    collateralSource: findPriceSource(collateralBase, salePrice, kbPrice),
+    ...collateral,
     cap: calculateCap(input, regulations.loanCap),
   };
 

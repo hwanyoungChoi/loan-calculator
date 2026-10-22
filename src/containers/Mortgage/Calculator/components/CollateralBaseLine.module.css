@@ -1,0 +1,36 @@
+.line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-primary-bg);
+}
+
+.hidden {
+  composes: line;
+  visibility: hidden;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.amount {
+  color: var(--color-primary);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.source {
+  grid-column: 1 / -1;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  text-align: right;
+}

@@ -10,7 +10,7 @@ const ROW_CLASS: Record<ResultRowVariant, string> = {
 };
 
 type ResultRowProps = {
-  label: string;
+  label: ReactNode;
   value: ReactNode;
   /** 값 아래에 붙는 설명 줄 */
   details?: ReactNode;

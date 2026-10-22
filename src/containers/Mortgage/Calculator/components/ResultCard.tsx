@@ -48,7 +48,7 @@ function describeStatus(result: LoanResult, regulations: Regulations): string | 
 /** 앱은 주택가격만 판정한다. 라디오 아래 안내는 고를 때만 보이므로 결과에도 남긴다. */
 const UNVERIFIED_REQUIREMENTS = "소득·무주택세대주 요건은 확인하지 않았습니다";
 
-/** 계산 과정을 숨기지 않는다: 담보 기준 → LTV → LTV 금액 → 상한 → 예상 한도 → 자기자금 */
+/** 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 자기자금 */
 function ResultCard({ input, regulations }: ResultCardProps) {
   const result = calculateLoan(input, regulations);
   const statusNotice = describeStatus(result, regulations);
@@ -65,9 +65,15 @@ function ResultCard({ input, regulations }: ResultCardProps) {
       </div>
       <dl className={styles.rows}>
         <ResultRow
-          label="담보 기준"
-          value={`${formatManwon(result.collateralBase)}(${PRICE_SOURCE_LABELS[result.collateralSource]})`}
-          details="매매가와 KB시세 중 낮은 금액"
+          label={
+            <>
+              기준 금액
+              <br />
+              (매매가·KB시세 중 낮은 쪽)
+            </>
+          }
+          value={formatManwon(result.collateralBase)}
+          details={PRICE_SOURCE_LABELS[result.collateralSource]}
         />
         <LtvRow result={result} />
         <ResultRow label="LTV 금액" value={formatManwonOrDash(result.ltvAmount)} />
