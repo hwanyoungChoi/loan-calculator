@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +9,7 @@ import { DRAFT_STORAGE_KEY } from "@/lib/utils/draftStorage";
 import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
 import { makeListing } from "@/test/listingFixture";
 import { createMemoryStorage } from "@/test/memoryStorage";
+import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 
 import type { Listing } from "@/lib/types/listing";
 
@@ -61,7 +62,7 @@ describe("저장 흐름 (통합)", () => {
     const storage = createMemoryStorage({ [LISTINGS_STORAGE_KEY]: "{" });
     const setItem = vi.spyOn(storage, "setItem");
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
-    render(<AppRoutes storage={storage} />);
+    renderWithQueryClient(<AppRoutes storage={storage} />);
 
     // 손상돼도 계산은 동작한다.
     await user.type(screen.getByLabelText("매매가"), "125000");
@@ -139,7 +140,7 @@ describe("저장 흐름 (통합)", () => {
     });
     window.location.hash = "#/listings";
     const scrollTo = mockBrowserScroll();
-    render(<AppRoutes storage={storage} />);
+    renderWithQueryClient(<AppRoutes storage={storage} />);
 
     // 목록: 기준일, 2개, 자기자금순
     expect(baseDateText()).toBeInTheDocument();

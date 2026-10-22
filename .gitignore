@@ -26,3 +26,9 @@ dist-ssr
 # cony
 .cony/.cache/
 .eslintcache
+
+# Cloudflare (로컬 시크릿은 커밋하지 않는다)
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.wrangler/

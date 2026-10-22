@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 
-import { calculateLoan, findCapTier, selectCapReferencePrice } from "./calculateLoan";
+import {
+  calculateLoan,
+  evaluateRegulation,
+  findCapTier,
+  selectCapReferencePrice,
+} from "./calculateLoan";
 
-import type { LoanInput } from "@/lib/types/loan";
+import type { LoanInput, RegulationOutcome } from "@/lib/types/loan";
 import type { Borrower, Region, Regulations } from "@/lib/types/regulation";
 
 function input(region: Region, borrower: Borrower, salePrice: number, kbPrice: number): LoanInput {
@@ -276,5 +281,313 @@ describe("미확인 LTV 처리 (AC-4)", () => {
   it("fixture로 바꾼 셀만 영향을 받고 운영 규제는 그대로다", () => {
     withRate("regulated", "noHome", null);
     expect(LOAN_REGULATIONS.ltvTable.regulated.noHome.rate).toBe(40);
+  });
+});
+
+/** 사용자 지정 LTV를 붙인 입력 */
+function custom(
+  region: Region,
+  borrower: Borrower,
+  salePrice: number,
+  kbPrice: number,
+  customLtvRate: number,
+): LoanInput {
+  return { ...input(region, borrower, salePrice, kbPrice), customLtvRate };
+}
+
+describe("서민·실수요자 LTV와 요건 판정 (AC-1b)", () => {
+  it("규제지역 70000/70000 → ok, 규제 LTV 60%, 한도 42000, 자기자금 28000", () => {
+    expect(calculateLoan(input("regulated", "noHomePreferred", 70000, 70000))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "regulation", rate: 60 },
+      ltvAmount: 42000,
+      loanLimit: 42000,
+      ownFunds: 28000,
+    });
+  });
+
+  it("규제지역 80000/79000 → ok(판정가 80000은 요건 이내), 담보 79000(KB시세), LTV 금액 47400", () => {
+    expect(calculateLoan(input("regulated", "noHomePreferred", 80000, 79000))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "regulation", rate: 60 },
+      collateralBase: 79000,
+      collateralSource: "kbPrice",
+      ltvAmount: 47400,
+      loanLimit: 47400,
+      ownFunds: 32600,
+    });
+  });
+
+  it("경계: 80000/80000은 ok(8억 이하 충족), 80001/80001은 ineligible이고 판정가 출처는 equal", () => {
+    expect(calculateLoan(input("regulated", "noHomePreferred", 80000, 80000))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "regulation", rate: 60 },
+      ltvAmount: 48000,
+    });
+    expect(calculateLoan(input("regulated", "noHomePreferred", 80001, 80001))).toMatchObject({
+      status: "ineligible",
+      reason: "housePriceOverLimit",
+      eligibilityPrice: 80001,
+      eligibilityPriceSource: "equal",
+    });
+  });
+
+  it("80001/79000 → ineligible, 판정가 80001(매매가). 담보 기준과 상한은 계산하고 나머지는 null", () => {
+    const result = calculateLoan(input("regulated", "noHomePreferred", 80001, 79000));
+    expect(result).toEqual({
+      status: "ineligible",
+      reason: "housePriceOverLimit",
+      eligibilityPrice: 80001,
+      eligibilityPriceSource: "salePrice",
+      collateralBase: 79000,
+      collateralSource: "kbPrice",
+      cap: expect.objectContaining({ amount: 60000, tierIndex: 0, capReferencePrice: 80001 }),
+      appliedLtv: null,
+      ltvAmount: null,
+      loanLimit: null,
+      ownFunds: null,
+    });
+  });
+
+  it("79000/80001 → ineligible, 판정가 80001(KB시세). 매매가만 보면 놓친다", () => {
+    expect(calculateLoan(input("regulated", "noHomePreferred", 79000, 80001))).toMatchObject({
+      status: "ineligible",
+      eligibilityPrice: 80001,
+      eligibilityPriceSource: "kbPrice",
+      collateralBase: 79000,
+      collateralSource: "salePrice",
+    });
+  });
+
+  it("수도권 비규제 70000/70000 → LTV 70%, LTV 금액 49000. 80001/80001은 지역과 무관하게 ineligible", () => {
+    expect(
+      calculateLoan(input("capitalNonRegulated", "noHomePreferred", 70000, 70000)),
+    ).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "regulation", rate: 70 },
+      ltvAmount: 49000,
+    });
+    expect(
+      calculateLoan(input("capitalNonRegulated", "noHomePreferred", 80001, 80001)).status,
+    ).toBe("ineligible");
+  });
+
+  it("규칙 순서: 비수도권(셀 null)에서 90000/90000은 ineligible(요건이 먼저), 70000/70000은 unconfirmed", () => {
+    expect(LOAN_REGULATIONS.ltvTable.nonCapital.noHomePreferred.rate).toBeNull();
+    expect(calculateLoan(input("nonCapital", "noHomePreferred", 90000, 90000))).toMatchObject({
+      status: "ineligible",
+      eligibilityPrice: 90000,
+      cap: null,
+      loanLimit: null,
+    });
+    expect(calculateLoan(input("nonCapital", "noHomePreferred", 70000, 70000))).toMatchObject({
+      status: "unconfirmed",
+      loanLimit: null,
+    });
+  });
+
+  it("ineligible의 상한 구간은 max(매매가, KB시세) 기준이다: 79000/150001 → 상한 4억(15억 초과 구간)", () => {
+    const result = calculateLoan(input("regulated", "noHomePreferred", 79000, 150001));
+    expect(result.status).toBe("ineligible");
+    expect(result.collateralBase).toBe(79000);
+    expect(result.cap).toMatchObject({
+      amount: 40000,
+      tierIndex: 1,
+      capReferencePrice: 150001,
+      capReferenceSource: "kbPrice",
+    });
+  });
+
+  it("다른 보유 상태는 8억을 넘어도 요건 판정을 하지 않는다", () => {
+    expect(calculateLoan(input("regulated", "noHome", 90000, 90000)).status).toBe("ok");
+    expect(calculateLoan(input("regulated", "firstHome", 90000, 90000)).status).toBe("ok");
+  });
+
+  it("판정 상한은 규제 파일 값(regulations.preferredBorrower)을 따른다", () => {
+    const regulations: Regulations = structuredClone(LOAN_REGULATIONS);
+    regulations.preferredBorrower.maxHousePrice = 70000;
+    expect(
+      calculateLoan(input("regulated", "noHomePreferred", 70000, 70000), regulations).status,
+    ).toBe("ok");
+    expect(
+      calculateLoan(input("regulated", "noHomePreferred", 70001, 70001), regulations).status,
+    ).toBe("ineligible");
+  });
+});
+
+describe("evaluateRegulation (ADR-013 규칙 2·3·4)", () => {
+  it.each<[string, LoanInput, Regulations, RegulationOutcome]>([
+    [
+      "규제 LTV",
+      input("regulated", "noHome", 100000, 100000),
+      LOAN_REGULATIONS,
+      { status: "ok", rate: 40 },
+    ],
+    [
+      "확인된 0%",
+      input("regulated", "oneHomeKeep", 100000, 100000),
+      LOAN_REGULATIONS,
+      { status: "ok", rate: 0 },
+    ],
+    [
+      "요건 미충족",
+      input("regulated", "noHomePreferred", 80001, 1),
+      LOAN_REGULATIONS,
+      { status: "ineligible" },
+    ],
+    [
+      "미확인 셀",
+      input("nonCapital", "noHomePreferred", 70000, 70000),
+      LOAN_REGULATIONS,
+      { status: "unconfirmed" },
+    ],
+    [
+      "요건 미충족이 미확인보다 먼저",
+      input("nonCapital", "noHomePreferred", 90000, 90000),
+      LOAN_REGULATIONS,
+      { status: "ineligible" },
+    ],
+    [
+      "fixture 미확인",
+      input("regulated", "noHome", 100000, 100000),
+      withRate("regulated", "noHome", null),
+      { status: "unconfirmed" },
+    ],
+  ])("%s", (_, loanInput, regulations, expected) => {
+    expect(evaluateRegulation(loanInput, regulations)).toEqual(expected);
+  });
+
+  it("customLtvRate가 있어도 규제 결과만 본다", () => {
+    expect(
+      evaluateRegulation(custom("regulated", "noHome", 100000, 100000, 70), LOAN_REGULATIONS),
+    ).toEqual({ status: "ok", rate: 40 });
+  });
+});
+
+describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
+  it("규제지역·무주택 100000/100000, 70 → custom 70(규제 기준 ok 40), LTV 금액 70000, 상한 60000, 한도 60000", () => {
+    const result = calculateLoan(custom("regulated", "noHome", 100000, 100000, 70));
+    expect(result).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 70, regulation: { status: "ok", rate: 40 } },
+      ltvAmount: 70000,
+      loanLimit: 60000,
+      ownFunds: 40000,
+    });
+    expect(result.appliedLtv).toEqual({
+      source: "custom",
+      rate: 70,
+      regulation: { status: "ok", rate: 40 },
+    });
+    expect(result.cap?.amount).toBe(60000);
+  });
+
+  it("200000/200000, 70 → LTV 금액 140000, 상한 40000, 한도 40000", () => {
+    const result = calculateLoan(custom("regulated", "noHome", 200000, 200000, 70));
+    expect(result).toMatchObject({ ltvAmount: 140000, loanLimit: 40000, ownFunds: 160000 });
+    expect(result.cap?.amount).toBe(40000);
+  });
+
+  it.each([
+    // 매매가=KB시세, 사용자 지정, LTV 금액, 상한, 한도
+    [150000, 100, 150000, 60000, 60000],
+    [150001, 100, 150001, 40000, 40000],
+    [100000, 30, 30000, 60000, 30000],
+    [100000, 100, 100000, 60000, 60000],
+  ])(
+    "상한 경계: 규제지역·무주택 %i/%i, %i% → LTV 금액 %i, 상한 %i, 한도 %i",
+    (price, rate, ltvAmount, cap, loanLimit) => {
+      const result = calculateLoan(custom("regulated", "noHome", price, price, rate));
+      expect(result.status).toBe("ok");
+      expect(result.appliedLtv?.source).toBe("custom");
+      expect(result.ltvAmount).toBe(ltvAmount);
+      expect(result.cap?.amount).toBe(cap);
+      expect(result.loanLimit).toBe(loanLimit);
+      expect(result.ownFunds).toBe(price - loanLimit);
+    },
+  );
+
+  it("비수도권·무주택 99995/99995, 70 → 69996(내림), 상한 없음이라 한도 = LTV 금액", () => {
+    expect(calculateLoan(custom("nonCapital", "noHome", 99995, 99995, 70))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 70 },
+      cap: null,
+      ltvAmount: 69996,
+      loanLimit: 69996,
+      ownFunds: 29999,
+    });
+  });
+
+  it("매매가 ≠ KB시세 100000/90000, 70 → 담보 90000(KB시세) 기준 LTV 금액 63000", () => {
+    expect(calculateLoan(custom("regulated", "noHome", 100000, 90000, 70))).toMatchObject({
+      collateralBase: 90000,
+      collateralSource: "kbPrice",
+      ltvAmount: 63000,
+      loanLimit: 60000,
+      ownFunds: 40000,
+    });
+  });
+
+  it("0 → 미확인이 아니라 ok, 한도 0, 자기자금은 매매가 전액", () => {
+    expect(calculateLoan(custom("regulated", "noHome", 100000, 90000, 0))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 0 },
+      ltvAmount: 0,
+      loanLimit: 0,
+      ownFunds: 100000,
+    });
+  });
+
+  it("키가 없거나 값이 undefined면 규제 LTV다(typeof 판정, ADR-012)", () => {
+    const withoutKey = input("regulated", "noHome", 100000, 100000);
+    const undefinedValue = { ...withoutKey, customLtvRate: undefined };
+    expect(Object.hasOwn(withoutKey, "customLtvRate")).toBe(false);
+    for (const loanInput of [withoutKey, undefinedValue]) {
+      expect(calculateLoan(loanInput)).toMatchObject({
+        status: "ok",
+        appliedLtv: { source: "regulation", rate: 40 },
+        loanLimit: 40000,
+      });
+    }
+  });
+});
+
+describe("사용자 지정 LTV의 규제 결과 병기 (AC-2c)", () => {
+  it("규제 셀이 null인 fixture에서 70 → ok, regulation unconfirmed", () => {
+    const regulations = withRate("regulated", "noHome", null);
+    expect(
+      calculateLoan(custom("regulated", "noHome", 100000, 100000, 70), regulations),
+    ).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 70, regulation: { status: "unconfirmed" } },
+      ltvAmount: 70000,
+      loanLimit: 60000,
+    });
+  });
+
+  it("ineligible 조건(서민·실수요자 90000/90000)에서 60 → 사용자 지정이 우선해 ok, regulation ineligible", () => {
+    expect(calculateLoan(custom("regulated", "noHomePreferred", 90000, 90000, 60))).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 60, regulation: { status: "ineligible" } },
+      ltvAmount: 54000,
+      loanLimit: 54000,
+      ownFunds: 36000,
+    });
+  });
+
+  it.each<[Region, Borrower, number, RegulationOutcome]>([
+    ["regulated", "noHome", 100000, { status: "ok", rate: 40 }],
+    ["regulated", "firstHome", 100000, { status: "ok", rate: 70 }],
+    ["regulated", "oneHomeKeep", 100000, { status: "ok", rate: 0 }],
+    ["regulated", "noHomePreferred", 70000, { status: "ok", rate: 60 }],
+    ["capitalNonRegulated", "noHomePreferred", 70000, { status: "ok", rate: 70 }],
+    ["nonCapital", "noHomePreferred", 70000, { status: "unconfirmed" }],
+    ["nonCapital", "noHomePreferred", 90000, { status: "ineligible" }],
+  ])("%s × %s %i → regulation %j", (region, borrower, price, regulation) => {
+    expect(calculateLoan(custom(region, borrower, price, price, 50)).appliedLtv).toEqual({
+      source: "custom",
+      rate: 50,
+      regulation,
+    });
   });
 });

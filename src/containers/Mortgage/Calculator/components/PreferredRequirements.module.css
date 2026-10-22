@@ -1,0 +1,24 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: calc(-1 * var(--space-2));
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-primary-bg);
+  font-size: 14px;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.list {
+  padding-left: 1.2em;
+  list-style: disc;
+}
+
+.tip {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}

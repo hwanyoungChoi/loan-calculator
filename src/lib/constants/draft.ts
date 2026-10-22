@@ -7,4 +7,5 @@ export const DEFAULT_DRAFT: Draft = {
   region: "regulated",
   borrower: "noHome",
   listingId: null,
+  customLtv: null,
 };

@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
+  // /api는 wrangler dev(pnpm dev:api, 8788)의 Worker가 맡는다.
+  server: {
+    proxy: { "/api": "http://localhost:8788" },
+  },
   test: {
     // 기본 환경은 node. 화면 테스트 파일만 첫 줄에 `// @vitest-environment jsdom`을 적는다(ADR-008).
     setupFiles: ["./src/test/setup.ts"],

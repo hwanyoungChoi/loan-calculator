@@ -20,11 +20,28 @@
   overflow-wrap: anywhere;
 }
 
-.figures {
+.summary {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+}
+
+.tag {
+  align-self: flex-end;
+  margin-top: 2px;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .figure {

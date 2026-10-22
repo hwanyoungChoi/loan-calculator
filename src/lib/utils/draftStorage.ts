@@ -21,15 +21,17 @@ export function parseDraft(raw: unknown): Draft {
     return DEFAULT_DRAFT;
   }
   if (typeof value !== "object" || value === null || Array.isArray(value)) return DEFAULT_DRAFT;
-  const { salePrice, kbPrice, region, borrower, listingId } = value as Record<string, unknown>;
+  const fields = value as Record<string, unknown>;
+  const { salePrice, kbPrice, region, borrower, listingId, customLtv } = fields;
   const isValid =
     typeof salePrice === "string" &&
     typeof kbPrice === "string" &&
     isOneOf(REGIONS, region) &&
     isOneOf(BORROWERS, borrower) &&
-    (listingId === null || (typeof listingId === "string" && listingId !== ""));
+    (listingId === null || (typeof listingId === "string" && listingId !== "")) &&
+    (customLtv === null || typeof customLtv === "string");
   if (!isValid) return DEFAULT_DRAFT;
-  return { salePrice, kbPrice, region, borrower, listingId };
+  return { salePrice, kbPrice, region, borrower, listingId, customLtv };
 }
 
 /** 키 `loan-calculator/draft`. 접근 불가도 기본 draft */

@@ -4,7 +4,13 @@ import type { Borrower, Region } from "@/lib/types/regulation";
 /** 화면에 보이는 순서 */
 export const REGIONS: Region[] = ["regulated", "capitalNonRegulated", "nonCapital"];
 
-export const BORROWERS: Borrower[] = ["noHome", "firstHome", "oneHomeDisposal", "oneHomeKeep"];
+export const BORROWERS: Borrower[] = [
+  "noHome",
+  "firstHome",
+  "noHomePreferred",
+  "oneHomeDisposal",
+  "oneHomeKeep",
+];
 
 export const REGION_LABELS: Record<Region, string> = {
   regulated: "규제지역",
@@ -15,6 +21,7 @@ export const REGION_LABELS: Record<Region, string> = {
 export const BORROWER_LABELS: Record<Borrower, string> = {
   noHome: "무주택",
   firstHome: "무주택·생애최초",
+  noHomePreferred: "무주택·서민실수요자",
   oneHomeDisposal: "1주택 처분조건부",
   oneHomeKeep: "1주택 미처분(추가구입)",
 };

@@ -8,6 +8,8 @@ export type Listing = {
   kbPrice: number;
   region: Region;
   borrower: Borrower;
+  /** 0~100 정수. 키가 없으면 규제 LTV다. 규제로 저장할 때는 키를 쓰지 않는다(ADR-012). */
+  customLtvRate?: number;
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */
@@ -15,7 +17,10 @@ export type Listing = {
 };
 
 /** add/update에 넘기는 값. id와 시각은 스토어가 채운다. */
-export type ListingInput = Pick<Listing, "name" | "salePrice" | "kbPrice" | "region" | "borrower">;
+export type ListingInput = Pick<
+  Listing,
+  "name" | "salePrice" | "kbPrice" | "region" | "borrower" | "customLtvRate"
+>;
 
 export type ListingSort = "ownFunds" | "recent";
 

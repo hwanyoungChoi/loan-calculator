@@ -20,3 +20,14 @@ jobs:
       - run: pnpm format:check
       - run: pnpm test
       - run: pnpm build
+      # Worker 코드는 dist/에 들어가지 않는다. 클라이언트가 서버 모듈을 import하면 여기서 걸린다.
+      - name: 클라이언트 번들에 서버 문자열이 없는지 확인
+        run: test -d dist && ! grep -rE "MOLIT_SERVICE_KEY|apis\.data\.go\.kr" dist
+      # 키·네트워크 없이 workerd에서 진입점·번들·응답 형태를 본다(AC-6(d)).
+      # wrangler dev는 wrangler.jsonc의 build.command(pnpm build)를 먼저 실행한다.
+      - name: Worker 연기 테스트
+        env:
+          WRANGLER_SEND_METRICS: "false"
+        run: |
+          pnpm exec wrangler dev --port 8788 > wrangler.log 2>&1 &
+          bash scripts/smoke-api.sh http://localhost:8788 nokey || { cat wrangler.log; exit 1; }

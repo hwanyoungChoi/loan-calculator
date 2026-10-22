@@ -10,7 +10,10 @@ function byNewest(a: string, b: string): number {
   return Date.parse(b) - Date.parse(a);
 }
 
-/** 자기자금 오름차순 → createdAt 최신순 → 입력 순서. 미확인(자기자금 null)은 맨 뒤에 createdAt 최신순 */
+/**
+ * 자기자금 오름차순 → createdAt 최신순 → 입력 순서.
+ * 계산 불가(미확인·요건 미충족, 자기자금 null)는 둘을 구분하지 않고 맨 뒤에 createdAt 최신순이다.
+ */
 const sortByOwnFunds: Sorter = (listings, regulations) =>
   listings
     .map((listing) => ({ listing, ownFunds: calculateLoan(listing, regulations).ownFunds }))

@@ -1,0 +1,20 @@
+// Cloudflare Workers + Static Assets 설정(ADR-011 개정). 시크릿 MOLIT_SERVICE_KEY는 여기에 쓰지 않는다.
+// 배포: Worker의 Settings → Variables and Secrets(Secret) / 로컬: 프로젝트 루트 .dev.vars
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "loan-calculator",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-19",
+  // wrangler deploy·dev가 먼저 실행한다. Workers Builds에 빌드 명령을 따로 두지 않아도 dist가 생긴다.
+  // wrangler dev 중에는 watch_dir(기본 ./src)이 바뀌면 다시 빌드한다.
+  "build": { "command": "pnpm build" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    // /api/*는 정적 파일·SPA 대체보다 Worker가 먼저 받는다
+    "run_worker_first": ["/api/*"],
+  },
+  // Workers Builds가 PR 브랜치에서 실행하는 `wrangler preview`는 이 블록이 있어야 한다(비어 있어도 됨).
+  "previews": {},
+}

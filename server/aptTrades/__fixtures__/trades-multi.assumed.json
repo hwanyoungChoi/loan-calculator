@@ -1,0 +1,49 @@
+{
+  "response": {
+    "header": { "resultCode": "000", "resultMsg": "OK" },
+    "body": {
+      "items": {
+        "item": [
+          {
+            "aptDong": " ",
+            "aptNm": "래미안 OO",
+            "cdealDay": " ",
+            "cdealType": " ",
+            "dealAmount": "  115,000",
+            "dealDay": 8,
+            "dealMonth": 1,
+            "dealYear": 2025,
+            "excluUseAr": 84.97,
+            "floor": 12,
+            "umdNm": "대치동"
+          },
+          {
+            "aptNm": "e편한세상 파크",
+            "dealAmount": "98,000",
+            "dealDay": 15,
+            "dealMonth": 1,
+            "dealYear": 2025,
+            "excluUseAr": 59,
+            "floor": " ",
+            "umdNm": " "
+          },
+          {
+            "aptNm": "해제단지",
+            "cdealDay": "25.01.20",
+            "cdealType": "O",
+            "dealAmount": "200,000",
+            "dealDay": 3,
+            "dealMonth": 1,
+            "dealYear": 2025,
+            "excluUseAr": 84.99,
+            "floor": -1,
+            "umdNm": "역삼동"
+          }
+        ]
+      },
+      "numOfRows": 1000,
+      "pageNo": 1,
+      "totalCount": 3
+    }
+  }
+}

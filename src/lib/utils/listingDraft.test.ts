@@ -25,7 +25,22 @@ describe("listingToDraft (AC-7 카드 열기)", () => {
       region: "regulated",
       borrower: "firstHome",
       listingId: "a",
+      customLtv: null,
     });
+  });
+});
+
+describe("listingToDraft: 사용자 지정 LTV (AC-3e)", () => {
+  it.each([70, 0, 100])(
+    "customLtvRate %i인 매물을 열면 customLtv가 그 숫자의 문자열이다",
+    (rate) => {
+      expect(listingToDraft({ ...LISTING, customLtvRate: rate }).customLtv).toBe(String(rate));
+    },
+  );
+
+  it("규제 매물(키 없음)을 열면 customLtv는 null(직접 입력 꺼짐)", () => {
+    expect(Object.hasOwn(LISTING, "customLtvRate")).toBe(false);
+    expect(listingToDraft(LISTING).customLtv).toBeNull();
   });
 });
 
@@ -69,5 +84,26 @@ describe("isSameAsListing", () => {
 
   it("입력이 유효하지 않으면(null) false", () => {
     expect(isSameAsListing(null, LISTING)).toBe(false);
+  });
+
+  it("사용자 지정 LTV: 키 없음끼리 같고, 같은 숫자끼리 같다(키 없음 ≡ null)", () => {
+    expect(isSameAsListing(same, LISTING)).toBe(true);
+    expect(isSameAsListing({ ...same, customLtvRate: undefined }, LISTING)).toBe(true);
+    expect(isSameAsListing({ ...same, customLtvRate: 70 }, { ...LISTING, customLtvRate: 70 })).toBe(
+      true,
+    );
+  });
+
+  it.each<[string, number | undefined, number | undefined]>([
+    ["입력만 사용자 지정", 70, undefined],
+    ["저장본만 사용자 지정", undefined, 70],
+    ["값이 다름", 70, 71],
+    ["0과 키 없음은 다르다", 0, undefined],
+    ["키 없음과 0은 다르다", undefined, 0],
+  ])("사용자 지정 LTV %s → false", (_, inputRate, listingRate) => {
+    const input: LoanInput = inputRate === undefined ? same : { ...same, customLtvRate: inputRate };
+    const listing =
+      listingRate === undefined ? LISTING : { ...LISTING, customLtvRate: listingRate };
+    expect(isSameAsListing(input, listing)).toBe(false);
   });
 });

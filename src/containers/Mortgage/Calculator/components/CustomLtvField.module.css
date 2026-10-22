@@ -1,0 +1,61 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 네이티브 체크박스(role="switch")를 스위치 모양으로 그린다. 키보드·보조기기 동작은 체크박스 그대로다. */
+.switch {
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--color-border);
+  appearance: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.switch::before {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+  content: "";
+  transition: transform 0.15s;
+}
+
+.switch:checked {
+  background: var(--color-primary);
+}
+
+.switch:checked::before {
+  transform: translateX(18px);
+}
+
+.switch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.notice {
+  color: var(--color-warning-text);
+  font-size: 14px;
+}

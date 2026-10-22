@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:api": "wrangler dev --port 8788",
     "build": "tsc -b && vite build",
+    "build:worker": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
@@ -15,10 +17,12 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.104.5",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261021.1",
     "@conychoi/eslint-config": "^1.0.0",
     "@conychoi/prettier-config": "^1.0.0",
     "@testing-library/dom": "^10.4.2",
@@ -36,7 +40,8 @@
     "prettier": "^3.9.10",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.3"
   },
   "packageManager": "pnpm@10.33.0",
   "prettier": "@conychoi/prettier-config",
@@ -47,6 +52,12 @@
     ],
     "*.{json,md,css,html}": [
       "prettier --write"
+    ]
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
     ]
   }
 }

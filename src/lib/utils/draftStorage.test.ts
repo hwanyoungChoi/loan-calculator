@@ -18,6 +18,7 @@ const DEFAULT: Draft = {
   region: "regulated",
   borrower: "noHome",
   listingId: null,
+  customLtv: null,
 };
 
 const VALID: Draft = {
@@ -26,6 +27,7 @@ const VALID: Draft = {
   region: "nonCapital",
   borrower: "firstHome",
   listingId: "listing-1",
+  customLtv: null,
 };
 
 /** 유효한 draft의 필드를 바꾸거나(값) 지운(undefined) 원문 */
@@ -51,6 +53,18 @@ describe("parseDraft (AC-8d)", () => {
       ...VALID,
       listingId: null,
     });
+  });
+
+  it("customLtv가 입력 중인 문자열(빈 값·오류 포함)이면 그대로 읽는다", () => {
+    for (const customLtv of ["70", "", "70.5"]) {
+      expect(parseDraft(rawWith({ customLtv }))).toEqual({ ...VALID, customLtv });
+    }
+  });
+
+  it("1차 형식 draft(customLtv 키 없음)는 금액·조건까지 모두 기본값으로 바뀐다", () => {
+    const legacy =
+      '{"salePrice":"125000","kbPrice":"120000","region":"nonCapital","borrower":"firstHome","listingId":"listing-1"}';
+    expect(parseDraft(legacy)).toEqual(DEFAULT);
   });
 
   it("잘못 입력 중인 금액 문자열도 그대로 남긴다(새로고침 후 유지)", () => {
@@ -82,6 +96,11 @@ describe("parseDraft (AC-8d)", () => {
     ["listingId가 숫자", rawWith({ listingId: 1 })],
     ["listingId가 객체", rawWith({ listingId: { id: "a" } })],
     ["listingId가 false", rawWith({ listingId: false })],
+    // customLtv (AC-3e): 1차 draft처럼 키가 없거나 타입이 틀리면 기본값
+    ["customLtv 누락(1차 draft)", rawWith({ customLtv: undefined })],
+    ["customLtv가 숫자", rawWith({ customLtv: 70 })],
+    ["customLtv가 false", rawWith({ customLtv: false })],
+    ["customLtv가 배열", rawWith({ customLtv: ["70"] })],
   ];
 
   it.each(corruptCases)("%s → throw 없이 기본 draft", (_, raw) => {
@@ -138,6 +157,7 @@ describe("createDraftStore", () => {
       region: "capitalNonRegulated",
       borrower: "oneHomeDisposal",
       listingId: null,
+      customLtv: null,
     };
     expect(store.getSnapshot()).toEqual(expected);
     expect(listener).toHaveBeenCalledTimes(2);

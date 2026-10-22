@@ -1,81 +1,88 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 
-import ChoiceGroup from "@/components/ChoiceGroup";
 import { useDraft } from "@/hooks/useDraft";
 import { useListings } from "@/hooks/useListings";
-import { BORROWER_LABELS, BORROWERS, REGION_LABELS, REGIONS } from "@/lib/constants/loanConditions";
-import { validateAmount } from "@/lib/utils/amount";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { findDraftListing } from "@/lib/utils/listingDraft";
 import { toLoanInput } from "@/lib/utils/toLoanInput";
 
 import styles from "./MortgageCalculator.module.css";
-import AmountInput from "./components/AmountInput";
+import { applyShareText } from "./applyShareText";
+import EmptyResultCard from "./components/EmptyResultCard";
+import LoanInputs, { KB_PRICE_INPUT_ID } from "./components/LoanInputs";
+import PasteSheet from "./components/PasteSheet";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
 import SummaryBar from "./components/SummaryBar";
+import TradesSheet from "./components/TradesSheet";
+import { describeEmptyResult } from "./emptyResultMessage";
+import { useOpenSheet } from "./hooks/useOpenSheet";
+import { toNewCalculationDraft } from "./newCalculationDraft";
+import { pickSuggestedName } from "./pickSuggestedName";
 import { getSaveButtonState } from "./saveButtonState";
+import { describeSummaryTag } from "./summaryTag";
 
 import type { DraftStore } from "@/lib/types/draft";
 import type { ListingInput, ListingStore, ListingWriteResult } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
-
-type AmountField = "salePrice" | "kbPrice";
+import type { TradeLookupStore } from "@/lib/types/tradeLookup";
+import type { ParsedShareText } from "@/lib/utils/parseListingShareText";
 
 type MortgageCalculatorProps = {
   listingStore: ListingStore;
   draftStore: DraftStore;
+  tradeLookupStore: TradeLookupStore;
   regulations: Regulations;
 };
 
-const REGION_OPTIONS = REGIONS.map((value) => ({ value, label: REGION_LABELS[value] }));
-const BORROWER_OPTIONS = BORROWERS.map((value) => ({ value, label: BORROWER_LABELS[value] }));
-
-const NO_ERRORS: Record<AmountField, string | null> = { salePrice: null, kbPrice: null };
-
-function amountErrorOf(raw: string): string | null {
-  const validation = validateAmount(raw);
-  return validation.status === "error" ? validation.message : null;
-}
-
 /** 계산 화면은 항상 draft만 본다(ADR-004). */
-function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageCalculatorProps) {
+function MortgageCalculator({
+  listingStore,
+  draftStore,
+  tradeLookupStore,
+  regulations,
+}: MortgageCalculatorProps) {
   const draft = useDraft(draftStore);
   const listings = useListings(listingStore);
-  const [amountErrors, setAmountErrors] = useState(NO_ERRORS);
-  const [isSaveSheetOpen, setIsSaveSheetOpen] = useState(false);
+  // 바꾸면 입력부를 새로 그려 금액·LTV 칸의 오류 표시를 걷는다.
+  const [inputsKey, setInputsKey] = useState(0);
+  const sheet = useOpenSheet();
+  // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
+  const [tradeAptName, setTradeAptName] = useState("");
+  // 붙여넣기에서 만든 저장 이름 제안. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다.
+  const [suggestedName, setSuggestedName] = useState("");
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const pasteButtonRef = useRef<HTMLButtonElement>(null);
+  const tradesButtonRef = useRef<HTMLButtonElement>(null);
 
   // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  /** 시트를 닫으면 포커스를 저장 버튼으로 돌려준다. 배경의 inert가 먼저 풀려야 포커스할 수 있다. */
-  const closeSaveSheet = () => {
-    flushSync(() => setIsSaveSheetOpen(false));
-    saveButtonRef.current?.focus();
-  };
-
-  // 오류는 blur에서 띄우고, 고쳐지면 입력 중에도 바로 걷는다.
-  const handleAmountChange = (field: AmountField, raw: string) => {
-    draftStore.update({ [field]: raw });
-    if (amountErrorOf(raw) === null) setAmountErrors((prev) => ({ ...prev, [field]: null }));
-  };
-
-  const handleAmountBlur = (field: AmountField) => {
-    setAmountErrors((prev) => ({ ...prev, [field]: amountErrorOf(draft[field]) }));
-  };
-
-  /** 금액과 불러온 매물 연결만 비운다. 소재지·보유 상태는 마지막 선택을 유지한다. */
   const handleNewCalculation = () => {
-    draftStore.update({ salePrice: "", kbPrice: "", listingId: null });
-    setAmountErrors(NO_ERRORS);
+    draftStore.update(toNewCalculationDraft(draft));
+    setInputsKey((key) => key + 1);
+    setTradeAptName("");
+    setSuggestedName("");
+  };
+
+  /**
+   * 붙여넣기 적용은 새 매물 계산이다(ADR-017). 사용자 지정 LTV도 끈다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
+   * KB시세는 비워졌으니 바로 입력하도록 그 칸으로 포커스를 옮긴다.
+   */
+  const handlePasteApply = (parsed: ParsedShareText) => {
+    draftStore.update(applyShareText(draft, parsed));
+    setInputsKey((key) => key + 1);
+    setSuggestedName(parsed.suggestedName);
+    setTradeAptName(parsed.complexName ?? "");
+    sheet.close();
+    document.getElementById(KB_PRICE_INPUT_ID)?.focus();
   };
 
   const loanInput = toLoanInput(draft);
   const result = loanInput === null ? null : calculateLoan(loanInput, regulations);
+  const summaryTag = describeSummaryTag(result);
   const editingListing = findDraftListing(listings, draft.listingId);
   const saveButton = getSaveButtonState({
     listingsStatus: listings.status,
@@ -90,13 +97,17 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
         editingListing === null
           ? { ok: false, reason: "notFound" }
           : listingStore.update(editingListing.id, input);
-      if (updated.ok) closeSaveSheet();
+      if (updated.ok) {
+        setSuggestedName("");
+        sheet.close();
+      }
       return updated;
     }
     const added = listingStore.add(input);
     if (!added.ok) return added;
     draftStore.update({ listingId: added.listing.id });
-    closeSaveSheet();
+    setSuggestedName("");
+    sheet.close();
     return { ok: true };
   };
 
@@ -104,8 +115,10 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
   return (
     <>
       <div
-        className={saveButton.message === null ? styles.page : styles.pageWithBarMessage}
-        inert={isSaveSheetOpen}
+        className={
+          saveButton.message === null && summaryTag === null ? styles.page : styles.pageWithTallBar
+        }
+        inert={sheet.isOpen}
       >
         <div className={styles.header}>
           <h1 className={styles.title}>주담대 한도·자기자금 계산기</h1>
@@ -113,54 +126,68 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
             새 계산
           </button>
         </div>
-        <section className={styles.inputs} aria-label="입력">
-          <AmountInput
-            id="salePrice"
-            label="매매가"
-            value={draft.salePrice}
-            error={amountErrors.salePrice}
-            onChange={(raw) => handleAmountChange("salePrice", raw)}
-            onBlur={() => handleAmountBlur("salePrice")}
-          />
-          <AmountInput
-            id="kbPrice"
-            label="KB시세"
-            value={draft.kbPrice}
-            error={amountErrors.kbPrice}
-            onChange={(raw) => handleAmountChange("kbPrice", raw)}
-            onBlur={() => handleAmountBlur("kbPrice")}
-          />
-          <ChoiceGroup
-            name="region"
-            legend="주택 소재지"
-            options={REGION_OPTIONS}
-            value={draft.region}
-            columns={3}
-            onChange={(region) => draftStore.update({ region })}
-          />
-          <ChoiceGroup
-            name="borrower"
-            legend="보유 상태"
-            options={BORROWER_OPTIONS}
-            value={draft.borrower}
-            columns={2}
-            onChange={(borrower) => draftStore.update({ borrower })}
-          />
-        </section>
-        <ResultCard input={loanInput} regulations={regulations} />
+        <button
+          ref={pasteButtonRef}
+          type="button"
+          className={styles.secondaryAction}
+          onClick={() => sheet.open("paste", pasteButtonRef.current)}
+        >
+          붙여넣기로 채우기
+        </button>
+        <LoanInputs
+          key={inputsKey}
+          draft={draft}
+          regulations={regulations}
+          onChange={draftStore.update}
+        />
+        {loanInput === null ? (
+          <EmptyResultCard message={describeEmptyResult(draft)} />
+        ) : (
+          <ResultCard input={loanInput} regulations={regulations} />
+        )}
+        <button
+          ref={tradesButtonRef}
+          type="button"
+          className={styles.secondaryAction}
+          onClick={() => sheet.open("trades", tradesButtonRef.current)}
+        >
+          이 지역 실거래가 보기
+        </button>
         <SummaryBar
           result={result}
+          tag={summaryTag}
           save={saveButton}
           saveButtonRef={saveButtonRef}
-          onSave={() => setIsSaveSheetOpen(true)}
+          onSave={() => sheet.open("save", saveButtonRef.current)}
         />
       </div>
-      {isSaveSheetOpen && loanInput !== null && (
+      {sheet.openSheet === "save" && loanInput !== null && (
         <SaveSheet
-          initialName={editingListing?.name ?? ""}
+          initialName={pickSuggestedName(
+            editingListing?.name ?? "",
+            draft.listingId,
+            suggestedName,
+          )}
           isEditing={editingListing !== null}
           onSave={(action, name) => saveListing(action, { ...loanInput, name })}
-          onCancel={closeSaveSheet}
+          onCancel={sheet.close}
+        />
+      )}
+      {sheet.openSheet === "paste" && (
+        <PasteSheet
+          currentSalePrice={draft.salePrice}
+          isEditing={editingListing !== null}
+          isCustomLtvOn={draft.customLtv !== null}
+          onApply={handlePasteApply}
+          onClose={sheet.close}
+        />
+      )}
+      {sheet.openSheet === "trades" && (
+        <TradesSheet
+          lookupStore={tradeLookupStore}
+          aptName={tradeAptName}
+          onAptNameSubmit={setTradeAptName}
+          onClose={sheet.close}
         />
       )}
     </>
