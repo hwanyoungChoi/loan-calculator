@@ -28,7 +28,8 @@ function toSnapshot(result: LoadListingsResult): ListingSnapshot {
 
 /**
  * 호출 쪽 객체에 다른 키가 섞여 있어도 저장 필드만 옮긴다.
- * 규제 LTV면 `customLtvRate` 키를 쓰지 않는다. 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012).
+ * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를 쓰지 않는다.
+ * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022).
  */
 function toListingFields({
   name,
@@ -37,9 +38,17 @@ function toListingFields({
   region,
   borrower,
   customLtvRate,
+  isAreaOver85,
 }: ListingInput): ListingInput {
-  const fields = { name, salePrice, kbPrice, region, borrower };
-  return typeof customLtvRate === "number" ? { ...fields, customLtvRate } : fields;
+  return {
+    name,
+    salePrice,
+    kbPrice,
+    region,
+    borrower,
+    ...(typeof customLtvRate === "number" && { customLtvRate }),
+    ...(isAreaOver85 === true && { isAreaOver85 }),
+  };
 }
 
 /**

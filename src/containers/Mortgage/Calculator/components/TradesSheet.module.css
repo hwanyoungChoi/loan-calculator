@@ -74,3 +74,9 @@
   padding: var(--space-4) 0;
   color: var(--color-text-muted);
 }
+
+.notKbPrice {
+  flex: none;
+  color: var(--color-warning-text);
+  font-size: 13px;
+}

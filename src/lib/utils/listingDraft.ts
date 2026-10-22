@@ -11,6 +11,7 @@ export function listingToDraft(listing: Listing): Draft {
     borrower: listing.borrower,
     listingId: listing.id,
     customLtv: typeof listing.customLtvRate === "number" ? String(listing.customLtvRate) : null,
+    isAreaOver85: listing.isAreaOver85 === true,
   };
 }
 
@@ -24,8 +25,9 @@ export function findDraftListing(
 }
 
 /**
- * 입력값(금액 2개, 소재지, 보유 상태, 사용자 지정 LTV)이 저장본과 같은지. 이름은 비교하지 않는다.
- * 사용자 지정 LTV는 키 없음을 null로 맞춰 정규화한 숫자로 비교한다("70%"와 70은 같다).
+ * 입력값(금액 2개, 소재지, 보유 상태, 사용자 지정 LTV, 85㎡ 초과)이 저장본과 같은지. 이름은 비교하지 않는다.
+ * 저장 버튼 상태와 저장 시트 안내가 모두 이 판단을 쓴다.
+ * 사용자 지정 LTV는 키 없음을 null로 맞춰 정규화한 숫자로 비교한다("70%"와 70은 같다). 85㎡는 키 없음 = false다.
  */
 export function isSameAsListing(input: LoanInput | null, listing: Listing): boolean {
   return (
@@ -34,6 +36,7 @@ export function isSameAsListing(input: LoanInput | null, listing: Listing): bool
     input.kbPrice === listing.kbPrice &&
     input.region === listing.region &&
     input.borrower === listing.borrower &&
-    (input.customLtvRate ?? null) === (listing.customLtvRate ?? null)
+    (input.customLtvRate ?? null) === (listing.customLtvRate ?? null) &&
+    (input.isAreaOver85 === true) === (listing.isAreaOver85 === true)
   );
 }

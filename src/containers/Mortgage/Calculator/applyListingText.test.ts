@@ -5,14 +5,15 @@ import { applyListingText } from "./applyListingText";
 import type { Draft } from "@/lib/types/draft";
 
 describe("applyListingText (AC-2)", () => {
-  it("매매가를 채우고 KB시세를 비우고 매물 연결과 사용자 지정 LTV를 푼다. 소재지·보유 상태는 유지한다", () => {
+  it("매매가를 채우고 KB시세를 비우고 매물 연결을 풀고 LTV는 기본 70, 85㎡ 초과는 끔으로 되돌린다. 소재지·보유 상태는 유지한다", () => {
     const draft: Draft = {
       salePrice: "100000",
       kbPrice: "98000",
       region: "regulated",
       borrower: "noHome",
       listingId: "listing-a",
-      customLtv: "70",
+      customLtv: "55",
+      isAreaOver85: true,
     };
     const parsed = {
       ok: true as const,
@@ -26,7 +27,8 @@ describe("applyListingText (AC-2)", () => {
       salePrice: "125000",
       kbPrice: "",
       listingId: null,
-      customLtv: null,
+      customLtv: "70",
+      isAreaOver85: false,
     });
   });
 });

@@ -49,6 +49,49 @@ export type PreferredBorrowerRequirements = {
   sourceUrl: string;
 };
 
+/** 세법·중개보수 규정 출처. 조문마다 시행일이 다르고, 확인하지 못한 시행일은 null이다. */
+export type CostSource = {
+  title: string;
+  url: string;
+  effectiveDate: string | null;
+  note?: string;
+};
+
+/**
+ * 주택 유상거래 취득세(만원, bp = 0.01%). 6억 초과 9억 이하는 법정 산식이라 계산 함수에 있다.
+ * `null`은 1차 출처로 확인하지 못한 값이다.
+ */
+export type AcquisitionTaxRules = {
+  flatUpTo: number;
+  flatRateBp: number;
+  slopeUpTo: number;
+  topRateBp: number;
+  /** 조정대상지역 1세대 2주택 중과 */
+  regulatedSecondHomeRateBp: number;
+  localEducation: { standardShareOfTaxPercent: number; heavyRateBp: number };
+  /** 전용 85㎡ 초과만 과세 */
+  ruralSpecial: { standardRateBp: number; heavyRateBp: number | null };
+  /** 생애최초 감면 한도(만원). 계산에는 넣지 않고 안내만 한다 */
+  firstHomeReliefMax: number;
+  sources: CostSource[];
+};
+
+/** 거래금액 `below` 미만 구간(마지막은 null). `maxFee`는 만원 한도액이고 없으면 null */
+export type BrokerageFeeTier = { below: number | null; rateBp: number; maxFee: number | null };
+
+export type BrokerageFeeRules = {
+  tiers: BrokerageFeeTier[];
+  vatPercent: number;
+  sources: CostSource[];
+};
+
+export type PurchaseCostRules = {
+  /** 세율·요율을 1차 출처와 대조한 날(YYYY-MM-DD) */
+  baseDate: string;
+  acquisitionTax: AcquisitionTaxRules;
+  brokerageFee: BrokerageFeeRules;
+};
+
 export type Regulations = {
   /** YYYY-MM-DD */
   baseDate: string;
@@ -56,4 +99,5 @@ export type Regulations = {
   loanCap: LoanCap;
   preferredBorrower: PreferredBorrowerRequirements;
   sources: RegulationSource[];
+  purchaseCosts: PurchaseCostRules;
 };

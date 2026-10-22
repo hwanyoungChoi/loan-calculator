@@ -18,6 +18,8 @@ type SaveSheetProps = {
   /** 불러온 매물을 고치는 중이면 그 이름, 아니면 빈 문자열 */
   initialName: string;
   isEditing: boolean;
+  /** 입력이 불러온 저장본과 다른지(`selectSaveStatus`). 덮어쓰기가 무엇을 바꾸는지 알린다 */
+  hasInputChanges: boolean;
   onSave: (action: SaveAction, name: string) => ListingWriteResult;
   onCancel: () => void;
 };
@@ -38,7 +40,14 @@ function nameErrorOf(raw: string): string | null {
 }
 
 /** 저장 시트. 취소·닫기 버튼과 Esc로 닫는다. */
-function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps) {
+/** 덮어쓰기가 바꾸는 것. "이름 바꾸기"로 열면 입력이 같으므로 이름만 바뀐다는 것을 보여 준다(ADR-022 D7). */
+function describeOverwrite(hasInputChanges: boolean): string {
+  return hasInputChanges
+    ? "덮어쓰면 바꾼 입력값과 이름이 함께 저장됩니다"
+    : "입력값은 저장본과 같습니다. 덮어쓰면 이름만 바뀝니다";
+}
+
+function SaveSheet({ initialName, isEditing, hasInputChanges, onSave, onCancel }: SaveSheetProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
   const [nameError, setNameError] = useState<string | null>(null);
@@ -103,6 +112,7 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
             </p>
           )}
         </div>
+        {isEditing && <p className={styles.overwriteNote}>{describeOverwrite(hasInputChanges)}</p>}
         {writeError !== null && (
           <p role="alert" className={styles.writeError}>
             {writeError}

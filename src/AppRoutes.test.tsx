@@ -13,6 +13,9 @@ import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 
 import type { Listing } from "@/lib/types/listing";
 
+/** 래미안 카드 본문 링크. 같은 카드의 "래미안 101동 수정" 링크는 제외한다 */
+const CARD_BODY_LINK = /^래미안 101동(?! 수정$)/;
+
 const RESET_CONFIRM_MESSAGE =
   "손상된 저장 데이터를 삭제하고 빈 목록으로 시작합니다. 되돌릴 수 없으니 원문을 먼저 복사하세요";
 
@@ -126,7 +129,7 @@ describe("저장 흐름 (통합)", () => {
       createdAt: "2026-10-01T00:00:00.000Z",
       updatedAt: "2026-10-01T00:00:00.000Z",
     });
-    // 규제지역·무주택 90000 → 한도 36000, 자기자금 54000 (래미안 65000보다 작다)
+    // 규제지역·무주택 90000 → 한도 36000, 자기자금 54000 + 부대비용 3465 (래미안 65000 + 4950보다 작다)
     const xi = makeListing({
       id: "listing-b",
       name: "자이 3단지",
@@ -150,7 +153,7 @@ describe("저장 흐름 (통합)", () => {
     // 스크롤 복원 (AC-8e): 목록 → 카드(push) → 계산 화면은 맨 위 → 뒤로 가기 → 같은 위치
     setScrollY(1500);
     const historyBeforeCard = window.history.length;
-    await user.click(within(list).getByRole("link", { name: /래미안 101동/ }));
+    await user.click(within(list).getByRole("link", { name: CARD_BODY_LINK }));
     expect(await screen.findByLabelText("KB시세")).toBeInTheDocument();
     expect(window.location.hash).toBe("#/");
     expect(window.history.length).toBe(historyBeforeCard + 1);
@@ -164,7 +167,7 @@ describe("저장 흐름 (통합)", () => {
     expect(window.scrollY).toBe(1500);
 
     // 카드를 누르면 계산 화면에 그 매물 값이 채워지고 "저장됨"
-    await user.click(within(list).getByRole("link", { name: /래미안 101동/ }));
+    await user.click(within(list).getByRole("link", { name: CARD_BODY_LINK }));
     const kbPrice = await screen.findByLabelText("KB시세");
     expect(screen.getByLabelText("매매가")).toHaveValue("125,000");
     expect(kbPrice).toHaveValue("120,000");
@@ -172,10 +175,10 @@ describe("저장 흐름 (통합)", () => {
     expect(screen.getByRole("radio", { name: "무주택·생애최초" })).toBeChecked();
     expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
 
-    // KB시세를 고치면 "저장"이 다시 활성화되고, 시트에서 덮어쓰기
+    // KB시세를 고치면 "변경 저장"이 다시 활성화되고, 시트에서 덮어쓰기
     await user.clear(kbPrice);
     await user.type(kbPrice, "118000");
-    await user.click(screen.getByRole("button", { name: "저장" }));
+    await user.click(screen.getByRole("button", { name: "변경 저장" }));
     const sheet = screen.getByRole("dialog");
     expect(within(sheet).getByRole("textbox", { name: "매물 이름" })).toHaveValue("래미안 101동");
     expect(within(sheet).getByRole("button", { name: "새로 저장" })).toBeInTheDocument();

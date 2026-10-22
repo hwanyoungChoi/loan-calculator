@@ -11,6 +11,7 @@ const DRAFT: Draft = {
   borrower: "noHome",
   listingId: null,
   customLtv: null,
+  isAreaOver85: false,
 };
 
 describe("toLoanInput: 사용자 지정 LTV (AC-3, ADR-012 변환 지점)", () => {

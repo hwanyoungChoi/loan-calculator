@@ -3,7 +3,7 @@ import { isSameAsListing } from "@/lib/utils/listingDraft";
 import type { Listing, ListingSnapshot } from "@/lib/types/listing";
 import type { LoanInput } from "@/lib/types/loan";
 
-type SaveStatus = "ready" | "saved" | "invalidInput" | "corrupt" | "unavailable";
+type SaveStatus = "ready" | "changed" | "saved" | "invalidInput" | "corrupt" | "unavailable";
 
 export type SaveButtonState = {
   label: string;
@@ -14,6 +14,8 @@ export type SaveButtonState = {
 
 const SAVE_BUTTON_STATES: Record<SaveStatus, SaveButtonState> = {
   ready: { label: "저장", isDisabled: false, message: null },
+  // 불러온 매물을 고친 상태. 누르면 덮어쓰기 시트가 열린다(ADR-022 D7)
+  changed: { label: "변경 저장", isDisabled: false, message: null },
   saved: { label: "저장됨", isDisabled: true, message: null },
   invalidInput: { label: "저장", isDisabled: true, message: null },
   corrupt: {
@@ -32,15 +34,16 @@ type SaveButtonInput = {
   editingListing: Listing | null;
 };
 
-function selectSaveStatus({
+/** 저장 버튼과 저장 시트 안내가 함께 쓰는 판단. 저장본과 같은지는 `isSameAsListing` 하나로 본다. */
+export function selectSaveStatus({
   listingsStatus,
   loanInput,
   editingListing,
 }: SaveButtonInput): SaveStatus {
   if (listingsStatus !== "ok") return listingsStatus;
   if (loanInput === null) return "invalidInput";
-  if (editingListing !== null && isSameAsListing(loanInput, editingListing)) return "saved";
-  return "ready";
+  if (editingListing === null) return "ready";
+  return isSameAsListing(loanInput, editingListing) ? "saved" : "changed";
 }
 
 export function getSaveButtonState(input: SaveButtonInput): SaveButtonState {

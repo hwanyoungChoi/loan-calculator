@@ -12,7 +12,7 @@ import RegulationBasis from "./RegulationBasis";
 import type { LoanInput } from "@/lib/types/loan";
 import type { Regulations } from "@/lib/types/regulation";
 
-const WARNING = /규제 LTV보다 높습니다/;
+const WARNING = /실제 대출은 규제 기준\(\d+%\)으로 나올 수 있습니다/;
 const CAP_NOTE = "한도 상한은 규제대로 적용";
 
 function renderRow(input: LoanInput, regulations: Regulations = LOAN_REGULATIONS) {

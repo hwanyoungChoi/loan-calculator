@@ -4,6 +4,8 @@
  * 확인되지 않은 셀은 `rate: null`로 두고 숫자를 지어내지 않는다.
  * `as const`를 쓰지 않는다. `rate: null` 셀이 리터럴 타입으로 좁아져 미확인 fixture 주입이 막히기 때문이다.
  */
+import { PURCHASE_COSTS } from "./purchaseCosts";
+
 import type {
   PreferredBorrowerRequirements,
   RegulationSource,
@@ -162,4 +164,6 @@ export const LOAN_REGULATIONS = {
   loanCap: LOAN_CAP,
   preferredBorrower: PREFERRED_BORROWER_REQUIREMENTS,
   sources: REGULATION_SOURCES,
+  // 세법·중개보수는 출처와 기준일이 달라 파일을 나눴고, 화면·테스트 주입 경로는 하나로 둔다(ADR-022 D2).
+  purchaseCosts: PURCHASE_COSTS,
 } satisfies Regulations;

@@ -18,7 +18,8 @@ const DEFAULT: Draft = {
   region: "regulated",
   borrower: "noHome",
   listingId: null,
-  customLtv: null,
+  customLtv: "70",
+  isAreaOver85: false,
 };
 
 const VALID: Draft = {
@@ -28,6 +29,7 @@ const VALID: Draft = {
   borrower: "firstHome",
   listingId: "listing-1",
   customLtv: null,
+  isAreaOver85: false,
 };
 
 /** 유효한 draft의 필드를 바꾸거나(값) 지운(undefined) 원문 */
@@ -157,7 +159,8 @@ describe("createDraftStore", () => {
       region: "capitalNonRegulated",
       borrower: "oneHomeDisposal",
       listingId: null,
-      customLtv: null,
+      customLtv: "70",
+      isAreaOver85: false,
     };
     expect(store.getSnapshot()).toEqual(expected);
     expect(listener).toHaveBeenCalledTimes(2);

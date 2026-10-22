@@ -10,6 +10,8 @@ export type Listing = {
   borrower: Borrower;
   /** 0~100 정수. 키가 없으면 규제 LTV다. 규제로 저장할 때는 키를 쓰지 않는다(ADR-012). */
   customLtvRate?: number;
+  /** 전용 85㎡ 초과일 때만 키를 쓴다. 키 없음 = 85㎡ 이하(ADR-022, ADR-012 규칙). */
+  isAreaOver85?: true;
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */
@@ -19,10 +21,10 @@ export type Listing = {
 /** add/update에 넘기는 값. id와 시각은 스토어가 채운다. */
 export type ListingInput = Pick<
   Listing,
-  "name" | "salePrice" | "kbPrice" | "region" | "borrower" | "customLtvRate"
+  "name" | "salePrice" | "kbPrice" | "region" | "borrower" | "customLtvRate" | "isAreaOver85"
 >;
 
-export type ListingSort = "ownFunds" | "recent";
+export type ListingSort = "ownFunds" | "recent" | "name";
 
 export type LoadListingsResult =
   | { ok: true; listings: Listing[] }
