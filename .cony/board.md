@@ -1,6 +1,6 @@
 # LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 15:53
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 15:55
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-README 화면 사진 PR 생성·CI 대기
+기준 금액 빈 자리 제거 PR CI 대기
 
 ## 최근 결정
 
@@ -42,6 +42,6 @@ README 화면 사진 PR 생성·CI 대기
 
 ## PR
 
-[#8](https://github.com/hwanyoungChoi/mortgage-fit/pull/8)·[#9](https://github.com/hwanyoungChoi/mortgage-fit/pull/9) 머지 · 운영 반영 확인
+[#10](https://github.com/hwanyoungChoi/mortgage-fit/pull/10) · CI 진행 중
 
 <!-- spec: specs/fees-and-default-ltv.md -->
