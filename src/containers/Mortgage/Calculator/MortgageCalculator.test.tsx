@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
-import { screen, waitFor, within } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
 import { LAWD_CODES } from "@/lib/constants/lawdCodes";
+import DETAIL_SCREEN_TEXT from "@/lib/utils/__fixtures__/screenText/assumed-01-detail.txt?raw";
+import JEONSE_SCREEN_TEXT from "@/lib/utils/__fixtures__/screenText/assumed-03-jeonse.txt?raw";
 import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
 import { TRADE_LOOKUP_STORAGE_KEY } from "@/lib/utils/tradeLookupStorage";
 import { renderWithQueryClient } from "@/test/renderWithQueryClient";
@@ -92,15 +94,9 @@ function requestedQueries(fetchMock: { mock: { calls: unknown[][] } }) {
   });
 }
 
-/** 네이버부동산 공유 텍스트(가정 샘플) */
-const SALE_SHARE_TEXT = [
-  "[네이버 부동산]",
-  "래미안OO",
-  "아파트 매매 12억 5,000",
-  "공급/전용 112/84㎡ · 25/35층 · 남향",
-  "2015년 입주 · 101동",
-  "https://new.land.naver.com/complexes/00000?articleNo=0000000000",
-].join("\n");
+// 실제 OCR 엔진(wasm·Worker)은 jsdom에서 돌리지 않는다. 시트는 이 모킹 세션으로 인식 결과를 받는다.
+const ocr = vi.hoisted(() => ({ recognize: vi.fn(), terminate: vi.fn() }));
+vi.mock("@/lib/utils/ocrSession", () => ({ createOcrSession: () => ocr }));
 
 describe("계산 화면 (통합)", () => {
   // draft가 localStorage에 남으므로 테스트마다 빈 저장소와 계산 화면에서 시작한다.
@@ -514,34 +510,52 @@ describe("계산 화면 (통합)", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("#8 붙여넣기: 매매 공유 텍스트를 붙이면 미리보기에 매매가·단지·면적과 적용 안내가 보이고, 적용 전에는 입력이 그대로이며, 적용하면 매매가를 채우고 KB시세를 비워 포커스하고 직접 입력을 끄며 저장 이름을 제안한다. 링크만 붙이면 적용할 수 없다 (AC-7e)", async () => {
+  it("#8 스크린샷: 이미지를 고르면 인식 중 진행과 취소가 보이고, 끝나면 미리보기에 매매가·단지·면적과 적용 안내가 보이며, 적용 전에는 입력이 그대로다. 적용하면 매매가를 채우고 KB시세를 비워 포커스하고 매물 연결과 직접 입력을 풀며 저장 이름을 제안한다. 전세 화면이면 적용할 수 없고, 시트를 닫으면 인식을 멈춘다 (AC-2, AC-3)", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<AppRoutes />);
     const salePrice = screen.getByLabelText("매매가");
     const kbPrice = screen.getByLabelText("KB시세");
     await user.type(salePrice, "100000");
     await user.type(kbPrice, "98000");
-    const ltvSwitch = screen.getByRole("switch", { name: "LTV 직접 입력(은행 상담값)" });
-    await user.click(ltvSwitch);
+    // 저장해 두면 계산 화면이 그 매물을 편집 중이 된다.
+    await user.click(screen.getByRole("button", { name: "저장" }));
+    await user.type(screen.getByRole("textbox", { name: "매물 이름" }), "이전 매물");
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "저장" }));
+    await user.click(screen.getByRole("switch", { name: "LTV 직접 입력(은행 상담값)" }));
     await user.type(screen.getByLabelText("사용자 지정 LTV"), "70");
 
-    // 열면 textarea에 포커스, 빈 값이라 적용 비활성
-    const pasteButton = screen.getByRole("button", { name: "붙여넣기로 채우기" });
-    await user.click(pasteButton);
-    let sheet = screen.getByRole("dialog", { name: "붙여넣기로 채우기" });
-    let textarea = within(sheet).getByRole("textbox", { name: "공유 텍스트" });
-    expect(textarea).toHaveFocus();
-    expect(within(sheet).getByRole("button", { name: "적용" })).toBeDisabled();
+    let finishRecognition: (text: string) => void = () => {};
+    ocr.recognize.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finishRecognition = resolve;
+        }),
+    );
+    const openButton = screen.getByRole("button", { name: "스크린샷으로 채우기" });
+    await user.click(openButton);
+    let sheet = screen.getByRole("dialog", { name: "스크린샷으로 채우기" });
+    expect(
+      within(sheet).getByText("이미지는 이 기기 안에서만 읽고 어디에도 보내지 않습니다"),
+    ).toBeInTheDocument();
+    const screenshot = new File(["png"], "detail.png", { type: "image/png" });
+    await user.upload(within(sheet).getByLabelText("스크린샷 파일"), screenshot);
+    expect(ocr.recognize).toHaveBeenCalledWith(screenshot, expect.any(Function));
+    expect(
+      within(sheet).getByText("인식 준비 중…(처음 한 번 약 6MB 내려받음)"),
+    ).toBeInTheDocument();
+    expect(within(sheet).getByRole("button", { name: "취소" })).toBeInTheDocument();
 
-    // "읽기" 버튼 없이 붙이자마자 미리보기가 뜬다.
-    await user.paste(SALE_SHARE_TEXT);
+    await act(async () => finishRecognition(DETAIL_SCREEN_TEXT));
     const factValue = (label: string) =>
       within(sheet).getByText(label, { selector: "dt" }).parentElement?.querySelector("dd")
         ?.textContent;
     expect(factValue("매매가")).toBe("12억 5,000만원");
     expect(factValue("단지(추정)")).toBe("래미안OO");
-    expect(factValue("면적")).toBe("84㎡");
+    expect(factValue("면적")).toBe("84.97㎡");
     expect(within(sheet).getByText("KB시세는 비워집니다")).toBeInTheDocument();
+    expect(
+      within(sheet).getByText("불러온 매물에 덮어쓰지 않고 새 매물로 계산합니다"),
+    ).toBeInTheDocument();
     expect(within(sheet).getByText("사용자 지정 LTV는 꺼집니다")).toBeInTheDocument();
     // 적용 전에는 뒤 화면 입력이 바뀌지 않는다.
     expect(salePrice).toHaveValue("100,000");
@@ -557,25 +571,29 @@ describe("계산 화면 (통합)", () => {
     expect(screen.getByRole("switch", { name: "LTV 직접 입력(은행 상담값)" })).not.toBeChecked();
     expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
 
-    // KB시세를 채우고 저장 시트를 열면 이름 칸에 제안 이름이 들어 있다.
+    // KB시세를 채우고 저장 시트를 열면 덮어쓰기가 아닌 새 저장이고, 이름 칸에 제안 이름이 들어 있다.
     await user.type(appliedKbPrice, "120000");
     await user.click(screen.getByRole("button", { name: "저장" }));
-    const saveSheet = screen.getByRole("dialog");
+    const saveSheet = screen.getByRole("dialog", { name: "매물 저장" });
     expect(within(saveSheet).getByRole("textbox", { name: "매물 이름" })).toHaveValue(
-      "래미안OO 84㎡",
+      "래미안OO 84.97㎡",
     );
     await user.click(within(saveSheet).getByRole("button", { name: "취소" }));
 
-    // 링크 한 줄만 붙이면 안내 문구와 적용 비활성
-    await user.click(pasteButton);
-    sheet = screen.getByRole("dialog", { name: "붙여넣기로 채우기" });
-    textarea = within(sheet).getByRole("textbox", { name: "공유 텍스트" });
-    expect(textarea).toHaveFocus();
-    await user.paste("https://new.land.naver.com/complexes/00000?articleNo=0000000000");
+    // 전세 화면: 실패 이유를 보이고 적용할 수 없다. 입력은 그대로다.
+    ocr.recognize.mockResolvedValueOnce(JEONSE_SCREEN_TEXT);
+    await user.click(openButton);
+    sheet = screen.getByRole("dialog", { name: "스크린샷으로 채우기" });
+    await user.upload(within(sheet).getByLabelText("스크린샷 파일"), screenshot);
     expect(
-      within(sheet).getByText("링크는 읽지 않습니다. 앱의 공유 텍스트 전체를 붙여 넣으세요"),
+      await within(sheet).findByText("매매 매물이 아닌 것 같습니다(전세·월세)"),
     ).toBeInTheDocument();
-    expect(textarea).toHaveAttribute("aria-invalid", "true");
     expect(within(sheet).getByRole("button", { name: "적용" })).toBeDisabled();
+    expect(screen.getByLabelText("매매가")).toHaveValue("125,000");
+
+    // 시트를 닫으면 워커를 닫는다.
+    ocr.terminate.mockClear();
+    await user.click(within(sheet).getByRole("button", { name: "닫기" }));
+    expect(ocr.terminate).toHaveBeenCalledTimes(1);
   });
 });

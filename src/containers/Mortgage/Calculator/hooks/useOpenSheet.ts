@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
 /** 계산 화면의 시트. 한 번에 하나만 열린다(ADR-017). */
-export type SheetName = "save" | "paste" | "trades";
+export type SheetName = "save" | "screenshot" | "trades";
 
 /**
  * 열린 시트 하나와 닫을 때 포커스를 돌려줄 자리를 관리한다.
