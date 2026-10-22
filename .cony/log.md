@@ -70,3 +70,16 @@
 - 요청: LTV 옵션은 "둘 다" — 규정상 우대 조건(서민·실수요자 우대 등, 1차 출처로 확인된 수치만)을 조건으로 추가하고, 사용자가 LTV를 직접 지정할 수도 있게(결과에 "사용자 지정 LTV"로 구분). U1(서민·실수요자 우대 포함 여부)은 포함으로 답변됨.
 - 요청: 매물 데이터는 국토부 실거래가 API, 네이버부동산 공유 텍스트 붙여넣기, 크롤링 세 가지 모두 선택. 리드가 크롤링의 약관·법적 위험을 설명했고, 범위를 "사용자가 붙여넣은 매물 링크 한 건만 그때 가져오기"로 좁혀 진행(대량·정기 수집 금지, 기술적으로 막히면 보고).
 - 요청: 부부 공유 저장(D1 + Access)은 이번 범위 밖.
+- 사용량: planner 2차 첫 스펙 작성 · opus · 193k 토큰 · 14분
+- AI: planner가 서민·실수요자 LTV(규제 60%, 수도권 비규제 70%, 비수도권 미확인)와 요건(부부합산 9천만·8억·무주택세대주)을 S3 FAQ에서 확인. 실거래가 상세 API 엔드포인트·파라미터 확인, 응답 필드는 2차 출처.
+- AI: 링크 가져오기 조사 — 네이버(도구 접근 불가, DB권 판결 보도), 호갱노노(403), KB(robots Disallow /). 제외 추천 → 제품 범위 변경이라 사용자 확인 필요(U2).
+- 사용량: client-dev 2차 스펙 검토 · sonnet (조건부 찬성, 필수 수정 6건: customLtvRate undefined/null 표현 통일, appliedLtv 파급, 요약 바 표시, 병기 규제값 정의, 붙여넣기 적용 규칙, 새 계산 시 customLtv 해제)
+- 사용량: backend-dev 2차 스펙 검토 · sonnet (조건부 찬성, 필수 수정 6건: 캐시·lawdCd 검증으로 호출 증폭 완화, Cloudflare IP 차단 여부 조기 확인, 공유 타임아웃·예외 처리, 22/23·20/30/31 오류 매핑, .gitignore·eslint ignores·alias, Env 타입·tsconfig·onlyBuiltDependencies)
+- 사용량: backend-dev 2차 스펙 검토 · sonnet · 88k 토큰 · 4분 / client-dev · sonnet · 100k 토큰 · 4분 / tester · sonnet · 92k 토큰 · 4분 45초
+- 토론: 세 검토 모두 조건부 찬성, 정면 반대 없음 → 반론 단계 생략. 결정 8건 채택([ADR-011](decisions/011-server-pages-functions.md) ~ [ADR-018](decisions/018-integration-test-cap.md)). ADR-003·008은 개정, ADR-001은 보강.
+- AI: D9(링크 가져오기)는 사용자 확인(U2) 대기 — 스펙에서는 제외 상태로 두고 진행.
+- 요청: 사용자가 개발 계속 진행 지시. 스펙 반영이 끝나는 대로 태스크 1부터 바로 착수.
+- 사용량: planner 2차 스펙 수정(결정 반영) · sonnet · 토큰 미기록
+- AI: planner가 ADR·검토에 없던 세부를 정함(공유 타임아웃 15초, 캐시 TTL 지난달 24시간·이번 달 30분, 429 섞이면 quotaExceeded 우선, 세종 sigungu=시도명, 시군구 선택 즉시 저장, complexName 휴리스틱, LAWD_CODES 200개 이상). 가정 A12·A14~A16.
+
+## 태스크 1
