@@ -15,4 +15,6 @@
     // /api/*는 정적 파일·SPA 대체보다 Worker가 먼저 받는다
     "run_worker_first": ["/api/*"],
   },
+  // Workers Builds가 PR 브랜치에서 실행하는 `wrangler preview`는 이 블록이 있어야 한다(비어 있어도 됨).
+  "previews": {},
 }

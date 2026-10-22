@@ -130,3 +130,7 @@
 - 사용량: backend-dev Workers 전환 · 기본(opus) · 27k 토큰 추가분 · 4분 20초
 - 토론 없이 리드 판정: [ADR-011](decisions/011-server-pages-functions.md) 개정(Pages Functions → Workers + Static Assets). 배포 대상이 사용자 설정으로 정해진 사안.
 - AI: 리드가 화면 확인용으로 띄워 둔 옛 Pages dev 서버(8788)를 종료.
+- AI: Workers 전환 후(3c419d8)에도 Workers Builds 실패. 로컬 deploy·versions upload dry-run은 성공, GitHub에는 로그 없음(시작=완료 시각). 가설: main 첫 빌드 실패로 Worker가 한 번도 배포되지 않아 PR 브랜치의 versions upload가 실패. 대시보드 로그 없이는 확정 불가 → 사용자에게 로그 요청.
+- 요청: 사용자가 Worker loan-calculator에 시크릿 MOLIT_SERVICE_KEY 등록 완료(U1 해결).
+- 요청: 사용자가 Cloudflare 빌드 로그 전달 — 빌드는 성공, 배포 명령 `npx wrangler preview`(PR 브랜치)가 "configuration is missing a `previews` block"으로 실패. 앞선 가설(Worker 미배포)은 틀림.
+- AI: wrangler.jsonc에 `"previews": {}` 추가(로컬 wrangler 4.151.3 스키마에 존재 확인, deploy dry-run 성공). 참고: Preview는 시크릿을 따로 관리(`wrangler preview secret`) → PR 미리보기에서는 실거래가가 notConfigured일 수 있음, 운영은 등록한 Worker 시크릿 사용.

@@ -1,6 +1,6 @@
 # 주담대 계산기 2차: LTV 옵션과 매물 데이터 가져오기
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 11:01
+> 상태: 사용자 대기 · 마지막 업데이트: 2026-10-22 11:16
 
 ## 태스크
 
@@ -10,7 +10,7 @@
 
 ## 지금 하는 일
 
-Cloudflare가 Workers로 연결돼 Workers Builds 체크 실패. backend-dev가 Pages Functions → Workers + Static Assets 전환 중
+시크릿 등록 완료. Workers Builds 실패 로그 대기
 
 ## 최근 결정
 
@@ -26,17 +26,16 @@ Cloudflare가 Workers로 연결돼 Workers Builds 체크 실패. backend-dev가 
 
 ## 사용자 확인 필요
 
-- U1: 로컬 키는 등록됨. Cloudflare Pages 시크릿 MOLIT_SERVICE_KEY(Production·Preview) 등록과 Pages 저장소 연결은 직접 필요
 - U3: 네이버부동산 공유 텍스트 실제 샘플 2~3개(매매 2, 전세 1)
 - U4: 10·15 FAQ 첨부 PDF로 서민·실수요자 60%(규제지역)와 1차 U2 세 칸 대조
-- 제안: 매물에 원본 링크만 저장해 눌러서 여는 기능(서버 요청 없음) — 원하면 태스크 3에 추가
+- Workers Builds 실패 로그(대시보드 View logs) 마지막 20~30줄
 
 ## 막힌 것
 
-없음
+- PR #2 Workers Builds 실패 — Cloudflare 빌드 로그가 대시보드에만 있어 원인 확정 불가. 로그 필요
 
 ## PR
 
-[#2](https://github.com/hwanyoungChoi/loan-calculator/pull/2) · verify 통과 · Workers Builds 실패 → 수정 중
+[#2](https://github.com/hwanyoungChoi/loan-calculator/pull/2) · verify 통과 · Workers Builds 실패(로그 대기)
 
 <!-- spec: specs/ltv-options-and-import.md -->
