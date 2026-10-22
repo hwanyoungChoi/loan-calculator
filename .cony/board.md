@@ -1,38 +1,41 @@
-# 스크린샷 OCR로 매물 매매가·면적 채우기
+# LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 13:35
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 14:05
 
 ## 태스크
 
-- [x] 1. **스크린샷 → 인식 → 미리보기 → 적용 (엔드투엔드 최소)** — AC-1, AC-2, AC-3, AC-4
-- [ ] 2. **실사용 다듬기** — AC-5, 시나리오 6
+- [ ] 1. **70% 기본값 + 취득세·중개보수를 자기자금에 포함(엔드투엔드 최소, 85㎡ 이하 고정)** — AC-1, AC-2, AC-3, AC-4 [REVIEW · 리드]
+- [ ] 2. **전용 85㎡ 초과 입력과 저장** — AC-5 [REVIEW · 리드]
+- [ ] 3. **저장 목록: 수정과 가나다순** — AC-6, AC-7 [REVIEW · 리드]
+- [ ] 4. **KB시세 입력 보조(D8 추천안 B)** — AC-8 [REVIEW · 리드]
 
 ## 백로그
 
-- 목록 화면(매물 여러 개) 스크린샷: `매매` 금액이 여럿이면 후보를 골라 적용하기
-- 이미지 썸네일 표시, 영역 자르기(가격 부분만 인식해 속도·정확도 개선, tesseract `rectangle` 옵션)
-- 면적·층을 매물 데이터로 저장(선행 스펙의 "매물에 면적·원본 링크 저장"과 함께)
-- 다른 앱(호갱노노, KB부동산) 화면 fixture 추가
-- 시트를 열 때 워커를 미리 데워 두기(첫 인식 체감 단축). 측정에서 준비 시간이 길게 나오면 검토한다.
-- 공유 시트로 이미지 받기(Web Share Target, PWA 필요)
-- 자산 경로에 버전 넣기(`/ocr/7.0.0/`): 버전을 올릴 때 옛 HTTP 캐시가 남지 않게 한다
-- `aria-live` 진행 문구를 10% 단위로 줄이기(화면 낭독 소음)
+- KB시세 기기 기억(D8 A): 스크린샷 OCR 단지명 + 전용면적을 키로, 사용자가 넣은 KB시세와 입력 날짜를 `loan-calculator/kb-price-memory`에 기억해 같은 단지·면적을 다시 읽으면 미리 채운다("10/20 입력값, 확인 필요" 표시). U5로 OCR 단지명 정확도를 확인한 뒤에 한다.
+- 생애최초 감면 반영(본세 200만원 공제, 지방교육세·농특세 처리 확인 후)
+- 규제 기준으로 계산한 예상 한도·자기자금을 한 벌 더 나란히 보여 주기
+- 스크린샷 OCR의 면적(`areaText`, 전용 우선)으로 85㎡ 초과 스위치 자동 설정
+- 실거래가 시트 행을 눌러 단지명·면적을 계산 화면에 연결하기(KB 기억의 키 출처로도 쓴다)
+- 중개보수 협의 금액 직접 입력, 간이과세자(부가세 다름) 선택
+- 등기 비용(법무사 보수, 국민주택채권 할인, 인지세) 추정
+- 3주택 이상 보유 상태, 공시가격 1억(지방 2억) 이하 중과 제외
+- 2026년 지방세제 개편안이 국회를 통과하면 생애최초 40세 미만 300만원 등 반영
+- 목록 카드에서 이름만 바로 바꾸기(인라인 편집)
+- KB부동산이 공식 API·제휴를 열면 ADR-019 "뒤집을 조건"으로 재검토한다
 
 ## 지금 하는 일
 
-fe 구현 완료(selectCollateralBase 재사용, KB시세 아래 기준 금액 줄). 리드 화면 확인 중
+구현 완료(테스트 720). 리드가 360px 화면 확인 중
 
 ## 최근 결정
 
-- [ADR-021 OCR은 tesseract.js 7.0.0 + kor best_int, 자산은 dist/ocr에 자체 호스팅](decisions/021-ocr-engine-assets.md): D1 A, D2 A. tesseract.js와 tesseract.js-core를 같은 정확한 버전(7.0.0)으로 직접 의존성에 고정. 자산 경로는 location.origin 기준 절대 URL, corePath는 디렉터리(끝 /). 복사 대상이 0건이면 빌드 실패. tesseract.js는 ocrSession.ts의 동적 import로만 들어와 메인 번들과 분리.
-- [ADR-020 텍스트 붙여넣기를 스크린샷 OCR로 바꾼다](decisions/020-remove-paste.md): C. 텍스트 입력(textarea) 경로는 없애고 이미지 입력으로 바꾼다. 가격·면적 파서(parseKoreanPrice, parseListingShareText의 규칙)는 OCR 결과 텍스트에 재사용한다. 세부(라이브러리, 언어 데이터 위치, 화면)는 OCR 스펙과 후속 ADR에서 정한다.
+- [ADR-022 LTV 70% 기본, 취득세·중개보수를 자기자금에 포함, 목록에서 수정·이름순 정렬](decisions/022-fees-and-default-ltv.md): - D1 A: draft 기본 customLtv "70"(새 계산·스크린샷 적용 후에도 70). 규제 LTV는 나란히 표시.
 
 ## 사용자 확인 필요
 
-- Cloudflare Worker 이름을 loan-calculator → mortgage-fit으로 변경(대시보드 Settings) 후 알려 주기 — 코드의 wrangler name과 맞춰야 배포됨
-- 운영 Worker MOLIT_SERVICE_KEY를 Type=Secret으로 재등록(지금 503 notConfigured)
-- U5: 네이버부동산 앱 매물 상세 화면 스크린샷 1~2장(개인정보 가림)
-- U4: 10·15 FAQ 첨부 PDF로 서민·실수요자 60%(규제지역)와 1차 세 칸 대조
+- U5: 네이버부동산 앱 매물 상세 화면 스크린샷 1~2장
+- Cloudflare Worker 이름 mortgage-fit 변경 + MOLIT_SERVICE_KEY Secret 재등록
+- 요청자에게: KB시세는 자동 조회 불가(공식 API 없음). 같은 단지 KB시세 기억 기능을 원하는지
 
 ## 막힌 것
 
@@ -40,6 +43,6 @@ fe 구현 완료(selectCollateralBase 재사용, KB시세 아래 기준 금액 �
 
 ## PR
 
-[#3](https://github.com/hwanyoungChoi/mortgage-fit/pull/3) · CI·Workers Builds 통과 · 머지됨(862f113)
+아직 없음
 
-<!-- spec: specs/screenshot-ocr.md -->
+<!-- spec: specs/fees-and-default-ltv.md -->
