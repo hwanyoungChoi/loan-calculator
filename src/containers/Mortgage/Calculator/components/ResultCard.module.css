@@ -59,7 +59,9 @@
 .rowValue {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
+  /* "6억 4,000만원"이 "만 / 원"처럼 글자 중간에서 끊기지 않게 띄어쓰기에서만 줄을 바꾼다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .rowDetails {

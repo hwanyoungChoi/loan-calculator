@@ -60,8 +60,8 @@ describe("결과 카드 (통합)", () => {
     // 0이나 다른 조합 값으로 채우지 않는다.
     expect(within(card()).queryByText(/^0만원$/)).not.toBeInTheDocument();
 
-    // 담보 기준과 한도 상한은 미확인과 무관하게 계산해 보여준다.
-    expect(rowValue("담보 기준")).toBe("12억원(KB시세)");
+    // 기준 금액과 한도 상한은 미확인과 무관하게 계산해 보여준다.
+    expect(rowValue("기준 금액(매매가·KB시세 중 낮은 쪽)")).toBe("12억원");
     expect(rowValue("한도 상한")).toBe("6억원");
 
     // 기준일은 리터럴이 아니라 상수와 비교한다.

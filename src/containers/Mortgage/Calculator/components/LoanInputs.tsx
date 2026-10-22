@@ -5,6 +5,7 @@ import { BORROWER_LABELS, BORROWERS, REGION_LABELS, REGIONS } from "@/lib/consta
 import { validateAmount } from "@/lib/utils/amount";
 
 import AmountInput from "./AmountInput";
+import CollateralBaseLine from "./CollateralBaseLine";
 import CustomLtvField from "./CustomLtvField";
 import styles from "./LoanInputs.module.css";
 import PreferredRequirements from "./PreferredRequirements";
@@ -53,7 +54,7 @@ function amountErrorOf(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
-/** 계산 입력부: 금액 2개, 소재지, 보유 상태(서민·실수요자 요건 안내), LTV 직접 입력 */
+/** 계산 입력부: 금액 2개와 기준 금액, 소재지, 보유 상태(서민·실수요자 요건 안내), LTV 직접 입력 */
 function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
   const [amountErrors, setAmountErrors] = useState(NO_ERRORS);
 
@@ -85,6 +86,7 @@ function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
         onChange={(raw) => handleAmountChange("kbPrice", raw)}
         onBlur={() => handleAmountBlur("kbPrice")}
       />
+      <CollateralBaseLine salePrice={draft.salePrice} kbPrice={draft.kbPrice} />
       <ChoiceGroup
         name="region"
         legend="주택 소재지"
