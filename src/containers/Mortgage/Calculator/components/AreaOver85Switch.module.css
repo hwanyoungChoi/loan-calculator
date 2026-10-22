@@ -10,7 +10,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   min-height: 44px;
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
   cursor: pointer;
 }
@@ -22,8 +22,8 @@
   width: 44px;
   height: 26px;
   margin: 0;
-  border-radius: 999px;
-  background: var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-control);
   appearance: none;
   cursor: pointer;
   transition: background-color 0.15s;
@@ -36,8 +36,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 20%);
+  background: var(--color-surface);
   content: "";
   transition: transform 0.15s;
 }
@@ -51,11 +50,18 @@
 }
 
 .switch:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
 }
 
 .hint {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::before {
+    transition: none;
+  }
 }

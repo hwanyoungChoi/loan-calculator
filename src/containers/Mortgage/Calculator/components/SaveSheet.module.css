@@ -17,13 +17,13 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
 .count {
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-variant-numeric: tabular-nums;
 }
 
@@ -31,13 +31,13 @@
   width: 100%;
   min-height: 48px;
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
   background: var(--color-surface);
 }
 
 .input:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-text);
   outline-offset: -1px;
   border-color: transparent;
 }
@@ -49,7 +49,7 @@
 .error,
 .writeError {
   color: var(--color-error);
-  font-size: 14px;
+  font-size: var(--fs-body);
   overflow-wrap: anywhere;
 }
 
@@ -63,23 +63,23 @@
   flex: 1;
   min-height: 48px;
   padding: 0 var(--space-2);
-  border-radius: var(--radius);
-  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-control);
+  font-weight: 600;
   word-break: keep-all;
 }
 
 .primaryButton {
-  border: 0;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control);
   background: var(--color-surface);
 }
 
 .overwriteNote {
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }

@@ -13,7 +13,7 @@
 
 .label {
   min-width: 0;
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -21,22 +21,22 @@
 .count {
   flex: none;
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-variant-numeric: tabular-nums;
 }
 
 .textarea {
   width: 100%;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
   background: var(--color-surface);
   font: inherit;
   resize: vertical;
 }
 
 .textarea:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-text);
   outline-offset: -1px;
   border-color: transparent;
 }
@@ -47,7 +47,7 @@
 
 .error {
   color: var(--color-error);
-  font-size: 14px;
+  font-size: var(--fs-body);
   overflow-wrap: anywhere;
 }
 
@@ -60,22 +60,22 @@
 .secondaryButton {
   flex: 1;
   min-height: 44px;
-  border-radius: var(--radius);
-  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-control);
+  font-weight: 600;
 }
 
 .primaryButton {
-  border: 0;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .primaryButton:disabled {
-  background: var(--color-badge-bg);
+  background: var(--color-raised);
   color: var(--color-text-muted);
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control);
   background: var(--color-surface);
 }

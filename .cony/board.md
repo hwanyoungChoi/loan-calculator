@@ -1,6 +1,6 @@
 # LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 17:54
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-23 00:35
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-카드 메모 분리·KB시세 표시 PR CI 대기
+taste 리디자인 PR CI 대기
 
 ## 최근 결정
 
@@ -33,8 +33,7 @@
 
 ## 사용자 확인 필요
 
-- 애드센스: 개인용 유지 vs conychoi.dev 공개 서비스 방향
-- U5: 네이버부동산 앱 매물 상세 화면 스크린샷(면적 인식 보정)
+- taste 리디자인: 색·버튼·칩 모양은 화면 취향이라 확인 필요(마음에 안 들면 되돌리거나 조정)
 
 ## 막힌 것
 
@@ -42,6 +41,6 @@
 
 ## PR
 
-[#15](https://github.com/hwanyoungChoi/mortgage-fit/pull/15) 머지
+[#16](https://github.com/hwanyoungChoi/mortgage-fit/pull/16) 머지
 
 <!-- spec: specs/fees-and-default-ltv.md -->

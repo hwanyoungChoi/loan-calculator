@@ -1,26 +1,28 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: var(--space-3);
   max-width: 480px;
   margin: 0 auto;
-  padding: var(--space-4) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
+  padding: var(--space-5) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 2px;
+  margin-bottom: var(--space-1);
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: var(--fs-title);
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 .baseDate {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .list {
@@ -31,13 +33,14 @@
 
 .notice {
   padding: var(--space-4);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
 }
 
 .error {
   color: var(--color-error);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .empty {
@@ -46,7 +49,8 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-5) var(--space-4);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
   color: var(--color-text-muted);
 }
@@ -55,18 +59,22 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding: 0 var(--space-4);
-  border-radius: var(--radius);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-control);
   background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
+  color: var(--color-on-primary);
+  font-weight: 600;
   text-decoration: none;
 }
 
+/* 간단히 보기: 흰 카드 한 장 안에 줄을 쌓는다. */
 .compactTable {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--color-border);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
 
 /* 열 제목은 줄(CompactListingRow)과 같은 좌우 여백·양끝 정렬을 쓴다. */
@@ -77,5 +85,5 @@
   padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--fs-tiny);
 }

@@ -3,7 +3,8 @@
   flex-direction: column;
   gap: var(--space-4);
   padding: var(--space-4);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
 }
 
@@ -15,7 +16,7 @@
   gap: var(--space-1);
   margin-top: calc(var(--space-3) * -1);
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .kbActions {
@@ -32,8 +33,10 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--color-primary);
-  font-size: 14px;
+  color: var(--color-text);
+  font-size: var(--fs-body);
   font-weight: 600;
   text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
 }

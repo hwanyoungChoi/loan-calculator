@@ -1,16 +1,21 @@
 .card {
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
 }
 
 .link {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-3);
   color: inherit;
   text-decoration: none;
+}
+
+.link:focus-visible {
+  border-radius: var(--radius-card);
+  outline-offset: -2px;
 }
 
 .heading {
@@ -22,46 +27,51 @@
 
 .name {
   min-width: 0;
-  font-size: 16px;
+  font-size: var(--fs-section);
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .badge {
   flex: none;
   padding: 2px var(--space-2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-badge-bg);
-  color: var(--color-text-muted);
-  font-size: 12px;
+  color: var(--color-badge-text);
+  font-size: var(--fs-tiny);
   font-weight: 600;
+  white-space: nowrap;
 }
 
+/* 사용자 지정 LTV는 상태가 아니라 입력 출처라 테두리만 두른다. */
 .customBadge {
   composes: badge;
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
+  padding: 1px 7px;
+  border: 1px solid var(--color-control);
+  background: var(--color-surface);
 }
 
 .overBadge {
   composes: badge;
-  background: var(--color-error);
-  color: #fff;
+  background: var(--color-error-bg);
+  color: var(--color-error-ink);
 }
 
 .overNote {
   color: var(--color-error);
-  font-size: 13px;
+  font-size: var(--fs-small);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .leftNote {
   composes: overNote;
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 .condition {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .figures {
@@ -72,9 +82,10 @@
 
 .figure {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .figure dt {
@@ -88,41 +99,50 @@
   overflow-wrap: anywhere;
 }
 
+/* 필요한 자기자금: 카드의 답. 진한 줄 아래 가장 큰 숫자. */
 .emphasisFigure {
   composes: figure;
-  font-size: 16px;
+  margin: var(--space-2) 0 2px;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-text);
+  font-size: var(--fs-figure);
   font-weight: 700;
+}
+
+.emphasisFigure dt {
+  color: var(--color-text);
+  font-size: var(--fs-body);
+  font-weight: 600;
 }
 
 /* 자기자금 내역. 위 행보다 작고 흐리게 둔다. */
 .breakdown {
   composes: figure;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--fs-tiny);
 }
 
-/* 메모는 계산 값과 섞이지 않게 옅은 상자에 담고, 두 줄까지만 미리 보인다. */
+/* 메모는 계산 값과 섞이지 않게 옅은 우물에 담고, 두 줄까지만 미리 보인다. */
 .memo {
   display: flex;
   flex-direction: column;
   gap: 2px;
   margin: 0 var(--space-4) var(--space-3);
   padding: var(--space-2) var(--space-3);
-  border-left: 3px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-badge-bg);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
 }
 
 .memoLabel {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: var(--fs-tiny);
   font-weight: 600;
 }
 
 .memoText {
   display: -webkit-box;
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--fs-small);
   white-space: pre-line;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
@@ -135,7 +155,7 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-3);
+  padding: 0 var(--space-4) var(--space-4);
 }
 
 .deleteButton {
@@ -144,28 +164,25 @@
   justify-content: center;
   min-width: 56px;
   min-height: 40px;
-  padding: 0 var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
   color: var(--color-error);
-  font-size: 14px;
+  font-size: var(--fs-body);
+  font-weight: 600;
 }
 
 .editButton {
   composes: deleteButton;
-  color: var(--color-primary);
-  font-weight: 600;
+  color: var(--color-text);
   text-decoration: none;
 }
 
 .copyButton {
-  composes: deleteButton;
-  color: var(--color-primary);
-  text-decoration: none;
+  composes: editButton;
 }
 
 .memoButton {
-  composes: deleteButton;
-  color: var(--color-text);
+  composes: editButton;
 }

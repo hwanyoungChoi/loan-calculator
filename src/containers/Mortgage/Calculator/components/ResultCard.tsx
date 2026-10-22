@@ -97,7 +97,7 @@ function ResultCard({ input, regulations }: ResultCardProps) {
           label="필요한 자기자금"
           value={formatManwonOrDash(result.ownFunds)}
           details={hasUnconfirmedOwnFunds(result) ? "농특세 미확인(빼고 계산한 값)" : undefined}
-          variant="emphasis"
+          variant="answer"
         />
       </dl>
       {statusNotice !== null && <p className={styles.statusNotice}>{statusNotice}</p>}

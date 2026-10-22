@@ -16,18 +16,25 @@
   flex: 1;
 }
 
+/* 선택 표시는 탭 아래 2px 잉크 줄. 아래 테두리 위에 겹쳐 앉는다. */
 .tab {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
   color: var(--color-text-muted);
+  font-size: var(--fs-section);
   font-weight: 600;
   text-decoration: none;
 }
 
 .tab[aria-current="page"] {
-  border-bottom-color: var(--color-primary);
-  color: var(--color-primary);
+  border-bottom-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.tab:focus-visible {
+  outline-offset: -2px;
 }

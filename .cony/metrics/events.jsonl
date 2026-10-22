@@ -1,3 +1,8 @@
 {"ts":"2026-10-22T07:51:55.780Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-22T08:23:13.216Z","type":"status","status":"완료"}
 {"ts":"2026-10-22T08:54:04.631Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-22T08:54:24.680Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-22T08:55:46.369Z","type":"status","status":"완료"}
+{"ts":"2026-10-22T15:12:42.180Z","type":"hook","hook":"guard-bash","decision":"ask","command":"D=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad/taste-skill && rm -rf \"$D\" && git clone -q --depth 1 https://github.com/Leon"}
+{"ts":"2026-10-22T15:14:19.560Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-22T15:14:42.381Z","type":"hook","hook":"board-on-stop","decision":"block"}
