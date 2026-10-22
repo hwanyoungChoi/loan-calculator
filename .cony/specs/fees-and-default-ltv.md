@@ -218,20 +218,20 @@ HTTP 엔드포인트 변경은 없다. 서버(`worker/`, `server/`)는 바꾸지
 
 ## 태스크
 
-- [ ] 1. **70% 기본값 + 취득세·중개보수를 자기자금에 포함(엔드투엔드 최소, 85㎡ 이하 고정)** — AC-1, AC-2, AC-3, AC-4
+- [x] 1. **70% 기본값 + 취득세·중개보수를 자기자금에 포함(엔드투엔드 최소, 85㎡ 이하 고정)** — AC-1, AC-2, AC-3, AC-4
   - [ ] 1-0. 착수 전 리드가 브라우저로 law.go.kr 원문을 대조한다: 지방세법 제11조 제1항 제8호 나목의 반올림 문구(가정 A3)와 농어촌특별세법 제5조의 중과분 계산. 확인되면 `heavyRateBp`를 채우고 `unconfirmed` 분기를 지운다. 확인되지 않으면 `null`로 진행한다. (담당: 리드)
   - [ ] 1-1. `purchaseCosts.ts` 상수(출처·시행일·기준일)와 `Regulations` 타입 확장, `calculatePurchaseCosts` 순수 함수와 `calculateLoan` 연결(`purchaseCosts`, `downPayment`, `ownFunds` 재정의). 이 태스크에서는 `isAreaOver85`를 아직 입력받지 않으므로 키 없음 = 이하로 계산된다. (담당: client)
   - [ ] 1-2. 기본값 70: `DEFAULT_CUSTOM_LTV`, `DEFAULT_DRAFT`, `toNewCalculationDraft`·`applyListingText`가 `customLtv: "70"`을 쓴다. 스위치 다시 켜기 = 70 채우기. 미리보기 문구, LTV 경고 문구. (담당: client)
   - [ ] 1-3. 결과 카드 줄 추가(매매가 − 예상 한도, 취득세 등, 중개보수, 생애최초 안내, 미확인 문구), 자기자금 라벨·범위 문구, `RegulationBasis` 출처 2개. (담당: client)
   - [ ] 1-4. 테스트: `calculatePurchaseCosts.test.ts` 표 테스트(AC-2, AC-3). 깨지는 기존 테스트는 기대값·라벨만 고친다. (담당: test)
-- [ ] 2. **전용 85㎡ 초과 입력과 저장** — AC-5
+- [x] 2. **전용 85㎡ 초과 입력과 저장** — AC-5
   - [ ] 2-1. `Draft.isAreaOver85`, `LoanInput`·`Listing`·`ListingInput`의 선택 필드, `parseDraft`·`isListing` 검증, `listingToDraft`·`isSameAsListing`·`toLoanInput`·`listingStore` 정규화, 새 계산·스크린샷 적용 시 `false`로 되돌리기. (담당: client)
   - [ ] 2-2. 입력부 스위치 UI와 결과 카드 농특세 표시. (담당: client)
-- [ ] 3. **저장 목록: 수정과 가나다순** — AC-6, AC-7
+- [x] 3. **저장 목록: 수정과 가나다순** — AC-6, AC-7
   - [ ] 3-1. `ListingCard` "수정" 버튼(카드 열기와 같은 핸들러), 계산 화면 편집 배너와 "이름 바꾸기"(저장 시트를 덮어쓰기로 열기), 편집 중 저장 버튼 라벨 "변경 저장"(`saveButtonState`의 라벨만 분기). (담당: client)
   - [ ] 3-2. `ListingSort`에 `"name"`, `parseRoute`의 `LISTING_SORTS`, `sortListings`의 Collator 정렬, 정렬 칩 3개. 테스트는 AC-7의 `it` 1개와 `it.each` 한 줄. (담당: client / test)
   - [ ] 3-3. 수동 확인(AC-6, AC-7 화면 부분, 360px 포함). (담당: 리드)
-- [ ] 4. **KB시세 입력 보조(D8 추천안 B)** — AC-8
+- [x] 4. **KB시세 입력 보조(D8 추천안 B)** — AC-8
   - [ ] 4-1. `LoanInputs`에 KB시세 보조 줄과 "이 단지 실거래가 보기" 버튼(`onOpenTrades` prop, 포커스 복귀 ref), `TradesSheet` 머리 문구. 새 테스트는 없다. 수동 확인은 AC-8이다. (담당: client)
 
 의존 관계: 1-0은 1-1과 병렬로 할 수 있다(상수 셀만 바뀐다). 1-1이 끝나야 1-3·1-4를 할 수 있다. 1-2는 1-1과 병렬이다. 2는 1-1 뒤다. 3과 4는 1·2와 독립이라 언제든 병렬로 할 수 있다. 다만 같은 파일 충돌에 주의한다. 2와 3-1은 `isSameAsListing`·`MortgageCalculator.tsx`를 함께 바꾸고, 4와 1-2·2-2는 `LoanInputs.tsx`를 함께 바꾼다. D8에서 A나 C가 고르면 태스크 4를 "다음 단계 후보"의 기억 기능으로 바꾸고, 같은 실행에서는 하지 않는다(범위가 커진다).
