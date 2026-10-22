@@ -47,7 +47,7 @@ const SORT_OPTIONS: { value: ListingSort; label: string }[] = [
 ];
 
 const VIEW_OPTIONS: { value: ListingView; label: string }[] = [
-  { value: "card", label: "카드" },
+  { value: "card", label: "상세히" },
   { value: "compact", label: "간단히" },
 ];
 
@@ -168,6 +168,9 @@ function MortgageListings({
                   regulations={regulations}
                   budget={budget}
                   onOpen={handleOpen}
+                  onCopy={handleCopy}
+                  onDelete={handleDelete}
+                  onSaveMemo={handleSaveMemo}
                 />
               ))}
             </ul>
@@ -175,16 +178,17 @@ function MortgageListings({
         ) : (
           <ul className={styles.list} aria-label={listLabel}>
             {sortedListings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                regulations={regulations}
-                budget={budget}
-                onOpen={handleOpen}
-                onCopy={handleCopy}
-                onDelete={handleDelete}
-                onSaveMemo={handleSaveMemo}
-              />
+              <li key={listing.id}>
+                <ListingCard
+                  listing={listing}
+                  regulations={regulations}
+                  budget={budget}
+                  onOpen={handleOpen}
+                  onCopy={handleCopy}
+                  onDelete={handleDelete}
+                  onSaveMemo={handleSaveMemo}
+                />
+              </li>
             ))}
           </ul>
         )}
