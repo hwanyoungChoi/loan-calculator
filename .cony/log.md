@@ -235,3 +235,13 @@
 - 요청: "KB시세 넣기 어려우면 'KB시세 확인하러 가기' 링크만 걸어 줘도 좋다" → PR #8 머지 후 KB시세 입력 아래에 kbland.kr 새 탭 링크 추가(링크만, 조회 없음).
 - AI: PR #8 체크 2개 통과 → squash 머지.
 - AI: 리드가 KB시세 입력 아래에 'KB시세 확인하러 가기 ↗'(https://kbland.kr/, 새 탭, noopener) 링크 추가. 360px 확인, test 720·build 통과.
+- AI: PR #9 체크 2개 통과 → squash 머지.
+- AI: main 8960f1e 운영 배포 성공. loan.conychoi.dev에 KB 링크·간단히 보기·규제대로 칩·예산 초과·저장 알림 반영 확인. 실거래가 API는 여전히 503(시크릿 미적용).
+- 요청: 사용자가 Worker Runtime Variables and Secrets에 MOLIT_SERVICE_KEY(Secret) 등록(앞서는 Build 변수 칸에 넣었던 것으로 보임).
+- AI: 운영 실거래가 API 정상 응답 확인(강남 202610 데이터). Cloudflare IP에서 공공데이터포털 호출 허용 확인(A13 해결).
+
+# 작업 기록 — README 화면 사진 (2026-10-22)
+
+- 요청: "실거래가 검색 '예진'으로 해서 검색 목록 나온 것까지 첨부해서 README 예쁘게 사진 첨부". 운영 사이트를 휴대폰 크기로 캡처해 docs/screenshots/에 두고 README 재작성.
+- 사용량: fe README 화면 사진 6장 캡처·README 재작성 · 기본 모델 · 100k 토큰 · 6분 23초
+- AI: '예진'은 국토부 API 40회 조회(서울·부천·인천 등)에서 0건이라 실거래가 사진은 강남구 '래미안' 검색(15건)으로 대신함

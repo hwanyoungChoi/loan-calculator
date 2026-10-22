@@ -1,6 +1,6 @@
 # LTV 70% 기본 · 취득세·중개보수 포함 자기자금 · 목록 수정·이름순
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 14:55
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 15:53
 
 ## 태스크
 
@@ -25,7 +25,7 @@
 
 ## 지금 하는 일
 
-PR #8 체크 대기 → 머지. 다음: KB시세 확인 링크 추가(작은 PR)
+README 화면 사진 PR 생성·CI 대기
 
 ## 최근 결정
 
@@ -33,8 +33,7 @@ PR #8 체크 대기 → 머지. 다음: KB시세 확인 링크 추가(작은 PR)
 
 ## 사용자 확인 필요
 
-- mortgage-fit Worker에 MOLIT_SERVICE_KEY를 Secret으로 등록(실거래가 503)
-- 애드센스: 개인용 유지 vs conychoi.dev 공개 서비스 방향 결정
+- 애드센스: 개인용 유지 vs conychoi.dev 공개 서비스 방향
 - U5: 네이버부동산 앱 매물 상세 화면 스크린샷(면적 인식 보정)
 
 ## 막힌 것
@@ -43,6 +42,6 @@ PR #8 체크 대기 → 머지. 다음: KB시세 확인 링크 추가(작은 PR)
 
 ## PR
 
-[#8](https://github.com/hwanyoungChoi/mortgage-fit/pull/8) · Auto-fix · CI 진행 중
+[#8](https://github.com/hwanyoungChoi/mortgage-fit/pull/8)·[#9](https://github.com/hwanyoungChoi/mortgage-fit/pull/9) 머지 · 운영 반영 확인
 
 <!-- spec: specs/fees-and-default-ltv.md -->
