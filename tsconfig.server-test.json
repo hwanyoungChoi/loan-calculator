@@ -1,0 +1,10 @@
+{
+  // 서버 테스트는 vitest(Node)에서 돈다. workers 타입과 node 타입은 전역이 겹쳐 한 프로젝트에 넣지 않는다.
+  "extends": "./tsconfig.functions.json",
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.server-test.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": ["server/**/*.test.ts"],
+  "exclude": []
+}

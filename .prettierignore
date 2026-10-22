@@ -1,1 +1,3 @@
 pnpm-lock.yaml
+# 업스트림 응답 원문 그대로 둔다
+server/aptTrades/__fixtures__/

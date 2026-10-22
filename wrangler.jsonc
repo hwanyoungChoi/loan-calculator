@@ -1,0 +1,8 @@
+// Cloudflare Pages 설정(ADR-011). 시크릿 MOLIT_SERVICE_KEY는 여기에 쓰지 않는다.
+// 배포: 대시보드 Variables and Secrets(Encrypt) / 로컬: 프로젝트 루트 .dev.vars
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "loan-calculator",
+  "compatibility_date": "2026-10-19",
+  "pages_build_output_dir": "dist",
+}
