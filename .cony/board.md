@@ -1,6 +1,6 @@
 # 주담대 한도·자기자금 계산기 (모바일 우선)
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-21 17:51
+> 상태: 완료 · 마지막 업데이트: 2026-10-21 17:54
 
 ## 태스크
 
@@ -10,7 +10,7 @@
 
 ## 지금 하는 일
 
-태스크 3 커밋·push 완료(테스트 358개). 리드가 최종 보고서 작성 → PR
+머지 완료. 다음 작업 후보: 부부 공유 저장(Cloudflare D1 + Access) — 사용자가 별도로 시작
 
 ## 최근 결정
 
@@ -37,6 +37,6 @@
 
 ## PR
 
-저장소: https://github.com/hwanyoungChoi/loan-calculator (private) · PR은 태스크 3 이후
+[#1](https://github.com/hwanyoungChoi/loan-calculator/pull/1) · CI 통과 · 머지됨(6934786)
 
 <!-- spec: specs/mortgage-calculator.md -->
