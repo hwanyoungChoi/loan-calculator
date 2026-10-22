@@ -26,6 +26,7 @@ describe("listingToDraft (AC-7 카드 열기)", () => {
       borrower: "firstHome",
       listingId: "a",
       customLtv: null,
+      isAreaOver85: false,
     });
   });
 });

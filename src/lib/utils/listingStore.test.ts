@@ -154,6 +154,7 @@ describe("사용자 지정 LTV 저장 (AC-3b, ADR-012)", () => {
       borrower: "noHome",
       listingId: null,
       customLtv,
+      isAreaOver85: false,
     });
     if (loanInput === null) throw new Error("전제: 유효한 입력");
     return { ...loanInput, name: "래미안 101동" };

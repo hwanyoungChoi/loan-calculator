@@ -26,6 +26,7 @@ type MortgageListingsProps = {
 const SORT_OPTIONS: { value: ListingSort; label: string }[] = [
   { value: "ownFunds", label: "자기자금순" },
   { value: "recent", label: "최근 저장순" },
+  { value: "name", label: "가나다순" },
 ];
 
 /** notFound는 다른 탭에서 이미 지운 경우라 목록이 그대로 맞으므로 알리지 않는다. */
@@ -48,7 +49,7 @@ function MortgageListings({ listingStore, draftStore, regulations, sort }: Mortg
     window.location.replace(PATHS.listings(nextSort));
   };
 
-  /** 카드 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
+  /** 카드 본문·"수정" 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
   const handleOpen = (listing: Listing) => {
     draftStore.update(listingToDraft(listing));
   };
@@ -86,7 +87,7 @@ function MortgageListings({ listingStore, draftStore, regulations, sort }: Mortg
           legend="정렬"
           options={SORT_OPTIONS}
           value={sort}
-          columns={2}
+          columns={3}
           onChange={handleSortChange}
         />
         {deleteError !== null && (

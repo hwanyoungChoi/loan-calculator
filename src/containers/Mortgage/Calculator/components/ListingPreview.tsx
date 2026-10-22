@@ -1,3 +1,4 @@
+import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { formatManwon, validateAmount } from "@/lib/utils/amount";
 
 import styles from "./ScreenshotSheet.module.css";
@@ -9,7 +10,8 @@ type ListingPreviewProps = {
   /** 지금 매매가 칸의 입력(쉼표 없음) */
   currentSalePrice: string;
   isEditing: boolean;
-  isCustomLtvOn: boolean;
+  /** LTV 직접 입력이 이미 기본값(켜짐·70)인지. 아니면 적용 때 기본값으로 돌아간다는 것을 알린다. */
+  isLtvDefault: boolean;
 };
 
 const NOT_FOUND = "찾지 못함";
@@ -19,7 +21,7 @@ function ListingPreview({
   parsed,
   currentSalePrice,
   isEditing,
-  isCustomLtvOn,
+  isLtvDefault,
 }: ListingPreviewProps) {
   const salePriceText = formatManwon(parsed.salePrice);
   const current = validateAmount(currentSalePrice);
@@ -32,7 +34,7 @@ function ListingPreview({
     "KB시세는 비워집니다",
     ...(parsed.complexName === null ? [] : ["실거래가 단지명 칸에도 채웁니다"]),
     ...(isEditing ? ["불러온 매물에 덮어쓰지 않고 새 매물로 계산합니다"] : []),
-    ...(isCustomLtvOn ? ["사용자 지정 LTV는 꺼집니다"] : []),
+    ...(isLtvDefault ? [] : [`LTV는 기본 ${DEFAULT_CUSTOM_LTV}%로 돌아갑니다`]),
   ];
 
   return (

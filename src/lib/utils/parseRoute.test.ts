@@ -14,6 +14,7 @@ describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
     ["#/listings", { name: "listings", sort: "ownFunds" }],
     ["#/listings?sort=recent", { name: "listings", sort: "recent" }],
     ["#/listings?sort=ownFunds", { name: "listings", sort: "ownFunds" }],
+    ["#/listings?sort=name", { name: "listings", sort: "name" }],
     ["#/listings?sort=foo", { name: "listings", sort: "ownFunds" }],
     ["#/listings?sort=", { name: "listings", sort: "ownFunds" }],
     ["#/listings?sort=RECENT", { name: "listings", sort: "ownFunds" }],

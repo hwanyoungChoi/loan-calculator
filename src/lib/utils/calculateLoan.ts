@@ -1,6 +1,7 @@
 import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 
 import { formatManwon } from "./amount";
+import { calculatePurchaseCosts } from "./calculatePurchaseCosts";
 
 import type {
   AppliedLtv,
@@ -100,10 +101,10 @@ export function evaluateRegulation(input: LoanInput, regulations: Regulations): 
 }
 
 /**
- * 주담대 예상 한도와 필요한 자기자금.
+ * 주담대 예상 한도와 필요한 자기자금(매매가 − 예상 한도 + 취득세 등·중개보수, ADR-022).
  * 전제: `salePrice`·`kbPrice`는 만원 단위 양의 정수다(검증은 화면에서 한다).
  * 우선순위: 사용자 지정 LTV → 서민·실수요자 요건 미충족(ineligible) → 미확인(unconfirmed) → 규제 LTV.
- * 계산하지 않는 상태에서도 담보 기준과 한도 상한은 계산하고 나머지는 null이다.
+ * 계산하지 않는 상태에서도 담보 기준·한도 상한·부대비용은 계산하고 나머지는 null이다.
  * 사용자 지정 LTV도 규제 LTV만 대체하고 한도 상한은 그대로 적용한다.
  */
 export function calculateLoan(
@@ -116,19 +117,22 @@ export function calculateLoan(
   const base = {
     ...collateral,
     cap: calculateCap(input, regulations.loanCap),
+    purchaseCosts: calculatePurchaseCosts(input, regulations),
   };
 
   /** 소수 비율(0.7)과 곱하면 부동소수점 오차로 1만원이 내려간다. 정수 퍼센트로 곱한 뒤 나눈다(ADR-002). */
   const calculateOk = (appliedLtv: AppliedLtv): LoanResult => {
     const ltvAmount = Math.floor((collateralBase * appliedLtv.rate) / 100);
     const loanLimit = Math.min(ltvAmount, base.cap?.amount ?? ltvAmount);
+    const downPayment = salePrice - loanLimit;
     return {
       ...base,
       status: "ok",
       appliedLtv,
       ltvAmount,
       loanLimit,
-      ownFunds: salePrice - loanLimit,
+      downPayment,
+      ownFunds: downPayment + base.purchaseCosts.total,
     };
   };
 
@@ -141,7 +145,13 @@ export function calculateLoan(
   if (regulation.status === "ok") {
     return calculateOk({ source: "regulation", rate: regulation.rate });
   }
-  const notCalculated = { appliedLtv: null, ltvAmount: null, loanLimit: null, ownFunds: null };
+  const notCalculated = {
+    appliedLtv: null,
+    ltvAmount: null,
+    loanLimit: null,
+    downPayment: null,
+    ownFunds: null,
+  };
   if (regulation.status === "unconfirmed") {
     return { ...base, ...notCalculated, status: "unconfirmed" };
   }
@@ -154,4 +164,12 @@ export function calculateLoan(
     eligibilityPrice,
     eligibilityPriceSource: findPriceSource(eligibilityPrice, salePrice, kbPrice),
   };
+}
+
+/**
+ * 자기자금이 미확인 세금(다주택 중과 농특세)을 뺀 값인지. 자기자금을 지우지 않고 이 표시를 붙인다(ADR-022).
+ * 결과 카드·요약 바·목록 카드가 모두 이 판단을 쓴다.
+ */
+export function hasUnconfirmedOwnFunds(result: LoanResult): boolean {
+  return result.ownFunds !== null && result.purchaseCosts.acquisitionTax.ruralSpecialTax === null;
 }

@@ -17,8 +17,8 @@ type ScreenshotSheetProps = {
   currentSalePrice: string;
   /** 불러온 매물을 편집 중인지. 적용하면 그 연결이 풀린다는 것을 알린다. */
   isEditing: boolean;
-  /** LTV 직접 입력이 켜져 있는지. 적용하면 꺼진다는 것을 알린다. */
-  isCustomLtvOn: boolean;
+  /** LTV 직접 입력이 이미 기본값인지. 아니면 적용 때 기본값으로 돌아간다는 것을 알린다. */
+  isLtvDefault: boolean;
   onApply: (parsed: ParsedListingText) => void;
   onClose: () => void;
 };
@@ -41,7 +41,7 @@ const ERROR_MESSAGES: Record<Extract<ScreenshotOcrState, { status: "error" }>["r
 function ScreenshotSheet({
   currentSalePrice,
   isEditing,
-  isCustomLtvOn,
+  isLtvDefault,
   onApply,
   onClose,
 }: ScreenshotSheetProps) {
@@ -91,7 +91,7 @@ function ScreenshotSheet({
             parsed={parsed}
             currentSalePrice={currentSalePrice}
             isEditing={isEditing}
-            isCustomLtvOn={isCustomLtvOn}
+            isLtvDefault={isLtvDefault}
           />
         )}
         {parsed?.ok === false && <p className={styles.error}>{FAILURE_MESSAGES[parsed.reason]}</p>}

@@ -31,9 +31,19 @@ const sortByOwnFunds: Sorter = (listings, regulations) =>
 const sortByRecent: Sorter = (listings) =>
   listings.toSorted((a, b) => byNewest(a.updatedAt, b.updatedAt));
 
+/** 한국어 이름순. 숫자는 자연 정렬이라 "2단지"가 "10단지"보다 앞이다(ECMA-402). */
+const nameCollator = new Intl.Collator("ko", { numeric: true });
+
+/** 이름순 → 같으면 createdAt 최신순 */
+const sortByName: Sorter = (listings) =>
+  listings.toSorted(
+    (a, b) => nameCollator.compare(a.name, b.name) || byNewest(a.createdAt, b.createdAt),
+  );
+
 const SORTERS: Record<ListingSort, Sorter> = {
   ownFunds: sortByOwnFunds,
   recent: sortByRecent,
+  name: sortByName,
 };
 
 /** 정렬은 안정 정렬이고 입력 배열을 바꾸지 않는다. 결과는 현재 규제로 다시 계산한 값 기준이다(ADR-007). */

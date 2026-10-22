@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 
+import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { validateLtvRate } from "@/lib/utils/validateLtvRate";
 
 import amountStyles from "./AmountInput.module.css";
@@ -23,7 +24,7 @@ function errorOf(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
-/** 은행 상담에서 받은 LTV를 직접 넣는 스위치와 % 입력 칸. 오류는 금액 칸과 같이 blur에서 띄운다. */
+/** 기본 70%로 켜져 있는 LTV 직접 입력(은행 상담값으로 바꿔 넣는다). 오류는 금액 칸과 같이 blur에서 띄운다. */
 function CustomLtvField({ value, onChange }: CustomLtvFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -34,9 +35,10 @@ function CustomLtvField({ value, onChange }: CustomLtvFieldProps) {
       onChange(null);
       return;
     }
-    // 켜면 곧바로 입력할 수 있게 칸으로 포커스를 옮긴다. 칸이 그려진 뒤여야 한다.
-    flushSync(() => onChange(""));
+    // 다시 켜면 기본값을 채우고 전체 선택해 은행 상담값을 바로 덮어 칠 수 있게 한다. 칸이 그려진 뒤여야 한다.
+    flushSync(() => onChange(DEFAULT_CUSTOM_LTV));
     inputRef.current?.focus();
+    inputRef.current?.select();
   };
 
   const handleChange = (raw: string) => {
@@ -50,7 +52,7 @@ function CustomLtvField({ value, onChange }: CustomLtvFieldProps) {
   return (
     <div className={styles.field}>
       <label className={styles.switchRow}>
-        <span>LTV 직접 입력(은행 상담값)</span>
+        <span>LTV 직접 입력(기본 {DEFAULT_CUSTOM_LTV}%)</span>
         <input
           className={styles.switch}
           type="checkbox"

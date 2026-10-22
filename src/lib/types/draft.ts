@@ -9,6 +9,7 @@ export type Draft = {
   listingId: string | null;
   /** LTV 직접 입력. null이면 꺼짐, 문자열이면 입력 중인 값 */
   customLtv: string | null;
+  isAreaOver85: boolean;
 };
 
 export type DraftStore = {

@@ -68,6 +68,7 @@ function TradesSheet({ lookupStore, aptName, onAptNameSubmit, onClose }: TradesS
 
   return (
     <Sheet title="이 지역 실거래가" onClose={onClose}>
+      <p className={styles.notKbPrice}>실거래가는 KB시세가 아닙니다. 참고용으로만 보세요</p>
       <form className={styles.filters} onSubmit={handleSubmit}>
         <div className={styles.regionRow}>
           <div className={styles.field}>

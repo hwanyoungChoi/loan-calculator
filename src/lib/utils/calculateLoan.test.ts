@@ -27,18 +27,18 @@ function withRate(region: Region, borrower: Borrower, rate: number | null): Regu
 }
 
 describe("calculateLoan (AC-1)", () => {
-  it("규제·무주택 120000/115000: 담보 115000(KB시세), LTV 금액 46000, 한도 46000, 자기자금 74000", () => {
+  it("규제·무주택 120000/115000: 담보 115000(KB시세), LTV 금액 46000, 한도 46000, 매매가 − 한도 74000", () => {
     expect(calculateLoan(input("regulated", "noHome", 120000, 115000))).toMatchObject({
       status: "ok",
       collateralBase: 115000,
       collateralSource: "kbPrice",
       ltvAmount: 46000,
       loanLimit: 46000,
-      ownFunds: 74000,
+      downPayment: 74000,
     });
   });
 
-  it("규제·생애최초 100000/100000: 담보 100000(equal), LTV 금액 70000, 상한 60000, 한도 60000, 자기자금 40000", () => {
+  it("규제·생애최초 100000/100000: 담보 100000(equal), LTV 금액 70000, 상한 60000, 한도 60000, 매매가 − 한도 40000", () => {
     const result = calculateLoan(input("regulated", "firstHome", 100000, 100000));
     expect(result).toMatchObject({
       status: "ok",
@@ -46,23 +46,23 @@ describe("calculateLoan (AC-1)", () => {
       collateralSource: "equal",
       ltvAmount: 70000,
       loanLimit: 60000,
-      ownFunds: 40000,
+      downPayment: 40000,
     });
     expect(result.cap?.amount).toBe(60000);
   });
 
-  it("규제·무주택 200000/200000: LTV 금액 80000, 상한 40000, 한도 40000, 자기자금 160000", () => {
+  it("규제·무주택 200000/200000: LTV 금액 80000, 상한 40000, 한도 40000, 매매가 − 한도 160000", () => {
     const result = calculateLoan(input("regulated", "noHome", 200000, 200000));
     expect(result).toMatchObject({
       status: "ok",
       ltvAmount: 80000,
       loanLimit: 40000,
-      ownFunds: 160000,
+      downPayment: 160000,
     });
     expect(result.cap?.amount).toBe(40000);
   });
 
-  it("비수도권·생애최초 50000/48000: 담보 48000, LTV 금액 38400, 상한 없음(null), 한도 38400, 자기자금 11600", () => {
+  it("비수도권·생애최초 50000/48000: 담보 48000, LTV 금액 38400, 상한 없음(null), 한도 38400, 매매가 − 한도 11600", () => {
     expect(calculateLoan(input("nonCapital", "firstHome", 50000, 48000))).toMatchObject({
       status: "ok",
       collateralBase: 48000,
@@ -70,25 +70,25 @@ describe("calculateLoan (AC-1)", () => {
       ltvAmount: 38400,
       cap: null,
       loanLimit: 38400,
-      ownFunds: 11600,
+      downPayment: 11600,
     });
   });
 
-  it("수도권 비규제·1주택 미처분 80000/80000: 확인된 LTV 0%는 ok이고 한도 0, 자기자금 80000", () => {
+  it("수도권 비규제·1주택 미처분 80000/80000: 확인된 LTV 0%는 ok이고 한도 0, 매매가 − 한도 80000", () => {
     expect(calculateLoan(input("capitalNonRegulated", "oneHomeKeep", 80000, 80000))).toMatchObject({
       status: "ok",
       ltvAmount: 0,
       loanLimit: 0,
-      ownFunds: 80000,
+      downPayment: 80000,
     });
   });
 
-  it("내림: 비수도권·무주택 99999/99999는 LTV 금액 69999(69999.3 내림), 한도 69999, 자기자금 30000", () => {
+  it("내림: 비수도권·무주택 99999/99999는 LTV 금액 69999(69999.3 내림), 한도 69999, 매매가 − 한도 30000", () => {
     expect(calculateLoan(input("nonCapital", "noHome", 99999, 99999))).toMatchObject({
       status: "ok",
       ltvAmount: 69999,
       loanLimit: 69999,
-      ownFunds: 30000,
+      downPayment: 30000,
     });
   });
 
@@ -102,7 +102,7 @@ describe("calculateLoan (AC-1)", () => {
       const result = calculateLoan(input("nonCapital", "noHome", price, price));
       expect(result.ltvAmount).toBe(expected);
       expect(result.loanLimit).toBe(expected);
-      expect(result.ownFunds).toBe(price - expected);
+      expect(result.downPayment).toBe(price - expected);
     },
   );
 
@@ -119,39 +119,61 @@ describe("calculateLoan (AC-1)", () => {
     },
   );
 
-  it("매매가 < KB시세: 규제·무주택 100000/120000은 담보 100000(매매가), LTV 금액 40000, 한도 40000, 자기자금 60000", () => {
+  it("매매가 < KB시세: 규제·무주택 100000/120000은 담보 100000(매매가), LTV 금액 40000, 한도 40000, 매매가 − 한도 60000", () => {
     expect(calculateLoan(input("regulated", "noHome", 100000, 120000))).toMatchObject({
       status: "ok",
       collateralBase: 100000,
       collateralSource: "salePrice",
       ltvAmount: 40000,
       loanLimit: 40000,
-      ownFunds: 60000,
+      downPayment: 60000,
     });
   });
 
-  it("매매가 > KB시세: 규제·무주택 120000/100000은 담보 100000(KB시세), 한도 40000, 자기자금 80000", () => {
+  it("매매가 > KB시세: 규제·무주택 120000/100000은 담보 100000(KB시세), 한도 40000, 매매가 − 한도 80000", () => {
     expect(calculateLoan(input("regulated", "noHome", 120000, 100000))).toMatchObject({
       status: "ok",
       collateralBase: 100000,
       collateralSource: "kbPrice",
       loanLimit: 40000,
-      ownFunds: 80000,
+      downPayment: 80000,
     });
   });
 
-  it("같은 값: 규제·무주택 100000/100000은 collateralSource equal, 한도 40000, 자기자금 60000", () => {
+  it("같은 값: 규제·무주택 100000/100000은 collateralSource equal, 한도 40000, 매매가 − 한도 60000", () => {
     expect(calculateLoan(input("regulated", "noHome", 100000, 100000))).toMatchObject({
       status: "ok",
       collateralSource: "equal",
       loanLimit: 40000,
-      ownFunds: 60000,
+      downPayment: 60000,
     });
   });
 
   it("regulations를 생략하면 LOAN_REGULATIONS로 계산한다", () => {
     const sample = input("regulated", "firstHome", 125000, 120000);
     expect(calculateLoan(sample)).toEqual(calculateLoan(sample, LOAN_REGULATIONS));
+  });
+});
+
+describe("필요한 자기자금 = 매매가 − 예상 한도 + 부대비용 (ADR-022 AC-4)", () => {
+  it("7억/6억 8,000·규제지역·무주택·70% → 22,400 + 1,286 + 308 = 23,994. 중과 농특세 미확인이면 그 항목만 빼고 계산한다", () => {
+    const scenario: LoanInput = {
+      ...input("regulated", "noHome", 70000, 68000),
+      customLtvRate: 70,
+    };
+    expect(calculateLoan(scenario)).toMatchObject({
+      status: "ok",
+      loanLimit: 47600,
+      downPayment: 22400,
+      purchaseCosts: { acquisitionTax: { total: 1286 }, brokerageFee: { total: 308 }, total: 1594 },
+      ownFunds: 23994,
+    });
+
+    const heavyOver85: LoanInput = { ...scenario, borrower: "oneHomeKeep", isAreaOver85: true };
+    const result = calculateLoan(heavyOver85);
+    expect(result.purchaseCosts.acquisitionTax.ruralSpecialTax).toBeNull();
+    // 22,400 + 취득세 5,600 + 지방교육세 280 + 중개보수 308
+    expect(result.ownFunds).toBe(28588);
   });
 });
 
@@ -200,7 +222,7 @@ describe("한도 상한 경계값 (AC-3, 규제지역·생애최초 70%)", () =>
   it("비수도권·생애최초(80%) 300000/300000: cap은 null, 한도 240000", () => {
     const result = calculateLoan(input("nonCapital", "firstHome", 300000, 300000));
     expect(result.cap).toBeNull();
-    expect(result).toMatchObject({ status: "ok", loanLimit: 240000, ownFunds: 60000 });
+    expect(result).toMatchObject({ status: "ok", loanLimit: 240000, downPayment: 60000 });
   });
 });
 
@@ -268,13 +290,13 @@ describe("미확인 LTV 처리 (AC-4)", () => {
     expect(result.loanLimit).toBeNull();
   });
 
-  it("rate 0 fixture는 미확인이 아니라 ok이고 한도 0, 자기자금은 매매가 전액", () => {
+  it("rate 0 fixture는 미확인이 아니라 ok이고 한도 0, 매매가 − 한도는 매매가 전액", () => {
     const regulations = withRate("regulated", "noHome", 0);
     expect(calculateLoan(input("regulated", "noHome", 120000, 115000), regulations)).toMatchObject({
       status: "ok",
       ltvAmount: 0,
       loanLimit: 0,
-      ownFunds: 120000,
+      downPayment: 120000,
     });
   });
 
@@ -296,13 +318,13 @@ function custom(
 }
 
 describe("서민·실수요자 LTV와 요건 판정 (AC-1b)", () => {
-  it("규제지역 70000/70000 → ok, 규제 LTV 60%, 한도 42000, 자기자금 28000", () => {
+  it("규제지역 70000/70000 → ok, 규제 LTV 60%, 한도 42000, 매매가 − 한도 28000", () => {
     expect(calculateLoan(input("regulated", "noHomePreferred", 70000, 70000))).toMatchObject({
       status: "ok",
       appliedLtv: { source: "regulation", rate: 60 },
       ltvAmount: 42000,
       loanLimit: 42000,
-      ownFunds: 28000,
+      downPayment: 28000,
     });
   });
 
@@ -314,7 +336,7 @@ describe("서민·실수요자 LTV와 요건 판정 (AC-1b)", () => {
       collateralSource: "kbPrice",
       ltvAmount: 47400,
       loanLimit: 47400,
-      ownFunds: 32600,
+      downPayment: 32600,
     });
   });
 
@@ -345,7 +367,9 @@ describe("서민·실수요자 LTV와 요건 판정 (AC-1b)", () => {
       appliedLtv: null,
       ltvAmount: null,
       loanLimit: null,
+      downPayment: null,
       ownFunds: null,
+      purchaseCosts: expect.anything(),
     });
   });
 
@@ -472,7 +496,7 @@ describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
       appliedLtv: { source: "custom", rate: 70, regulation: { status: "ok", rate: 40 } },
       ltvAmount: 70000,
       loanLimit: 60000,
-      ownFunds: 40000,
+      downPayment: 40000,
     });
     expect(result.appliedLtv).toEqual({
       source: "custom",
@@ -484,7 +508,7 @@ describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
 
   it("200000/200000, 70 → LTV 금액 140000, 상한 40000, 한도 40000", () => {
     const result = calculateLoan(custom("regulated", "noHome", 200000, 200000, 70));
-    expect(result).toMatchObject({ ltvAmount: 140000, loanLimit: 40000, ownFunds: 160000 });
+    expect(result).toMatchObject({ ltvAmount: 140000, loanLimit: 40000, downPayment: 160000 });
     expect(result.cap?.amount).toBe(40000);
   });
 
@@ -503,7 +527,7 @@ describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
       expect(result.ltvAmount).toBe(ltvAmount);
       expect(result.cap?.amount).toBe(cap);
       expect(result.loanLimit).toBe(loanLimit);
-      expect(result.ownFunds).toBe(price - loanLimit);
+      expect(result.downPayment).toBe(price - loanLimit);
     },
   );
 
@@ -514,7 +538,7 @@ describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
       cap: null,
       ltvAmount: 69996,
       loanLimit: 69996,
-      ownFunds: 29999,
+      downPayment: 29999,
     });
   });
 
@@ -524,17 +548,17 @@ describe("사용자 지정 LTV 계산 (AC-2b, ADR-013 상한 유지)", () => {
       collateralSource: "kbPrice",
       ltvAmount: 63000,
       loanLimit: 60000,
-      ownFunds: 40000,
+      downPayment: 40000,
     });
   });
 
-  it("0 → 미확인이 아니라 ok, 한도 0, 자기자금은 매매가 전액", () => {
+  it("0 → 미확인이 아니라 ok, 한도 0, 매매가 − 한도는 매매가 전액", () => {
     expect(calculateLoan(custom("regulated", "noHome", 100000, 90000, 0))).toMatchObject({
       status: "ok",
       appliedLtv: { source: "custom", rate: 0 },
       ltvAmount: 0,
       loanLimit: 0,
-      ownFunds: 100000,
+      downPayment: 100000,
     });
   });
 
@@ -571,7 +595,7 @@ describe("사용자 지정 LTV의 규제 결과 병기 (AC-2c)", () => {
       appliedLtv: { source: "custom", rate: 60, regulation: { status: "ineligible" } },
       ltvAmount: 54000,
       loanLimit: 54000,
-      ownFunds: 36000,
+      downPayment: 36000,
     });
   });
 

@@ -16,8 +16,10 @@ function describeRegulation(regulation: RegulationOutcome): string {
     : NOT_CALCULATED_REGULATIONS[regulation.status];
 }
 
-const ABOVE_REGULATION_WARNING =
-  "규제 LTV보다 높습니다. 은행 상담 조건(생애최초·정책대출 등)을 확인하세요";
+/** 기본값이 늘 켜져 있어 규제지역에서는 매번 보인다. 한 줄로 짧게 둔다(ADR-022). */
+function describeAboveRegulation(regulationRate: number): string {
+  return `실제 대출은 규제 기준(${regulationRate}%)으로 나올 수 있습니다`;
+}
 
 /** "적용 LTV" 줄. 사용자 지정이면 규제 값을 지우지 않고 아래에 나란히 보여 준다. */
 function LtvRow({ result }: { result: LoanResult }) {
@@ -27,7 +29,6 @@ function LtvRow({ result }: { result: LoanResult }) {
   }
 
   const { rate, regulation } = result.appliedLtv;
-  const isAboveRegulation = regulation.status === "ok" && rate > regulation.rate;
 
   return (
     <ResultRow
@@ -39,7 +40,9 @@ function LtvRow({ result }: { result: LoanResult }) {
           {result.cap !== null && (
             <span className={styles.detailLine}>한도 상한은 규제대로 적용</span>
           )}
-          {isAboveRegulation && <span className={styles.warning}>{ABOVE_REGULATION_WARNING}</span>}
+          {regulation.status === "ok" && rate > regulation.rate && (
+            <span className={styles.warning}>{describeAboveRegulation(regulation.rate)}</span>
+          )}
         </>
       }
     />

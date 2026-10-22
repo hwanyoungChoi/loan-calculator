@@ -38,14 +38,14 @@ describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
     ).toMatchObject({ label: "저장됨", isDisabled: true });
   });
 
-  it("불러온 매물에서 값을 고치면 다시 활성 '저장'", () => {
+  it("불러온 매물에서 값을 고치면 다시 활성 '변경 저장'", () => {
     expect(
       getSaveButtonState({
         listingsStatus: "ok",
         loanInput: { ...INPUT, kbPrice: 118000 },
         editingListing: SAVED,
       }),
-    ).toEqual({ label: "저장", isDisabled: false, message: null });
+    ).toEqual({ label: "변경 저장", isDisabled: false, message: null });
   });
 
   it("목록이 손상되면 입력과 무관하게 비활성이고 손상 안내를 붙인다 (AC-6d)", () => {
@@ -99,27 +99,27 @@ describe("저장 버튼: 사용자 지정 LTV (AC-3e)", () => {
     },
   );
 
-  it("LTV 값만 바꾸면 '저장'이 다시 활성화된다", () => {
+  it("LTV 값만 바꾸면 '변경 저장'이 다시 활성화된다", () => {
     expect(stateFor({ ...listingToDraft(CUSTOM), customLtv: "71" })).toEqual({
-      label: "저장",
+      label: "변경 저장",
       isDisabled: false,
       message: null,
     });
   });
 
-  it("직접 입력을 끄면(규제로 되돌림) 다른 입력이라 '저장'이 활성화된다", () => {
+  it("직접 입력을 끄면(규제로 되돌림) 다른 입력이라 '변경 저장'이 활성화된다", () => {
     expect(stateFor({ ...listingToDraft(CUSTOM), customLtv: null })).toMatchObject({
-      label: "저장",
+      label: "변경 저장",
       isDisabled: false,
     });
   });
 
-  it("규제 매물을 열면 customLtv는 null이고 '저장됨', 직접 입력을 켜고 값을 넣으면 '저장'", () => {
+  it("규제 매물을 열면 customLtv는 null이고 '저장됨', 직접 입력을 켜고 값을 넣으면 '변경 저장'", () => {
     const draft = listingToDraft(SAVED);
     expect(draft.customLtv).toBeNull();
     expect(stateFor(draft, SAVED)).toMatchObject({ label: "저장됨", isDisabled: true });
     expect(stateFor({ ...draft, customLtv: "40" }, SAVED)).toMatchObject({
-      label: "저장",
+      label: "변경 저장",
       isDisabled: false,
     });
   });

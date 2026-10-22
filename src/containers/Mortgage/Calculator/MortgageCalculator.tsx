@@ -2,12 +2,14 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 import { useDraft } from "@/hooks/useDraft";
 import { useListings } from "@/hooks/useListings";
+import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { findDraftListing } from "@/lib/utils/listingDraft";
 import { toLoanInput } from "@/lib/utils/toLoanInput";
 
 import styles from "./MortgageCalculator.module.css";
 import { applyListingText } from "./applyListingText";
+import EditingBanner from "./components/EditingBanner";
 import EmptyResultCard from "./components/EmptyResultCard";
 import LoanInputs, { KB_PRICE_INPUT_ID } from "./components/LoanInputs";
 import ResultCard from "./components/ResultCard";
@@ -19,7 +21,7 @@ import { describeEmptyResult } from "./emptyResultMessage";
 import { useOpenSheet } from "./hooks/useOpenSheet";
 import { toNewCalculationDraft } from "./newCalculationDraft";
 import { pickSuggestedName } from "./pickSuggestedName";
-import { getSaveButtonState } from "./saveButtonState";
+import { getSaveButtonState, selectSaveStatus } from "./saveButtonState";
 import { describeSummaryTag } from "./summaryTag";
 
 import type { DraftStore } from "@/lib/types/draft";
@@ -54,6 +56,7 @@ function MortgageCalculator({
   const saveButtonRef = useRef<HTMLButtonElement>(null);
   const screenshotButtonRef = useRef<HTMLButtonElement>(null);
   const tradesButtonRef = useRef<HTMLButtonElement>(null);
+  const renameButtonRef = useRef<HTMLButtonElement>(null);
 
   // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
   useLayoutEffect(() => {
@@ -68,7 +71,7 @@ function MortgageCalculator({
   };
 
   /**
-   * 스크린샷 적용은 새 매물 계산이다(ADR-017). 사용자 지정 LTV도 끈다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
+   * 스크린샷 적용은 새 매물 계산이다(ADR-017). LTV와 85㎡ 초과는 기본값으로 돌린다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
    * KB시세는 비워졌으니 바로 입력하도록 그 칸으로 포커스를 옮긴다.
    */
   const handleScreenshotApply = (parsed: ParsedListingText) => {
@@ -84,11 +87,9 @@ function MortgageCalculator({
   const result = loanInput === null ? null : calculateLoan(loanInput, regulations);
   const summaryTag = describeSummaryTag(result);
   const editingListing = findDraftListing(listings, draft.listingId);
-  const saveButton = getSaveButtonState({
-    listingsStatus: listings.status,
-    loanInput,
-    editingListing,
-  });
+  const saveInput = { listingsStatus: listings.status, loanInput, editingListing };
+  const saveButton = getSaveButtonState(saveInput);
+  const hasInputChanges = selectSaveStatus(saveInput) !== "saved";
 
   /** 저장에 성공하면 시트를 닫고 계산 화면에 머문다. 새로 저장하면 draft가 새 매물을 가리킨다. */
   const saveListing = (action: SaveAction, input: ListingInput): ListingWriteResult => {
@@ -126,6 +127,14 @@ function MortgageCalculator({
             새 계산
           </button>
         </div>
+        {editingListing !== null && (
+          <EditingBanner
+            name={editingListing.name}
+            isRenameDisabled={loanInput === null}
+            renameButtonRef={renameButtonRef}
+            onRename={() => sheet.open("save", renameButtonRef.current)}
+          />
+        )}
         <button
           ref={screenshotButtonRef}
           type="button"
@@ -139,6 +148,7 @@ function MortgageCalculator({
           draft={draft}
           regulations={regulations}
           onChange={draftStore.update}
+          onOpenTrades={(button) => sheet.open("trades", button)}
         />
         {loanInput === null ? (
           <EmptyResultCard message={describeEmptyResult(draft)} />
@@ -169,6 +179,7 @@ function MortgageCalculator({
             suggestedName,
           )}
           isEditing={editingListing !== null}
+          hasInputChanges={hasInputChanges}
           onSave={(action, name) => saveListing(action, { ...loanInput, name })}
           onCancel={sheet.close}
         />
@@ -177,7 +188,7 @@ function MortgageCalculator({
         <ScreenshotSheet
           currentSalePrice={draft.salePrice}
           isEditing={editingListing !== null}
-          isCustomLtvOn={draft.customLtv !== null}
+          isLtvDefault={draft.customLtv === DEFAULT_CUSTOM_LTV}
           onApply={handleScreenshotApply}
           onClose={sheet.close}
         />

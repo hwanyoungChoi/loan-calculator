@@ -5,6 +5,7 @@ import { BORROWER_LABELS, BORROWERS, REGION_LABELS, REGIONS } from "@/lib/consta
 import { validateAmount } from "@/lib/utils/amount";
 
 import AmountInput from "./AmountInput";
+import AreaOver85Switch from "./AreaOver85Switch";
 import CollateralBaseLine from "./CollateralBaseLine";
 import CustomLtvField from "./CustomLtvField";
 import styles from "./LoanInputs.module.css";
@@ -19,6 +20,8 @@ type LoanInputsProps = {
   draft: Draft;
   regulations: Regulations;
   onChange: (patch: Partial<Draft>) => void;
+  /** KB시세 보조 줄의 실거래가 버튼. 시트를 닫으면 포커스를 그 버튼으로 돌려준다 */
+  onOpenTrades: (button: HTMLButtonElement) => void;
 };
 
 /**
@@ -54,8 +57,11 @@ function amountErrorOf(raw: string): string | null {
   return validation.status === "error" ? validation.message : null;
 }
 
-/** 계산 입력부: 금액 2개와 기준 금액, 소재지, 보유 상태(서민·실수요자 요건 안내), LTV 직접 입력 */
-function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
+/**
+ * 계산 입력부: 금액 2개(KB시세 입력 보조)와 기준 금액, 소재지, 보유 상태(서민·실수요자 요건 안내), 85㎡ 초과, LTV 직접 입력.
+ * KB시세는 공식 API가 없어 가져오지 않는다(ADR-019, ADR-022 D8). 참고용 실거래가로만 안내한다.
+ */
+function LoanInputs({ draft, regulations, onChange, onOpenTrades }: LoanInputsProps) {
   const [amountErrors, setAmountErrors] = useState(NO_ERRORS);
 
   // 오류는 blur에서 띄우고, 고쳐지면 입력 중에도 바로 걷는다.
@@ -86,6 +92,16 @@ function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
         onChange={(raw) => handleAmountChange("kbPrice", raw)}
         onBlur={() => handleAmountBlur("kbPrice")}
       />
+      <div className={styles.kbHelp}>
+        <p>KB부동산 앱에서 확인해 입력하세요(자동으로 가져올 수 없음)</p>
+        <button
+          type="button"
+          className={styles.textButton}
+          onClick={(event) => onOpenTrades(event.currentTarget)}
+        >
+          이 단지 실거래가 보기
+        </button>
+      </div>
       <CollateralBaseLine salePrice={draft.salePrice} kbPrice={draft.kbPrice} />
       <ChoiceGroup
         name="region"
@@ -106,6 +122,11 @@ function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
       {draft.borrower === "noHomePreferred" && (
         <PreferredRequirements requirements={regulations.preferredBorrower} />
       )}
+      <AreaOver85Switch
+        checked={draft.isAreaOver85}
+        ruralSpecialRateBp={regulations.purchaseCosts.acquisitionTax.ruralSpecial.standardRateBp}
+        onChange={(isAreaOver85) => onChange({ isAreaOver85 })}
+      />
       <CustomLtvField value={draft.customLtv} onChange={(customLtv) => onChange({ customLtv })} />
     </section>
   );

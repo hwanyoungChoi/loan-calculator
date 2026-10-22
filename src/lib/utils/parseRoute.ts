@@ -5,7 +5,7 @@ import { isOneOf } from "./isOneOf";
 import type { ListingSort } from "@/lib/types/listing";
 import type { Route } from "@/lib/types/route";
 
-const LISTING_SORTS: ListingSort[] = ["ownFunds", "recent"];
+const LISTING_SORTS: ListingSort[] = ["ownFunds", "recent", "name"];
 
 /** 해시 → 라우트. 알 수 없는 해시는 계산 화면, 잘못된 정렬 값은 기본 정렬이다. */
 export function parseRoute(hash: string): Route {

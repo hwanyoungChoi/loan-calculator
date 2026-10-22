@@ -6,3 +6,25 @@
   border-radius: var(--radius);
   background: var(--color-surface);
 }
+
+/* KB시세 칸 바로 아래 보조 줄. 칸의 오류 문구가 먼저 보인다. */
+.kbHelp {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  margin-top: calc(var(--space-3) * -1);
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.textButton {
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+}

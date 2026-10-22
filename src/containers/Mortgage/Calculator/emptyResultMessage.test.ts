@@ -11,6 +11,7 @@ const DRAFT: Draft = {
   borrower: "noHome",
   listingId: null,
   customLtv: "",
+  isAreaOver85: false,
 };
 
 describe("describeEmptyResult (결과 카드 빈 상태 안내)", () => {

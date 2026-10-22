@@ -1,10 +1,11 @@
 import { PRICE_SOURCE_LABELS } from "@/lib/constants/loanConditions";
 import { formatManwon, formatManwonOrDash } from "@/lib/utils/amount";
-import { calculateLoan } from "@/lib/utils/calculateLoan";
+import { calculateLoan, hasUnconfirmedOwnFunds } from "@/lib/utils/calculateLoan";
 import { describeCondition } from "@/lib/utils/describeCondition";
 
 import CapRow from "./CapRow";
 import LtvRow from "./LtvRow";
+import PurchaseCostRows from "./PurchaseCostRows";
 import RegulationBasis from "./RegulationBasis";
 import styles from "./ResultCard.module.css";
 import ResultRow from "./ResultRow";
@@ -48,7 +49,10 @@ function describeStatus(result: LoanResult, regulations: Regulations): string | 
 /** 앱은 주택가격만 판정한다. 라디오 아래 안내는 고를 때만 보이므로 결과에도 남긴다. */
 const UNVERIFIED_REQUIREMENTS = "소득·무주택세대주 요건은 확인하지 않았습니다";
 
-/** 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 자기자금 */
+/**
+ * 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 매매가 − 예상 한도 → 취득세 등 → 중개보수 → 자기자금.
+ * 부대비용에 미확인 항목(다주택 중과 농특세)이 있으면 자기자금을 지우지 않고 그 항목만 뺀 값과 표시를 함께 보여 준다(ADR-022).
+ */
 function ResultCard({ input, regulations }: ResultCardProps) {
   const result = calculateLoan(input, regulations);
   const statusNotice = describeStatus(result, regulations);
@@ -83,14 +87,17 @@ function ResultCard({ input, regulations }: ResultCardProps) {
           value={formatManwonOrDash(result.loanLimit)}
           variant="emphasis"
         />
+        <ResultRow label="매매가 − 예상 한도" value={formatManwonOrDash(result.downPayment)} />
+        <PurchaseCostRows input={input} costs={result.purchaseCosts} regulations={regulations} />
         <ResultRow
-          label="필요한 자기자금(부대비용 제외)"
+          label="필요한 자기자금"
           value={formatManwonOrDash(result.ownFunds)}
+          details={hasUnconfirmedOwnFunds(result) ? "농특세 미확인(빼고 계산한 값)" : undefined}
           variant="emphasis"
         />
       </dl>
       {statusNotice !== null && <p className={styles.statusNotice}>{statusNotice}</p>}
-      <p className={styles.scope}>DSR·소득 심사 미반영, 취득세 등 부대비용 제외</p>
+      <p className={styles.scope}>DSR·소득 심사 미반영. 등기 비용(법무사·채권·인지세)은 제외</p>
       <RegulationBasis input={input} result={result} regulations={regulations} />
     </section>
   );
