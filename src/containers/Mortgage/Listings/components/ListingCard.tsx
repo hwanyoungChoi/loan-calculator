@@ -24,7 +24,7 @@ const STATUS_BADGES: Record<LoanResult["status"], string | null> = {
 };
 
 /**
- * 핵심 지표 3개(매매가, 예상 한도, 자기자금)와 조건 요약. 본문을 누르거나 "수정"을 누르면 계산 화면으로 연다.
+ * 핵심 지표 3개(매매가, 예상 한도, 자기자금)와 조건 요약. 계산된 매물은 자기자금 아래에 내역(집값 중 내 돈, 취득세 등, 중개보수)을 작게 붙인다. 본문을 누르거나 "수정"을 누르면 계산 화면으로 연다.
  * 본문 링크와 버튼 영역은 형제라 인터랙티브 요소가 겹치지 않는다(ADR-022 D7).
  */
 function ListingCard({ listing, regulations, onOpen, onDelete }: ListingCardProps) {
@@ -58,6 +58,22 @@ function ListingCard({ listing, regulations, onOpen, onDelete }: ListingCardProp
             <dt>필요한 자기자금</dt>
             <dd>{formatManwonOrDash(result.ownFunds)}</dd>
           </div>
+          {result.status === "ok" && (
+            <>
+              <div className={styles.breakdown}>
+                <dt>집값 중 내 돈</dt>
+                <dd>{formatManwon(result.downPayment)}</dd>
+              </div>
+              <div className={styles.breakdown}>
+                <dt>{hasUnconfirmedOwnFunds(result) ? "취득세 등(농특세 제외)" : "취득세 등"}</dt>
+                <dd>{formatManwon(result.purchaseCosts.acquisitionTax.total)}</dd>
+              </div>
+              <div className={styles.breakdown}>
+                <dt>중개보수</dt>
+                <dd>{formatManwon(result.purchaseCosts.brokerageFee.total)}</dd>
+              </div>
+            </>
+          )}
         </dl>
       </a>
       <div className={styles.actions}>
