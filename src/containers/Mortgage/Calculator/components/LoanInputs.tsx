@@ -17,6 +17,9 @@ import type { Regulations } from "@/lib/types/regulation";
 
 type AmountField = "salePrice" | "kbPrice";
 
+/** KB시세를 사용자가 직접 확인하러 가는 링크. 앱은 이 사이트에 요청하지 않는다(ADR-019). */
+const KB_LAND_URL = "https://kbland.kr/";
+
 type LoanInputsProps = {
   draft: Draft;
   regulations: Regulations;
@@ -96,14 +99,24 @@ function LoanInputs({ draft, regulations, onChange, onOpenTrades }: LoanInputsPr
         onBlur={() => handleAmountBlur("kbPrice")}
       />
       <div className={styles.kbHelp}>
-        <p>KB부동산 앱에서 확인해 입력하세요(자동으로 가져올 수 없음)</p>
-        <button
-          type="button"
-          className={styles.textButton}
-          onClick={(event) => onOpenTrades(event.currentTarget)}
-        >
-          이 단지 실거래가 보기
-        </button>
+        <p>KB부동산에서 확인해 입력하세요(자동으로 가져올 수 없음)</p>
+        <div className={styles.kbActions}>
+          <a
+            href={KB_LAND_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.textButton}
+          >
+            KB시세 확인하러 가기 ↗
+          </a>
+          <button
+            type="button"
+            className={styles.textButton}
+            onClick={(event) => onOpenTrades(event.currentTarget)}
+          >
+            이 단지 실거래가 보기
+          </button>
+        </div>
       </div>
       <CollateralBaseLine salePrice={draft.salePrice} kbPrice={draft.kbPrice} />
       <ChoiceGroup

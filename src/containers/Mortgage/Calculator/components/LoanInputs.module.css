@@ -18,7 +18,16 @@
   font-size: 13px;
 }
 
+.kbActions {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-4);
+}
+
 .textButton {
+  /* 링크(<a>)도 버튼과 같은 높이로 눌리게 한다 */
+  display: inline-flex;
+  align-items: center;
   min-height: 40px;
   padding: 0;
   border: 0;
