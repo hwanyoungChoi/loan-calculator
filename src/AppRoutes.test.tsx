@@ -14,7 +14,7 @@ import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 import type { Listing } from "@/lib/types/listing";
 
 /** 래미안 카드 본문 링크. 같은 카드의 "래미안 101동 수정" 링크는 제외한다 */
-const CARD_BODY_LINK = /^래미안 101동(?! 수정$)/;
+const CARD_BODY_LINK = /^래미안 101동(?! (수정|복사)$)/;
 
 const RESET_CONFIRM_MESSAGE =
   "손상된 저장 데이터를 삭제하고 빈 목록으로 시작합니다. 되돌릴 수 없으니 원문을 먼저 복사하세요";
@@ -184,11 +184,14 @@ describe("저장 흐름 (통합)", () => {
     expect(within(sheet).getByRole("button", { name: "새로 저장" })).toBeInTheDocument();
     await user.click(within(sheet).getByRole("button", { name: "덮어쓰기" }));
 
-    // 시트가 닫히고 계산 화면에 머물며 "저장됨"
+    // 시트가 닫히고 계산 화면이 새 계산으로 비워지며(조건 유지), 알림이 뜨고 매매가로 포커스가 간다.
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(window.location.hash).toBe("#/");
-    expect(kbPrice).toHaveValue("118,000");
-    expect(screen.getByRole("button", { name: "저장됨" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("'래미안 101동' 저장했습니다");
+    expect(screen.getByLabelText("매매가")).toHaveValue("");
+    expect(screen.getByLabelText("매매가")).toHaveFocus();
+    expect(screen.getByLabelText("KB시세")).toHaveValue("");
+    expect(screen.getByRole("radio", { name: "무주택·생애최초" })).toBeChecked();
 
     // 저장본: 같은 id를 갱신, 개수 그대로, createdAt 유지, updatedAt 갱신
     const saved = storedListings(storage);

@@ -2,6 +2,7 @@ import { BORROWERS, REGIONS } from "@/lib/constants/loanConditions";
 
 import { MAX_AMOUNT } from "./amount";
 import { isOneOf } from "./isOneOf";
+import { LISTING_MEMO_MAX_LENGTH } from "./validateListingMemo";
 import { countChars, LISTING_NAME_MAX_LENGTH } from "./validateListingName";
 
 import type { Listing, LoadListingsResult } from "@/lib/types/listing";
@@ -55,7 +56,10 @@ function isListing(value: unknown): value is Listing {
     // 선택 필드: 키가 없으면 규제 LTV(1차 형식 그대로), 키가 있으면 값이 유효해야 한다.
     (!Object.hasOwn(value, "customLtvRate") || isLtvRate(value.customLtvRate)) &&
     // 85㎡ 초과는 true일 때만 키를 쓴다. 키가 없는 1·2차 형식은 85㎡ 이하다(ADR-022).
-    (!Object.hasOwn(value, "isAreaOver85") || value.isAreaOver85 === true)
+    (!Object.hasOwn(value, "isAreaOver85") || value.isAreaOver85 === true) &&
+    // 메모는 키 없음 = 메모 없음. 키가 있으면 500자 이하 문자열이어야 한다.
+    (!Object.hasOwn(value, "memo") ||
+      (typeof value.memo === "string" && countChars(value.memo) <= LISTING_MEMO_MAX_LENGTH))
   );
 }
 

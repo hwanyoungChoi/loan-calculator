@@ -1,14 +1,15 @@
 import { Fragment, useState, type ReactNode } from "react";
 
+import AmountInput from "@/components/AmountInput";
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { BORROWER_LABELS, BORROWERS, REGION_LABELS, REGIONS } from "@/lib/constants/loanConditions";
 import { validateAmount } from "@/lib/utils/amount";
 
-import AmountInput from "./AmountInput";
+import { describeRegulationChoice } from "../ltvChoice";
 import AreaOver85Switch from "./AreaOver85Switch";
 import CollateralBaseLine from "./CollateralBaseLine";
-import CustomLtvField from "./CustomLtvField";
 import styles from "./LoanInputs.module.css";
+import LtvChoiceField from "./LtvChoiceField";
 import PreferredRequirements from "./PreferredRequirements";
 
 import type { Draft } from "@/lib/types/draft";
@@ -51,6 +52,8 @@ const NO_ERRORS: Record<AmountField, string | null> = { salePrice: null, kbPrice
 
 /** 스크린샷 적용 뒤 직접 입력할 칸이라 계산 화면이 이 id로 포커스를 옮긴다. */
 export const KB_PRICE_INPUT_ID = "kbPrice";
+/** 저장 뒤 다음 매물을 입력할 칸이라 계산 화면이 이 id로 포커스를 옮긴다. */
+export const SALE_PRICE_INPUT_ID = "salePrice";
 
 function amountErrorOf(raw: string): string | null {
   const validation = validateAmount(raw);
@@ -77,7 +80,7 @@ function LoanInputs({ draft, regulations, onChange, onOpenTrades }: LoanInputsPr
   return (
     <section className={styles.inputs} aria-label="입력">
       <AmountInput
-        id="salePrice"
+        id={SALE_PRICE_INPUT_ID}
         label="매매가"
         value={draft.salePrice}
         error={amountErrors.salePrice}
@@ -127,7 +130,12 @@ function LoanInputs({ draft, regulations, onChange, onOpenTrades }: LoanInputsPr
         ruralSpecialRateBp={regulations.purchaseCosts.acquisitionTax.ruralSpecial.standardRateBp}
         onChange={(isAreaOver85) => onChange({ isAreaOver85 })}
       />
-      <CustomLtvField value={draft.customLtv} onChange={(customLtv) => onChange({ customLtv })} />
+      <LtvChoiceField
+        customLtv={draft.customLtv}
+        isCustomLtvInput={draft.isCustomLtvInput}
+        regulationLabel={describeRegulationChoice(draft, regulations)}
+        onChange={onChange}
+      />
     </section>
   );
 }

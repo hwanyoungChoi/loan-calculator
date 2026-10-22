@@ -14,6 +14,7 @@ export function applyListingText(draft: Draft, parsed: ParsedListingText): Draft
     kbPrice: "",
     listingId: null,
     customLtv: DEFAULT_CUSTOM_LTV,
+    isCustomLtvInput: false,
     isAreaOver85: false,
   };
 }

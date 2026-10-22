@@ -1,0 +1,78 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.summary {
+  min-width: 0;
+  font-size: 14px;
+}
+
+.amount {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  color: var(--color-text-muted);
+}
+
+.overCount {
+  color: var(--color-error);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.editButton {
+  flex: none;
+  min-width: 48px;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  min-height: 44px;
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.primaryButton:disabled {
+  background: var(--color-badge-bg);
+  color: var(--color-text-muted);
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}

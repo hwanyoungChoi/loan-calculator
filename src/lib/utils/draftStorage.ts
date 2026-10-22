@@ -22,7 +22,16 @@ export function parseDraft(raw: unknown): Draft {
   }
   if (typeof value !== "object" || value === null || Array.isArray(value)) return DEFAULT_DRAFT;
   const fields = value as Record<string, unknown>;
-  const { salePrice, kbPrice, region, borrower, listingId, customLtv, isAreaOver85 } = fields;
+  const {
+    salePrice,
+    kbPrice,
+    region,
+    borrower,
+    listingId,
+    customLtv,
+    isCustomLtvInput,
+    isAreaOver85,
+  } = fields;
   const isValid =
     typeof salePrice === "string" &&
     typeof kbPrice === "string" &&
@@ -30,9 +39,19 @@ export function parseDraft(raw: unknown): Draft {
     isOneOf(BORROWERS, borrower) &&
     (listingId === null || (typeof listingId === "string" && listingId !== "")) &&
     (customLtv === null || typeof customLtv === "string") &&
+    typeof isCustomLtvInput === "boolean" &&
     typeof isAreaOver85 === "boolean";
   if (!isValid) return DEFAULT_DRAFT;
-  return { salePrice, kbPrice, region, borrower, listingId, customLtv, isAreaOver85 };
+  return {
+    salePrice,
+    kbPrice,
+    region,
+    borrower,
+    listingId,
+    customLtv,
+    isCustomLtvInput,
+    isAreaOver85,
+  };
 }
 
 /** 키 `loan-calculator/draft`. 접근 불가도 기본 draft */

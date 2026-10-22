@@ -7,8 +7,10 @@ export type Draft = {
   region: Region;
   borrower: Borrower;
   listingId: string | null;
-  /** LTV 직접 입력. null이면 꺼짐, 문자열이면 입력 중인 값 */
+  /** 사용자 지정 LTV. null이면 규제대로, 문자열이면 칩 값(40·70·80)이나 직접 입력 중인 값 */
   customLtv: string | null;
+  /** [직접 입력] 칩을 골랐는지. 직접 입력한 값이 칩 값과 같아도 입력칸을 유지하려고 따로 둔다. */
+  isCustomLtvInput: boolean;
   isAreaOver85: boolean;
 };
 

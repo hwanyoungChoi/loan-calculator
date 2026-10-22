@@ -13,6 +13,7 @@ describe("applyListingText (AC-2)", () => {
       borrower: "noHome",
       listingId: "listing-a",
       customLtv: "55",
+      isCustomLtvInput: false,
       isAreaOver85: true,
     };
     const parsed = {

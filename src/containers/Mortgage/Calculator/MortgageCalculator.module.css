@@ -57,3 +57,26 @@
   color: var(--color-primary);
   font-weight: 600;
 }
+
+/* 저장 알림. 화면 흐름 밖에 띄워 레이아웃을 밀지 않고, 하단 바(높아진 경우 포함) 위에 둔다. */
+.noticeRegion {
+  position: fixed;
+  right: 0;
+  bottom: calc(var(--summary-bar-height) + 3em + var(--space-3) + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
+}
+
+.notice {
+  max-width: 448px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  background: rgb(0 0 0 / 80%);
+  color: #fff;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}

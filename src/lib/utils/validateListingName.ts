@@ -5,6 +5,11 @@ export function countChars(text: string): number {
   return Array.from(text).length;
 }
 
+/** 제안 이름을 LISTING_NAME_MAX_LENGTH(코드포인트)로 자르고 앞뒤 공백을 걷는다. */
+export function truncateListingName(name: string): string {
+  return Array.from(name).slice(0, LISTING_NAME_MAX_LENGTH).join("").trim();
+}
+
 /** trim 후 1~40자(코드포인트 기준) */
 export function validateListingName(
   raw: string,

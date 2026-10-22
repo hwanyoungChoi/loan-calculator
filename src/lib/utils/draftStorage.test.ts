@@ -19,6 +19,7 @@ const DEFAULT: Draft = {
   borrower: "noHome",
   listingId: null,
   customLtv: "70",
+  isCustomLtvInput: false,
   isAreaOver85: false,
 };
 
@@ -29,6 +30,7 @@ const VALID: Draft = {
   borrower: "firstHome",
   listingId: "listing-1",
   customLtv: null,
+  isCustomLtvInput: false,
   isAreaOver85: false,
 };
 
@@ -160,6 +162,7 @@ describe("createDraftStore", () => {
       borrower: "oneHomeDisposal",
       listingId: null,
       customLtv: "70",
+      isCustomLtvInput: false,
       isAreaOver85: false,
     };
     expect(store.getSnapshot()).toEqual(expected);
