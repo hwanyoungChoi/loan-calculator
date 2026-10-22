@@ -466,7 +466,7 @@ type ShareTextParseResult =
     | `"8,500"`                                                                      | 8500   |
     | `"12"`, `"85"`, `"5000"`(단위·쉼표 없는 맨 숫자), `"0"`, `"0억"`, `"억"`, `""` | null   |
     | `"12.5억"`, `"1조"`, `"125,000원"`, 전각 숫자                                  | null   |
-    | 결과가 `MAX_AMOUNT`를 넘는 값(`"999억"`)                                       | null   |
+    | 결과가 `MAX_AMOUNT`를 넘는 값(`"100,000억"`)                                   | null   |
 
     NBSP·제로폭 공백은 일반 공백으로 읽는다(iOS 붙여넣기에 흔하다). 표의 수치가 구현에서 다르게 정해지면 표를 함께 고친다. `매매 25층 …`의 25가 금액이 되면 안 된다.
 
@@ -496,7 +496,7 @@ type ShareTextParseResult =
   - [ ] 1-4a. 화면 1: 입력부를 `LoanInputs`(금액·소재지·보유 상태)로 분리해 `MortgageCalculator`에는 구조만 남긴다. 라디오 5개 + 요건 안내 + 결과 카드의 "요건 확인 안 함" 문구, `ineligible` 결과(배지·"—"·판정 가격 출처), 고정 요약 바 "요건 미충족" 태그, 목록 카드 "계산 불가 · 요건 미충족" 배지, 레지스트리 연결, 360px 점검(라벨 "무주택·서민실수요자" 줄바꿈 포함) (담당: client)
   - [ ] 1-4b. 화면 2: `CustomLtvField`(스위치·`%` 입력·blur 오류·켠 채 비었을 때 즉시 안내, `AmountInput`과 같은 패턴), 결과 카드 LTV 줄(사용자 지정, 규제 기준 병기 3종, 초과 경고, 상한 문구 조건), 요약 바 "사용자 지정 LTV n%" 태그, 근거 목록 맨 위 사용자 입력 표시, 목록 카드 "사용자 지정" 배지, `LtvValue` source별 레지스트리 (담당: client)
   - [ ] 1-5. 테스트: AC-1(a)(b), AC-2(a)(b)(c), AC-3 전부, 기존 #3 수정, 통합 #6. 변이 확인(아래 목록의 1차 항목) (담당: test)
-- [ ] 2. **실거래가 조회**(첫 서버 코드) — AC-4, AC-5, AC-6, AC-8 T1~T3
+- [x] 2. **실거래가 조회**(첫 서버 코드) — AC-4, AC-5, AC-6, AC-8 T1~T3
   - [ ] 2-1. 서버 골격: devDependency `wrangler`와 `@cloudflare/workers-types`, `wrangler.jsonc`(`name`, `compatibility_date`, `pages_build_output_dir: "dist"`. 대시보드의 시크릿 등록이 막히지 않는지 확인), 손으로 쓴 `Env`(`MOLIT_SERVICE_KEY?: string`), `tsconfig.functions.json`(functions·server, workers 타입, `lib`에 DOM 제외, 테스트 파일용 vitest 타입은 별도 `include`/`types`), 루트 tsconfig 참조 추가, `server/`·`functions/`는 상대 경로 import만, `.dev.vars.example`, `.gitignore`(`.dev.vars`, `.dev.vars.*`, `!.dev.vars.example`, `.wrangler/`), ESLint `ignores`에 `.wrangler/**`, `pnpm.onlyBuiltDependencies`(`workerd`·`esbuild`)와 `--frozen-lockfile` 확인, wrangler Node 요구 버전 확인, Vite `server.proxy`로 `/api` → `http://localhost:8788`, 스크립트 `dev:api`(`pnpm build && wrangler pages dev`. 한 번 빌드되면 매번 재빌드하지 않아도 된다는 점을 README에 적는다)와 `build:functions`, CI에 dev 서버 연기 테스트 스텝과 `dist/` 키 문자열 grep 스텝을 추가한다 (담당: backend)
   - [ ] 2-2. `server/aptTrades/*`: `parseQuery`, `recentMonths`, `buildUpstreamUrl`, `parseTradesResponse`(형식 중립), `monthCache`, `handleAptTrades`(페이지 순회, 병렬 달 조회, 공유 타임아웃, 부분 실패 규칙, 오류 매핑, 키 비노출, try/catch 한 겹), `functions/api/apt-trades.ts` 진입점. fixture는 2차 출처 구조로 `*.assumed.*`를 먼저 만든다 (담당: backend)
   - [ ] 2-3. 실제 응답 확인(U1 키 도착 시 **2-1 직후**로 당긴다. 키가 아직 없으면 건너뛰고 2-2, 2-4, 2-5를 먼저 진행한 뒤 키가 오면 끼워 넣는다):
