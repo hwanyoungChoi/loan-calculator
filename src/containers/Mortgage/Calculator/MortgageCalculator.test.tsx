@@ -1,10 +1,15 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AppRoutes from "@/AppRoutes";
+import { LAWD_CODES } from "@/lib/constants/lawdCodes";
 import { LISTINGS_STORAGE_KEY } from "@/lib/utils/listingStorage";
+import { TRADE_LOOKUP_STORAGE_KEY } from "@/lib/utils/tradeLookupStorage";
+import { renderWithQueryClient } from "@/test/renderWithQueryClient";
+
+import type { AptTradesResponse } from "@/lib/types/aptTrade";
 
 function resultCard() {
   return screen.getByRole("region", { name: "계산 결과" });
@@ -44,6 +49,49 @@ const BORROWER_RADIO_NAMES = [
 ];
 const UNVERIFIED_REQUIREMENTS = "소득·무주택세대주 요건은 확인하지 않았습니다";
 
+const GANGNAM_TRADES: AptTradesResponse = {
+  lawdCd: "11680",
+  months: ["202610", "202609", "202608"],
+  items: [
+    {
+      aptName: "래미안OO",
+      umdName: "대치동",
+      exclusiveArea: 84.97,
+      floor: 12,
+      dealAmount: 115000,
+      dealDate: "2026-10-03",
+    },
+    {
+      aptName: "은마",
+      umdName: "대치동",
+      exclusiveArea: 76.79,
+      floor: null,
+      dealAmount: 98000,
+      dealDate: "2026-09-21",
+    },
+  ],
+  source: {
+    name: "국토교통부 아파트 매매 실거래가",
+    url: "https://www.data.go.kr/data/15126469/openapi.do",
+  },
+};
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8" },
+  });
+}
+
+/** 가짜 fetch가 받은 요청 URL들의 쿼리 */
+function requestedQueries(fetchMock: { mock: { calls: unknown[][] } }) {
+  return fetchMock.mock.calls.map(([url]) => {
+    const parsed = new URL(String(url), "http://localhost");
+    expect(parsed.pathname).toBe("/api/apt-trades");
+    return Object.fromEntries(parsed.searchParams);
+  });
+}
+
 describe("계산 화면 (통합)", () => {
   // draft가 localStorage에 남으므로 테스트마다 빈 저장소와 계산 화면에서 시작한다.
   beforeEach(() => {
@@ -51,12 +99,16 @@ describe("계산 화면 (통합)", () => {
     window.location.hash = "#/";
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("#1 매매가에 0을 입력하고 blur하면 그 필드 아래에 오류가 뜨고 저장 시트가 열리지 않는다 (AC-8b)", async () => {
     const user = userEvent.setup();
     // AC-8c: 알 수 없는 해시로 들어오면 계산 화면을 보이고 주소를 #/로 replace한다(이력이 늘지 않는다).
     window.location.hash = "#/listing/abc";
     const historyLength = window.history.length;
-    render(<AppRoutes />);
+    renderWithQueryClient(<AppRoutes />);
     await waitFor(() => expect(window.location.hash).toBe("#/"));
     expect(window.history.length).toBe(historyLength);
 
@@ -127,7 +179,7 @@ describe("계산 화면 (통합)", () => {
 
   it("#3 처음 열면 규제지역·무주택이 선택돼 있고, 보유 상태 라디오 5개가 순서대로 각각 대응하는 borrower로 계산되며, 서민·실수요자는 요건 안내와 요건 미충족(ineligible)을 보인다 (1차 AC-2, 2차 AC-1c)", async () => {
     const user = userEvent.setup();
-    render(<AppRoutes />);
+    renderWithQueryClient(<AppRoutes />);
 
     expect(screen.getByRole("radio", { name: "규제지역" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "무주택" })).toBeChecked();
@@ -248,7 +300,7 @@ describe("계산 화면 (통합)", () => {
 
   it("#6 LTV 직접 입력: 70이면 사용자 지정 LTV 70%와 규제 기준 40%를 함께 보이고, 켠 채 비우면 즉시 안내하며 저장할 수 없다. 0이면 한도 0만원, 새 계산은 직접 입력을 끈다 (AC-2d)", async () => {
     const user = userEvent.setup();
-    render(<AppRoutes />);
+    renderWithQueryClient(<AppRoutes />);
     const salePrice = screen.getByLabelText("매매가");
     const kbPrice = screen.getByLabelText("KB시세");
     await user.type(salePrice, "100000");
@@ -352,5 +404,103 @@ describe("계산 화면 (통합)", () => {
     await user.type(screen.getByLabelText("KB시세"), "100000");
     expect(rowValue("적용 LTV")).toBe("70%");
     expect(within(summaryBar()).queryByText(/사용자 지정 LTV/)).not.toBeInTheDocument();
+  });
+
+  it("#7 실거래가 시트: 시도·시군구를 고르면 lawdCd·months=3으로 조회해 행을 보이고, 설정 오류는 다시 시도 없이 안내하며, 닫았다 열면 캐시에서 뜨고 새 계산은 단지명만 비운다 (AC-5a, AC-5b)", async () => {
+    const user = userEvent.setup();
+    let resolveGangnam: (response: Response) => void = () => {};
+    const fetchMock = vi.fn((url: string) => {
+      const lawdCd = new URL(url, "http://localhost").searchParams.get("lawdCd");
+      if (lawdCd === "11680") {
+        return new Promise<Response>((resolve) => {
+          resolveGangnam = resolve;
+        });
+      }
+      return Promise.resolve(
+        jsonResponse({ error: "notConfigured", message: "MOLIT_SERVICE_KEY" }, 503),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithQueryClient(<AppRoutes />);
+
+    const openButton = screen.getByRole("button", { name: "이 지역 실거래가 보기" });
+    await user.click(openButton);
+    let sheet = screen.getByRole("dialog", { name: "이 지역 실거래가" });
+    const sigunguOf = () => within(sheet).getByLabelText<HTMLSelectElement>("시군구");
+    expect(sigunguOf()).toBeDisabled();
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    // 시도를 고르면 그 시도의 시군구만 나온다.
+    await user.selectOptions(within(sheet).getByLabelText("시도"), "서울특별시");
+    const seoulCodes = LAWD_CODES.filter((entry) => entry.sido === "서울특별시").map(
+      (entry) => entry.code,
+    );
+    const optionValues = [...sigunguOf().options].map((option) => option.value).filter(Boolean);
+    expect(optionValues).toEqual(seoulCodes);
+
+    // 설정 오류(503 notConfigured): 문구가 결과 자리에 뜨고 다시 시도 버튼은 없다.
+    await user.selectOptions(sigunguOf(), "11110");
+    expect(
+      await within(sheet).findByText("서버 설정이 끝나지 않았습니다(서비스키 미등록)"),
+    ).toBeInTheDocument();
+    expect(within(sheet).queryByRole("button", { name: "다시 시도" })).not.toBeInTheDocument();
+    expect(requestedQueries(fetchMock)).toEqual([{ lawdCd: "11110", months: "3" }]);
+
+    // 시도를 바꾸면 시군구는 "선택" 초기값으로 돌아간다.
+    await user.selectOptions(within(sheet).getByLabelText("시도"), "경기도");
+    expect(sigunguOf()).toHaveValue("");
+
+    // 시군구를 고르면 즉시 기억하고 조회한다. 로딩 표시 뒤에 행이 만원 금액으로 나온다.
+    await user.selectOptions(within(sheet).getByLabelText("시도"), "서울특별시");
+    await user.selectOptions(sigunguOf(), "11680");
+    expect(JSON.parse(localStorage.getItem(TRADE_LOOKUP_STORAGE_KEY) ?? "null")).toEqual({
+      lawdCd: "11680",
+    });
+    expect(
+      within(sheet).getByRole("status", { name: "실거래가를 불러오는 중" }),
+    ).toBeInTheDocument();
+    resolveGangnam(jsonResponse(GANGNAM_TRADES));
+    const rows = await within(sheet).findAllByRole("listitem");
+    expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getByText("래미안OO")).toBeInTheDocument();
+    expect(within(rows[0]).getByText("11억 5,000만원")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("9억 8,000만원")).toBeInTheDocument();
+    expect(within(sheet).getByText(/최근 3개월 · 2건/)).toBeInTheDocument();
+    expect(within(sheet).getByText("참고용이며 계산에 반영하지 않습니다")).toBeInTheDocument();
+    expect(requestedQueries(fetchMock).at(-1)).toEqual({ lawdCd: "11680", months: "3" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    // 닫았다 열면 같은 시군구가 선택돼 있고 재조회 없이 캐시에서 뜬다.
+    await user.click(within(sheet).getByRole("button", { name: "닫기" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(openButton).toHaveFocus();
+    await user.click(openButton);
+    sheet = screen.getByRole("dialog", { name: "이 지역 실거래가" });
+    expect(sigunguOf()).toHaveValue("11680");
+    expect(within(sheet).getAllByRole("listitem")).toHaveLength(2);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    // 단지명을 타이핑하는 동안은 요청이 나가지 않고, "조회"를 누를 때 나간다.
+    const aptNameInput = within(sheet).getByLabelText("단지명(선택)");
+    await user.type(aptNameInput, " 래미안 ");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    resolveGangnam = () => {};
+    await user.click(within(sheet).getByRole("button", { name: "조회" }));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(requestedQueries(fetchMock).at(-1)).toEqual({
+      lawdCd: "11680",
+      months: "3",
+      aptName: "래미안",
+    });
+
+    // 새 계산 뒤: 단지명은 비고 시군구 기억은 남는다. 단지명 없는 조회는 캐시에 있어 재조회하지 않는다.
+    await user.click(within(sheet).getByRole("button", { name: "닫기" }));
+    await user.click(screen.getByRole("button", { name: "새 계산" }));
+    await user.click(openButton);
+    sheet = screen.getByRole("dialog", { name: "이 지역 실거래가" });
+    expect(within(sheet).getByLabelText("단지명(선택)")).toHaveValue("");
+    expect(sigunguOf()).toHaveValue("11680");
+    expect(within(sheet).getAllByRole("listitem")).toHaveLength(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 });

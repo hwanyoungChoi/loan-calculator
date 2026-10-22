@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 
 import {
   countChars,
@@ -7,6 +7,7 @@ import {
 } from "@/lib/utils/validateListingName";
 
 import styles from "./SaveSheet.module.css";
+import Sheet from "./Sheet";
 
 import type { ListingWriteFailure, ListingWriteResult } from "@/lib/types/listing";
 
@@ -36,9 +37,7 @@ function nameErrorOf(raw: string): string | null {
   return validation.ok ? null : validation.message;
 }
 
-/**
- * 저장 시트. 히스토리에 넣지 않고 취소 버튼(키보드에서는 Esc)으로만 닫는다(모바일 뒤로 가기는 이전 화면 이동).
- */
+/** 저장 시트. 취소·닫기 버튼과 Esc로 닫는다. */
 function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps) {
   const nameInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
@@ -69,80 +68,61 @@ function SaveSheet({ initialName, isEditing, onSave, onCancel }: SaveSheetProps)
     submit(primaryAction);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === "Escape") onCancel();
-  };
-
   const describedBy = nameError === null ? NAME_COUNT_ID : `${NAME_COUNT_ID} ${NAME_ERROR_ID}`;
 
   return (
-    <div className={styles.backdrop}>
-      <div
-        className={styles.sheet}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="save-sheet-title"
-        onKeyDown={handleKeyDown}
-      >
-        <h2 id="save-sheet-title" className={styles.title}>
-          {isEditing ? "매물 저장(수정 중)" : "매물 저장"}
-        </h2>
-        <form className={styles.form} noValidate onSubmit={handleSubmit}>
-          <div className={styles.field}>
-            <div className={styles.labelRow}>
-              <label className={styles.label} htmlFor={NAME_INPUT_ID}>
-                매물 이름
-              </label>
-              <span id={NAME_COUNT_ID} className={styles.count}>
-                {countChars(name.trim())}/{LISTING_NAME_MAX_LENGTH}
-              </span>
-            </div>
-            <input
-              ref={nameInputRef}
-              id={NAME_INPUT_ID}
-              className={styles.input}
-              type="text"
-              autoComplete="off"
-              enterKeyHint="done"
-              placeholder="예: 래미안 101동"
-              autoFocus
-              value={name}
-              aria-invalid={nameError !== null}
-              aria-describedby={describedBy}
-              onChange={(event) => handleNameChange(event.target.value)}
-              onBlur={() => setNameError(nameErrorOf(name))}
-            />
-            {nameError !== null && (
-              <p id={NAME_ERROR_ID} className={styles.error}>
-                {nameError}
-              </p>
-            )}
+    <Sheet title={isEditing ? "매물 저장(수정 중)" : "매물 저장"} onClose={onCancel}>
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
+        <div className={styles.field}>
+          <div className={styles.labelRow}>
+            <label className={styles.label} htmlFor={NAME_INPUT_ID}>
+              매물 이름
+            </label>
+            <span id={NAME_COUNT_ID} className={styles.count}>
+              {countChars(name.trim())}/{LISTING_NAME_MAX_LENGTH}
+            </span>
           </div>
-          {writeError !== null && (
-            <p role="alert" className={styles.writeError}>
-              {writeError}
+          <input
+            ref={nameInputRef}
+            id={NAME_INPUT_ID}
+            className={styles.input}
+            type="text"
+            autoComplete="off"
+            enterKeyHint="done"
+            placeholder="예: 래미안 101동"
+            autoFocus
+            value={name}
+            aria-invalid={nameError !== null}
+            aria-describedby={describedBy}
+            onChange={(event) => handleNameChange(event.target.value)}
+            onBlur={() => setNameError(nameErrorOf(name))}
+          />
+          {nameError !== null && (
+            <p id={NAME_ERROR_ID} className={styles.error}>
+              {nameError}
             </p>
           )}
-          <div className={styles.actions}>
-            <button type="button" className={styles.secondaryButton} onClick={onCancel}>
-              취소
+        </div>
+        {writeError !== null && (
+          <p role="alert" className={styles.writeError}>
+            {writeError}
+          </p>
+        )}
+        <div className={styles.actions}>
+          <button type="button" className={styles.secondaryButton} onClick={onCancel}>
+            취소
+          </button>
+          {isEditing && (
+            <button type="button" className={styles.secondaryButton} onClick={() => submit("add")}>
+              새로 저장
             </button>
-            {isEditing && (
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => submit("add")}
-              >
-                새로 저장
-              </button>
-            )}
-            <button type="submit" className={styles.primaryButton}>
-              {isEditing ? "덮어쓰기" : "저장"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          )}
+          <button type="submit" className={styles.primaryButton}>
+            {isEditing ? "덮어쓰기" : "저장"}
+          </button>
+        </div>
+      </form>
+    </Sheet>
   );
 }
 

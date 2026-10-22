@@ -10,6 +10,7 @@ import { getBrowserStorage } from "@/lib/utils/browserStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
+import { createTradeLookupStore } from "@/lib/utils/tradeLookupStorage";
 
 import type { Regulations } from "@/lib/types/regulation";
 
@@ -28,12 +29,15 @@ function createStores(storage: Storage) {
       now: () => new Date().toISOString(),
     }),
     draftStore: createDraftStore({ storage }),
+    tradeLookupStore: createTradeLookupStore({ storage }),
   };
 }
 
 /** 라우트별 화면 선택은 이 파일 한 곳에서 한다. 두 화면은 같은 스토어를 공유한다. */
 function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) {
-  const [stores] = useState(() => createStores(storage ?? getBrowserStorage()));
+  const [{ listingStore, draftStore, tradeLookupStore }] = useState(() =>
+    createStores(storage ?? getBrowserStorage()),
+  );
   const route = useHashRoute();
 
   // 탭으로 들어온 목록은 맨 위에서 시작한다. 스크롤 복원은 카드 → 계산 → 뒤로 가기에서만 일어난다.
@@ -41,9 +45,19 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     <>
       <TabNav current={route.name} onNavigate={resetListingsScroll} />
       {route.name === "calculator" ? (
-        <MortgageCalculator {...stores} regulations={regulations} />
+        <MortgageCalculator
+          listingStore={listingStore}
+          draftStore={draftStore}
+          tradeLookupStore={tradeLookupStore}
+          regulations={regulations}
+        />
       ) : (
-        <MortgageListings {...stores} regulations={regulations} sort={route.sort} />
+        <MortgageListings
+          listingStore={listingStore}
+          draftStore={draftStore}
+          regulations={regulations}
+          sort={route.sort}
+        />
       )}
     </>
   );

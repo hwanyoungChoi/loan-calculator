@@ -8,3 +8,9 @@
 - 결정: A. 파서 이름은 parseTradesResponse(text). fixture는 **fixtures** 원문 파일로 두고 assumed/real을 구분하며, real fixture 통과를 AC-4 종결 조건으로 한다. 사용자 키가 오면 실제 응답 확인(2-3)을 서버 골격 직후로 당긴다. fast-xml-parser를 쓰면 parseTagValue false, item은 항상 배열, trim.
 - 이유: 해제 거래 제외 필드가 필요하고, 정규식 전체 파싱은 테스트로 지켜야 할 경우가 너무 많다.
 - 뒤집을 조건: 실제 응답에서 상세 자료에 해제 필드가 없거나 CPU 한도를 넘을 때.
+
+## 개정 (2026-10-22, 실제 응답 확인 후)
+
+- 사용자가 발급한 키는 **기본 자료** API(`RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade`)용이다. 리드가 실제로 호출해 보니 기본 자료에도 `cdealType`·`cdealDay`가 있어 해제 거래를 거를 수 있다 → 상세 자료 대신 기본 자료를 쓴다.
+- `_type=json`이 동작한다 → JSON으로 처리하고 fast-xml-parser는 넣지 않는다.
+- 확인한 형식: 성공 `resultCode "000"`, 0건 `items: ""`, 1건 `item` 객체, 여러 건 배열, 빈 필드 `" "`, `dealAmount "236,500"`, 키 오류는 HTTP 200 + `OpenAPI_ServiceResponse.cmmMsgHeader.returnReasonCode "30"`.

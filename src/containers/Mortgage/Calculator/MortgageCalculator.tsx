@@ -1,5 +1,4 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 
 import { useDraft } from "@/hooks/useDraft";
 import { useListings } from "@/hooks/useListings";
@@ -13,7 +12,9 @@ import LoanInputs from "./components/LoanInputs";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
 import SummaryBar from "./components/SummaryBar";
+import TradesSheet from "./components/TradesSheet";
 import { describeEmptyResult } from "./emptyResultMessage";
+import { useOpenSheet } from "./hooks/useOpenSheet";
 import { toNewCalculationDraft } from "./newCalculationDraft";
 import { getSaveButtonState } from "./saveButtonState";
 import { describeSummaryTag } from "./summaryTag";
@@ -21,36 +22,41 @@ import { describeSummaryTag } from "./summaryTag";
 import type { DraftStore } from "@/lib/types/draft";
 import type { ListingInput, ListingStore, ListingWriteResult } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
+import type { TradeLookupStore } from "@/lib/types/tradeLookup";
 
 type MortgageCalculatorProps = {
   listingStore: ListingStore;
   draftStore: DraftStore;
+  tradeLookupStore: TradeLookupStore;
   regulations: Regulations;
 };
 
 /** 계산 화면은 항상 draft만 본다(ADR-004). */
-function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageCalculatorProps) {
+function MortgageCalculator({
+  listingStore,
+  draftStore,
+  tradeLookupStore,
+  regulations,
+}: MortgageCalculatorProps) {
   const draft = useDraft(draftStore);
   const listings = useListings(listingStore);
   // 바꾸면 입력부를 새로 그려 금액·LTV 칸의 오류 표시를 걷는다.
   const [inputsKey, setInputsKey] = useState(0);
-  const [isSaveSheetOpen, setIsSaveSheetOpen] = useState(false);
+  const sheet = useOpenSheet();
+  // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
+  const [tradeAptName, setTradeAptName] = useState("");
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const tradesButtonRef = useRef<HTMLButtonElement>(null);
 
   // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
   useLayoutEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  /** 시트를 닫으면 포커스를 저장 버튼으로 돌려준다. 배경의 inert가 먼저 풀려야 포커스할 수 있다. */
-  const closeSaveSheet = () => {
-    flushSync(() => setIsSaveSheetOpen(false));
-    saveButtonRef.current?.focus();
-  };
-
   const handleNewCalculation = () => {
     draftStore.update(toNewCalculationDraft(draft));
     setInputsKey((key) => key + 1);
+    setTradeAptName("");
   };
 
   const loanInput = toLoanInput(draft);
@@ -70,13 +76,13 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
         editingListing === null
           ? { ok: false, reason: "notFound" }
           : listingStore.update(editingListing.id, input);
-      if (updated.ok) closeSaveSheet();
+      if (updated.ok) sheet.close();
       return updated;
     }
     const added = listingStore.add(input);
     if (!added.ok) return added;
     draftStore.update({ listingId: added.listing.id });
-    closeSaveSheet();
+    sheet.close();
     return { ok: true };
   };
 
@@ -87,7 +93,7 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
         className={
           saveButton.message === null && summaryTag === null ? styles.page : styles.pageWithTallBar
         }
-        inert={isSaveSheetOpen}
+        inert={sheet.isOpen}
       >
         <div className={styles.header}>
           <h1 className={styles.title}>주담대 한도·자기자금 계산기</h1>
@@ -106,20 +112,36 @@ function MortgageCalculator({ listingStore, draftStore, regulations }: MortgageC
         ) : (
           <ResultCard input={loanInput} regulations={regulations} />
         )}
+        <button
+          ref={tradesButtonRef}
+          type="button"
+          className={styles.tradesButton}
+          onClick={() => sheet.open("trades", tradesButtonRef.current)}
+        >
+          이 지역 실거래가 보기
+        </button>
         <SummaryBar
           result={result}
           tag={summaryTag}
           save={saveButton}
           saveButtonRef={saveButtonRef}
-          onSave={() => setIsSaveSheetOpen(true)}
+          onSave={() => sheet.open("save", saveButtonRef.current)}
         />
       </div>
-      {isSaveSheetOpen && loanInput !== null && (
+      {sheet.openSheet === "save" && loanInput !== null && (
         <SaveSheet
           initialName={editingListing?.name ?? ""}
           isEditing={editingListing !== null}
           onSave={(action, name) => saveListing(action, { ...loanInput, name })}
-          onCancel={closeSaveSheet}
+          onCancel={sheet.close}
+        />
+      )}
+      {sheet.openSheet === "trades" && (
+        <TradesSheet
+          lookupStore={tradeLookupStore}
+          aptName={tradeAptName}
+          onAptNameSubmit={setTradeAptName}
+          onClose={sheet.close}
         />
       )}
     </>
