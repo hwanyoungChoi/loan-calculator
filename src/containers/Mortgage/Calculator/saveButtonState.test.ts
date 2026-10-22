@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { calculateLoan } from "@/lib/utils/calculateLoan";
+import { listingToDraft } from "@/lib/utils/listingDraft";
+import { toLoanInput } from "@/lib/utils/toLoanInput";
 import { makeListing } from "@/test/listingFixture";
 
 import { getSaveButtonState } from "./saveButtonState";
 
+import type { Draft } from "@/lib/types/draft";
 import type { LoanInput } from "@/lib/types/loan";
 
 const INPUT: LoanInput = {
@@ -63,6 +67,85 @@ describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
       label: "저장",
       isDisabled: true,
       message: "이 브라우저에서는 저장할 수 없습니다",
+    });
+  });
+});
+
+describe("저장 버튼: 사용자 지정 LTV (AC-3e)", () => {
+  // 계산 화면과 같은 경로: 매물 열기(listingToDraft) → draft 편집 → toLoanInput → getSaveButtonState
+  const CUSTOM = makeListing({ ...INPUT, id: "custom", customLtvRate: 70 });
+
+  function stateFor(draft: Draft, editingListing = CUSTOM) {
+    return getSaveButtonState({
+      listingsStatus: "ok",
+      loanInput: toLoanInput(draft),
+      editingListing,
+    });
+  }
+
+  it("사용자 지정 매물을 열면 customLtv가 채워지고 '저장됨'", () => {
+    const draft = listingToDraft(CUSTOM);
+    expect(draft.customLtv).toBe("70");
+    expect(stateFor(draft)).toMatchObject({ label: "저장됨", isDisabled: true });
+  });
+
+  it.each(["70%", " 70 ", "070"])(
+    "같은 값을 %j로 고쳐 써도 정규화한 숫자가 같으면 '저장됨'",
+    (customLtv) => {
+      expect(stateFor({ ...listingToDraft(CUSTOM), customLtv })).toMatchObject({
+        label: "저장됨",
+        isDisabled: true,
+      });
+    },
+  );
+
+  it("LTV 값만 바꾸면 '저장'이 다시 활성화된다", () => {
+    expect(stateFor({ ...listingToDraft(CUSTOM), customLtv: "71" })).toEqual({
+      label: "저장",
+      isDisabled: false,
+      message: null,
+    });
+  });
+
+  it("직접 입력을 끄면(규제로 되돌림) 다른 입력이라 '저장'이 활성화된다", () => {
+    expect(stateFor({ ...listingToDraft(CUSTOM), customLtv: null })).toMatchObject({
+      label: "저장",
+      isDisabled: false,
+    });
+  });
+
+  it("규제 매물을 열면 customLtv는 null이고 '저장됨', 직접 입력을 켜고 값을 넣으면 '저장'", () => {
+    const draft = listingToDraft(SAVED);
+    expect(draft.customLtv).toBeNull();
+    expect(stateFor(draft, SAVED)).toMatchObject({ label: "저장됨", isDisabled: true });
+    expect(stateFor({ ...draft, customLtv: "40" }, SAVED)).toMatchObject({
+      label: "저장",
+      isDisabled: false,
+    });
+  });
+
+  it("직접 입력을 켠 채 비었거나 오류면 비활성 '저장'", () => {
+    for (const customLtv of ["", "101", "70.5"]) {
+      expect(stateFor({ ...listingToDraft(CUSTOM), customLtv })).toEqual({
+        label: "저장",
+        isDisabled: true,
+        message: null,
+      });
+    }
+  });
+
+  it("ineligible 입력도 금액이 유효하면 저장 버튼이 활성이다", () => {
+    const loanInput: LoanInput = {
+      salePrice: 85000,
+      kbPrice: 84000,
+      region: "regulated",
+      borrower: "noHomePreferred",
+    };
+    expect(calculateLoan(loanInput).status).toBe("ineligible");
+    expect(getSaveButtonState({ listingsStatus: "ok", loanInput, editingListing: null })).toEqual({
+      label: "저장",
+      isDisabled: false,
+      message: null,
     });
   });
 });

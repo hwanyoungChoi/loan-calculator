@@ -5,6 +5,7 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 
 import { LISTINGS_STORAGE_KEY } from "./listingStorage";
 import { createListingStore } from "./listingStore";
+import { toLoanInput } from "./toLoanInput";
 
 import type { ListingInput } from "@/lib/types/listing";
 
@@ -140,6 +141,80 @@ describe("update (AC-7 덮어쓰기)", () => {
     expect(setItem).not.toHaveBeenCalled();
     expect(listener).not.toHaveBeenCalled();
     expect(store.getSnapshot()).toBe(before);
+  });
+});
+
+describe("사용자 지정 LTV 저장 (AC-3b, ADR-012)", () => {
+  /** 계산 화면이 저장할 때와 같은 경로: draft → toLoanInput → { ...loanInput, name } */
+  function inputFromDraft(customLtv: string | null): ListingInput {
+    const loanInput = toLoanInput({
+      salePrice: "100000",
+      kbPrice: "100000",
+      region: "regulated",
+      borrower: "noHome",
+      listingId: null,
+      customLtv,
+    });
+    if (loanInput === null) throw new Error("전제: 유효한 입력");
+    return { ...loanInput, name: "래미안 101동" };
+  }
+
+  function rawItems(storage: Storage): Record<string, unknown>[] {
+    return JSON.parse(storedRaw(storage) ?? "null") as Record<string, unknown>[];
+  }
+
+  it("customLtvRate 70은 저장 → 새 스토어 로드 왕복 후에도 70이다", () => {
+    const first = setup();
+    first.store.add(inputFromDraft("70%"));
+
+    expect(rawItems(first.storage)[0].customLtvRate).toBe(70);
+    expect(listingsOf(setup(first.storage).store)[0]).toMatchObject({ customLtvRate: 70 });
+  });
+
+  it("customLtvRate 0도 키가 남는다(falsy로 버리지 않는다)", () => {
+    const { storage, store } = setup();
+    store.add(inputFromDraft("0"));
+    expect(rawItems(storage)[0]).toHaveProperty("customLtvRate", 0);
+  });
+
+  it("규제 LTV로 저장한 매물의 JSON에는 customLtvRate 키가 없다", () => {
+    const { storage, store } = setup();
+    store.add(inputFromDraft(null));
+    store.add({ ...INPUT, customLtvRate: undefined });
+
+    expect(storedRaw(storage)).not.toContain("customLtvRate");
+    for (const item of rawItems(storage)) {
+      expect(Object.hasOwn(item, "customLtvRate")).toBe(false);
+    }
+  });
+
+  it("사용자 지정이던 매물을 규제로 되돌려 덮어쓰면 키가 사라진다", () => {
+    const seededStorage = createMemoryStorage({
+      [LISTINGS_STORAGE_KEY]: JSON.stringify([
+        makeListing({ id: "a", customLtvRate: 70 }),
+        makeListing({ id: "b", customLtvRate: 50 }),
+      ]),
+    });
+    const { storage, store } = setup(seededStorage);
+
+    expect(store.update("a", inputFromDraft(null))).toEqual({ ok: true });
+
+    const [updated, untouched] = rawItems(storage);
+    expect(Object.hasOwn(updated, "customLtvRate")).toBe(false);
+    expect(untouched.customLtvRate).toBe(50);
+    const reloaded = listingsOf(setup(storage).store);
+    expect(Object.hasOwn(reloaded[0], "customLtvRate")).toBe(false);
+  });
+
+  it("규제였던 매물을 사용자 지정으로 덮어쓰면 키가 생기고, 값을 바꾸면 새 값이다", () => {
+    const { storage, store } = setup(
+      createMemoryStorage({ [LISTINGS_STORAGE_KEY]: JSON.stringify([makeListing({ id: "a" })]) }),
+    );
+
+    store.update("a", inputFromDraft("70"));
+    expect(rawItems(storage)[0].customLtvRate).toBe(70);
+    store.update("a", inputFromDraft("55"));
+    expect(rawItems(storage)[0].customLtvRate).toBe(55);
   });
 });
 

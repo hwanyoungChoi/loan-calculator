@@ -6,6 +6,7 @@ import { describeCondition } from "@/lib/utils/describeCondition";
 import styles from "./ListingCard.module.css";
 
 import type { Listing } from "@/lib/types/listing";
+import type { LoanResult } from "@/lib/types/loan";
 import type { Regulations } from "@/lib/types/regulation";
 
 type ListingCardProps = {
@@ -15,19 +16,30 @@ type ListingCardProps = {
   onDelete: (listing: Listing) => void;
 };
 
+/** 계산하지 못한 매물 배지. 상태가 늘면 여기 등록하지 않은 것이 타입 검사에서 걸린다. */
+const STATUS_BADGES: Record<LoanResult["status"], string | null> = {
+  ok: null,
+  unconfirmed: "계산 불가",
+  ineligible: "계산 불가 · 요건 미충족",
+};
+
 /** 핵심 지표 3개(매매가, 예상 한도, 자기자금)와 조건 요약. 누르면 계산 화면으로 연다. */
 function ListingCard({ listing, regulations, onOpen, onDelete }: ListingCardProps) {
+  // 1차 형식(customLtvRate 키 없음) 매물도 그대로 넘긴다. 키가 없으면 규제 LTV로 계산된다(ADR-012).
   const result = calculateLoan(listing, regulations);
+  const statusBadge = STATUS_BADGES[result.status];
+  const isCustomLtv = result.appliedLtv?.source === "custom";
 
   return (
     <li className={styles.card}>
       <a className={styles.link} href={PATHS.calculator} onClick={() => onOpen(listing)}>
         <span className={styles.heading}>
           <strong className={styles.name}>{listing.name}</strong>
-          {result.status === "unconfirmed" && <span className={styles.badge}>계산 불가</span>}
+          {statusBadge !== null && <span className={styles.badge}>{statusBadge}</span>}
+          {isCustomLtv && <span className={styles.customBadge}>사용자 지정</span>}
         </span>
         <span className={styles.condition}>
-          {describeCondition(listing.region, listing.borrower)}
+          {describeCondition(listing.region, listing.borrower, listing.customLtvRate)}
         </span>
         <dl className={styles.figures}>
           <div className={styles.figure}>

@@ -10,6 +10,7 @@ export function listingToDraft(listing: Listing): Draft {
     region: listing.region,
     borrower: listing.borrower,
     listingId: listing.id,
+    customLtv: typeof listing.customLtvRate === "number" ? String(listing.customLtvRate) : null,
   };
 }
 
@@ -22,13 +23,17 @@ export function findDraftListing(
   return snapshot.listings.find((listing) => listing.id === listingId) ?? null;
 }
 
-/** 입력값(금액 2개, 소재지, 보유 상태)이 저장본과 같은지. 이름은 비교하지 않는다. */
+/**
+ * 입력값(금액 2개, 소재지, 보유 상태, 사용자 지정 LTV)이 저장본과 같은지. 이름은 비교하지 않는다.
+ * 사용자 지정 LTV는 키 없음을 null로 맞춰 정규화한 숫자로 비교한다("70%"와 70은 같다).
+ */
 export function isSameAsListing(input: LoanInput | null, listing: Listing): boolean {
   return (
     input !== null &&
     input.salePrice === listing.salePrice &&
     input.kbPrice === listing.kbPrice &&
     input.region === listing.region &&
-    input.borrower === listing.borrower
+    input.borrower === listing.borrower &&
+    (input.customLtvRate ?? null) === (listing.customLtvRate ?? null)
   );
 }

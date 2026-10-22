@@ -4,6 +4,7 @@ import {
   LOAN_CAP,
   LOAN_REGULATIONS,
   LTV_TABLE,
+  PREFERRED_BORROWER_REQUIREMENTS,
   REGULATION_BASE_DATE,
   REGULATION_SOURCES,
 } from "./loanRegulations";
@@ -12,16 +13,40 @@ import type { Borrower, LtvCell, Region } from "@/lib/types/regulation";
 
 // 제품 코드의 목록을 쓰지 않고 직접 적는다. 키가 빠지거나 늘면 이 테스트가 잡아야 한다.
 const REGIONS: Region[] = ["regulated", "capitalNonRegulated", "nonCapital"];
-const BORROWERS: Borrower[] = ["noHome", "firstHome", "oneHomeDisposal", "oneHomeKeep"];
+const BORROWERS: Borrower[] = [
+  "noHome",
+  "firstHome",
+  "noHomePreferred",
+  "oneHomeDisposal",
+  "oneHomeKeep",
+];
 
 /**
- * 스펙 "LTV 행렬"을 그대로 옮긴 기대값(무주택·생애최초·처분조건부·미처분 순).
+ * 스펙 "LTV 행렬"을 그대로 옮긴 기대값(무주택·생애최초·서민실수요자·처분조건부·미처분 순). null은 미확인이다.
  * 규제 파일에서 가져오지 않는다. 이 테스트는 스펙 표와 파일의 일치만 지킨다(AC-2).
  */
-const EXPECTED_LTV: Record<Region, Record<Borrower, number>> = {
-  regulated: { noHome: 40, firstHome: 70, oneHomeDisposal: 40, oneHomeKeep: 0 },
-  capitalNonRegulated: { noHome: 70, firstHome: 70, oneHomeDisposal: 70, oneHomeKeep: 0 },
-  nonCapital: { noHome: 70, firstHome: 80, oneHomeDisposal: 70, oneHomeKeep: 60 },
+const EXPECTED_LTV: Record<Region, Record<Borrower, number | null>> = {
+  regulated: {
+    noHome: 40,
+    firstHome: 70,
+    noHomePreferred: 60,
+    oneHomeDisposal: 40,
+    oneHomeKeep: 0,
+  },
+  capitalNonRegulated: {
+    noHome: 70,
+    firstHome: 70,
+    noHomePreferred: 70,
+    oneHomeDisposal: 70,
+    oneHomeKeep: 0,
+  },
+  nonCapital: {
+    noHome: 70,
+    firstHome: 80,
+    noHomePreferred: null,
+    oneHomeDisposal: 70,
+    oneHomeKeep: 60,
+  },
 };
 
 const COMBINATIONS = REGIONS.flatMap((region) =>
@@ -83,12 +108,12 @@ describe("LTV 행렬이 스펙 표와 같다 (AC-2)", () => {
 });
 
 describe("규제 파일 무결성 (AC-5)", () => {
-  it("(a) 소재지 3개 × 보유 상태 4개, 12개 셀이 모두 있고 다른 키는 없다", () => {
+  it("(a) 소재지 3개 × 보유 상태 5개, 15개 셀이 모두 있고 다른 키는 없다", () => {
     expect(Object.keys(LTV_TABLE).sort()).toEqual([...REGIONS].sort());
     for (const region of REGIONS) {
       expect(Object.keys(LTV_TABLE[region]).sort()).toEqual([...BORROWERS].sort());
     }
-    expect(COMBINATIONS).toHaveLength(12);
+    expect(COMBINATIONS).toHaveLength(15);
   });
 
   describe.each(COMBINATIONS)("(b) %s × %s 셀", (region, borrower) => {
@@ -158,8 +183,29 @@ describe("규제 파일 무결성 (AC-5)", () => {
 
   it("LOAN_REGULATIONS는 같은 파일의 상수를 묶는다", () => {
     expect(LOAN_REGULATIONS.baseDate).toBe(REGULATION_BASE_DATE);
+    expect(LOAN_REGULATIONS.preferredBorrower).toBe(PREFERRED_BORROWER_REQUIREMENTS);
     expect(LOAN_REGULATIONS.ltvTable).toBe(LTV_TABLE);
     expect(LOAN_REGULATIONS.loanCap).toBe(LOAN_CAP);
     expect(LOAN_REGULATIONS.sources).toBe(REGULATION_SOURCES);
+  });
+});
+
+describe("서민·실수요자 요건 (AC-1a)", () => {
+  it("요건 값은 스펙과 같다(S3 각주 5: 주택가격 8억원 이하, 부부합산 연소득 9천만원 이하, 무주택세대주)", () => {
+    expect(PREFERRED_BORROWER_REQUIREMENTS).toMatchObject({
+      maxHousePrice: 80000,
+      maxCoupleIncome: 9000,
+      householdRequirement: "무주택세대주",
+      effectiveDate: "2025-10-16",
+    });
+  });
+
+  it("sourceUrl은 REGULATION_SOURCES에 있는 https 주소이고, effectiveDate는 실존 날짜이며 기준일 이하다", () => {
+    expectKnownSourceUrl(PREFERRED_BORROWER_REQUIREMENTS.sourceUrl);
+    expectDateOnOrBeforeBase(PREFERRED_BORROWER_REQUIREMENTS.effectiveDate);
+  });
+
+  it("규제 기준일은 2026-10-22다", () => {
+    expect(REGULATION_BASE_DATE).toBe("2026-10-22");
   });
 });

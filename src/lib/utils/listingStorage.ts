@@ -22,6 +22,11 @@ function isPrice(value: unknown): value is number {
   return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= MAX_AMOUNT;
 }
 
+/** 검증 순서는 typeof → 정수 → 0~100이다(ADR-012). null·"70"·70.5는 모두 아니다. */
+function isLtvRate(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 100;
+}
+
 /** `Date.parse`는 2월 30일도 받아 주므로 연·월·일이 실제 달력에 있는지 따로 본다. */
 function isIsoDateString(value: unknown): value is string {
   if (typeof value !== "string") return false;
@@ -46,7 +51,9 @@ function isListing(value: unknown): value is Listing {
     isOneOf(REGIONS, region) &&
     isOneOf(BORROWERS, borrower) &&
     isIsoDateString(createdAt) &&
-    isIsoDateString(updatedAt)
+    isIsoDateString(updatedAt) &&
+    // 선택 필드: 키가 없으면 규제 LTV(1차 형식 그대로), 키가 있으면 값이 유효해야 한다.
+    (!Object.hasOwn(value, "customLtvRate") || isLtvRate(value.customLtvRate))
   );
 }
 

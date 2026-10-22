@@ -7,6 +7,8 @@ export type Draft = {
   region: Region;
   borrower: Borrower;
   listingId: string | null;
+  /** LTV 직접 입력. null이면 꺼짐, 문자열이면 입력 중인 값 */
+  customLtv: string | null;
 };
 
 export type DraftStore = {

@@ -174,6 +174,77 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
   });
 });
 
+describe("sortListings: 요건 미충족·사용자 지정 (AC-3d)", () => {
+  // 수도권 비규제·무주택만 미확인인 fixture. 요건 미충족은 운영 규제 그대로 판정된다.
+  const regulations = withUnconfirmedCell("capitalNonRegulated", "noHome");
+  const unconfirmed = (id: string, createdAt: string) =>
+    makeListing({
+      id,
+      salePrice: 10000,
+      kbPrice: 10000,
+      region: "capitalNonRegulated",
+      createdAt,
+    });
+  // 서민·실수요자 8억 초과 → ineligible. 규제지역·무주택이었다면 자기자금 51400(정상 위치)
+  const ineligible = (id: string, createdAt: string) =>
+    makeListing({
+      id,
+      salePrice: 85000,
+      kbPrice: 84000,
+      borrower: "noHomePreferred",
+      createdAt,
+    });
+  // 사용자 지정 70%: 담보 100000 × 70% = 70000, 상한 60000 → 자기자금 40000. 규제(40%)였다면 60000
+  const CUSTOM_40000 = makeListing({
+    id: "custom-40000",
+    salePrice: 100000,
+    kbPrice: 100000,
+    customLtvRate: 70,
+  });
+
+  const INELIGIBLE_NEWEST = ineligible("ineligible-newest", day(12));
+  const UNCONFIRMED_NEW = unconfirmed("unconfirmed-new", day(9));
+  const INELIGIBLE_MID = ineligible("ineligible-mid", day(7));
+  const UNCONFIRMED_OLD = unconfirmed("unconfirmed-old", day(1));
+
+  it("전제: fixture의 상태와 자기자금", () => {
+    expect(calculateLoan(INELIGIBLE_MID, regulations).status).toBe("ineligible");
+    expect(calculateLoan(UNCONFIRMED_OLD, regulations).status).toBe("unconfirmed");
+    expect(calculateLoan(CUSTOM_40000, regulations)).toMatchObject({
+      status: "ok",
+      appliedLtv: { source: "custom", rate: 70 },
+      ownFunds: 40000,
+    });
+  });
+
+  it("ineligible은 unconfirmed와 함께 맨 뒤이고 그 둘끼리는 createdAt 내림차순, 사용자 지정은 자기 자기자금 위치다", () => {
+    const sorted = sortListings(
+      [
+        UNCONFIRMED_OLD,
+        INELIGIBLE_MID,
+        OWN_80000,
+        CUSTOM_40000,
+        INELIGIBLE_NEWEST,
+        OWN_60000,
+        UNCONFIRMED_NEW,
+        OWN_30000,
+      ],
+      "ownFunds",
+      regulations,
+    );
+    expect(ids(sorted)).toEqual([
+      "own-30000",
+      "custom-40000",
+      "own-60000",
+      "own-80000",
+      "ineligible-newest",
+      "unconfirmed-new",
+      "ineligible-mid",
+      "unconfirmed-old",
+    ]);
+  });
+});
+
 describe("sortListings: 최근 저장순 (AC-7)", () => {
   it("updatedAt 내림차순이다(createdAt·자기자금과 무관)", () => {
     const listings = [

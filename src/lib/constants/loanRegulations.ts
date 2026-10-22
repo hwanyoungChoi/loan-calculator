@@ -1,13 +1,17 @@
 /**
  * 대출 규제 값은 이 파일 한 곳에만 둔다(CLAUDE.md, ADR-003).
- * 수치는 스펙 "규제 값 (2026-10-21 확인)" 표를 그대로 옮겼다.
+ * 수치는 1차 스펙 "규제 값 (2026-10-21 확인)"과 2차 스펙 "규제 값 (2026-10-22 확인)" 표를 그대로 옮겼다.
  * 확인되지 않은 셀은 `rate: null`로 두고 숫자를 지어내지 않는다.
  * `as const`를 쓰지 않는다. `rate: null` 셀이 리터럴 타입으로 좁아져 미확인 fixture 주입이 막히기 때문이다.
  */
-import type { RegulationSource, Regulations } from "@/lib/types/regulation";
+import type {
+  PreferredBorrowerRequirements,
+  RegulationSource,
+  Regulations,
+} from "@/lib/types/regulation";
 
 /** 규제 값을 1차 출처와 대조한 날 */
-export const REGULATION_BASE_DATE = "2026-10-21";
+export const REGULATION_BASE_DATE = "2026-10-22";
 
 const S1: RegulationSource = {
   id: "S1",
@@ -81,6 +85,12 @@ export const LTV_TABLE = {
       sourceUrl: S1.url,
       note: "S4에서 재확인",
     },
+    noHomePreferred: {
+      rate: 60,
+      effectiveDate: "2025-10-16",
+      sourceUrl: S3.url,
+      note: "S3 FAQ Q4 표 서민·실수요자 행 규제지역 열",
+    },
   },
   capitalNonRegulated: {
     noHome: {
@@ -92,6 +102,12 @@ export const LTV_TABLE = {
     firstHome: { rate: 70, effectiveDate: "2025-06-28", sourceUrl: S1.url },
     oneHomeDisposal: { rate: 70, effectiveDate: "2025-06-28", sourceUrl: S1.url },
     oneHomeKeep: { rate: 0, effectiveDate: "2025-06-28", sourceUrl: S1.url },
+    noHomePreferred: {
+      rate: 70,
+      effectiveDate: "2025-10-16",
+      sourceUrl: S3.url,
+      note: "S3 FAQ Q4 표 서민·실수요자 행 10.15 이전 열(새 규제지역은 그 전에 수도권 비규제)",
+    },
   },
   nonCapital: {
     noHome: {
@@ -108,6 +124,8 @@ export const LTV_TABLE = {
     },
     oneHomeDisposal: { rate: 70, effectiveDate: "2025-06-28", sourceUrl: S1.url },
     oneHomeKeep: { rate: 60, effectiveDate: "2025-06-28", sourceUrl: S1.url },
+    // S3 표의 비교 열이 "비규제지역 일반"인지 원문(첨부 PDF)으로 대조하지 못했다(U4). 확인 전에는 미확인이다.
+    noHomePreferred: { rate: null, effectiveDate: null, sourceUrl: null },
   },
 } satisfies Regulations["ltvTable"];
 
@@ -126,9 +144,22 @@ export const LOAN_CAP = {
   sourceUrl: S2.url,
 } satisfies Regulations["loanCap"];
 
+/**
+ * 서민·실수요자 우대 요건(S3 FAQ Q4 각주 5): 부부합산 연소득 9천만원 이하, 주택가격 8억원 이하, 무주택세대주.
+ * 앱은 주택가격만 판정하고(max(매매가, KB시세) <= maxHousePrice), 소득·세대주는 안내 문구에만 쓴다.
+ */
+export const PREFERRED_BORROWER_REQUIREMENTS = {
+  maxHousePrice: 80000,
+  maxCoupleIncome: 9000,
+  householdRequirement: "무주택세대주",
+  effectiveDate: "2025-10-16",
+  sourceUrl: S3.url,
+} satisfies PreferredBorrowerRequirements;
+
 export const LOAN_REGULATIONS = {
   baseDate: REGULATION_BASE_DATE,
   ltvTable: LTV_TABLE,
   loanCap: LOAN_CAP,
+  preferredBorrower: PREFERRED_BORROWER_REQUIREMENTS,
   sources: REGULATION_SOURCES,
 } satisfies Regulations;

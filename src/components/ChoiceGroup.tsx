@@ -1,6 +1,9 @@
 import styles from "./ChoiceGroup.module.css";
 
-type ChoiceOption<T extends string> = { value: T; label: string };
+import type { ReactNode } from "react";
+
+/** label은 줄바꿈 위치(`<wbr />`)를 넣을 수 있게 ReactNode다. 접근성 이름은 글자만으로 정해진다. */
+type ChoiceOption<T extends string> = { value: T; label: ReactNode };
 
 type ChoiceGroupProps<T extends string> = {
   name: string;

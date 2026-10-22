@@ -149,14 +149,85 @@ describe("손상 판정은 전체 단위다 (AC-6c)", () => {
     expect(parseListings(JSON.stringify([listing]))).toEqual({ ok: true, listings: [listing] });
   });
 
-  it("region 3개 × borrower 4개 값은 모두 정상이다", () => {
+  it("region 3개 × borrower 5개 값은 모두 정상이다", () => {
     const regions = ["regulated", "capitalNonRegulated", "nonCapital"] as const;
-    const borrowers = ["noHome", "firstHome", "oneHomeDisposal", "oneHomeKeep"] as const;
+    const borrowers = [
+      "noHome",
+      "firstHome",
+      "noHomePreferred",
+      "oneHomeDisposal",
+      "oneHomeKeep",
+    ] as const;
     const listings = regions.flatMap((region) =>
       borrowers.map((borrower) => makeListing({ id: `${region}-${borrower}`, region, borrower })),
     );
 
     expect(parseListings(JSON.stringify(listings))).toEqual({ ok: true, listings });
+  });
+});
+
+describe("선택 필드 customLtvRate 검증 (AC-3c, ADR-012)", () => {
+  // 키가 있으면 typeof === "number" → 정수 → 0~100. 하나라도 아니면 목록 전체가 corrupt다.
+  const corruptCases: [string, string][] = [
+    ["null", rawWith({ customLtvRate: null })],
+    ['문자열 "70"', rawWith({ customLtvRate: "70" })],
+    ['문자열 "0"', rawWith({ customLtvRate: "0" })],
+    ["빈 문자열", rawWith({ customLtvRate: "" })],
+    ["true", rawWith({ customLtvRate: true })],
+    ["false", rawWith({ customLtvRate: false })],
+    ["빈 배열", rawWith({ customLtvRate: [] })],
+    ["빈 객체", rawWith({ customLtvRate: {} })],
+    ["소수 70.5", rawWith({ customLtvRate: 70.5 })],
+    ["101", rawWith({ customLtvRate: 101 })],
+    ["-1", rawWith({ customLtvRate: -1 })],
+    ["borrower 정해진 값 아님(서민실수요자 철자 오류)", rawWith({ borrower: "noHomePreffered" })],
+  ];
+
+  it.each(corruptCases)("customLtvRate %s → 목록 전체 corrupt", (_, rawText) => {
+    expect(parseListings(rawText)).toEqual({ ok: false, reason: "corrupt", rawText });
+  });
+
+  it("정상 매물 사이에 customLtvRate가 틀린 매물이 하나만 있어도 전체가 corrupt다", () => {
+    const rawText = JSON.stringify([
+      makeListing({ id: "a" }),
+      { ...makeListing({ id: "b" }), customLtvRate: "70" },
+      makeListing({ id: "c", customLtvRate: 70 }),
+    ]);
+    expect(parseListings(rawText)).toEqual({ ok: false, reason: "corrupt", rawText });
+  });
+
+  it.each([0, 1, 70, 99, 100])(
+    "customLtvRate %i는 정상이고 값이 그대로 읽힌다",
+    (customLtvRate) => {
+      const listing = makeListing({ customLtvRate });
+      expect(parseListings(JSON.stringify([listing]))).toEqual({ ok: true, listings: [listing] });
+    },
+  );
+
+  it("JSON 원문의 100.0은 숫자 100이라 정상이다", () => {
+    const rawText = JSON.stringify([makeListing()]).replace(
+      '"borrower":"noHome"',
+      '"borrower":"noHome","customLtvRate":100.0',
+    );
+    expect(rawText).toContain('"customLtvRate":100.0');
+    expect(parseListings(rawText)).toEqual({
+      ok: true,
+      listings: [makeListing({ customLtvRate: 100 })],
+    });
+  });
+
+  it("키가 없으면 정상이고, 읽은 매물에도 키가 생기지 않는다", () => {
+    const result = parseListings(JSON.stringify([makeListing()]));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(Object.hasOwn(result.listings[0], "customLtvRate")).toBe(false);
+  });
+
+  it("borrower noHomePreferred와 customLtvRate를 함께 저장하고 다시 읽는다", () => {
+    const storage = createMemoryStorage();
+    const listings = [makeListing({ borrower: "noHomePreferred", customLtvRate: 60 })];
+    saveListings(storage, listings);
+    expect(loadListings(storage)).toEqual({ ok: true, listings });
   });
 });
 
