@@ -1,11 +1,11 @@
 import { formatManwon, validateAmount } from "@/lib/utils/amount";
 
-import styles from "./PasteSheet.module.css";
+import styles from "./ScreenshotSheet.module.css";
 
-import type { ParsedShareText } from "@/lib/utils/parseListingShareText";
+import type { ParsedListingText } from "@/lib/utils/parseListingText";
 
-type SharePreviewProps = {
-  parsed: ParsedShareText;
+type ListingPreviewProps = {
+  parsed: ParsedListingText;
   /** 지금 매매가 칸의 입력(쉼표 없음) */
   currentSalePrice: string;
   isEditing: boolean;
@@ -14,8 +14,13 @@ type SharePreviewProps = {
 
 const NOT_FOUND = "찾지 못함";
 
-/** 붙여넣기에서 읽은 값과 "적용"이 바꿀 것. 단지명은 추정이라 그대로 보여 주고 사용자가 확인한다. */
-function SharePreview({ parsed, currentSalePrice, isEditing, isCustomLtvOn }: SharePreviewProps) {
+/** 스크린샷에서 읽은 값과 "적용"이 바꿀 것. 단지명은 추정이라 그대로 보여 주고 사용자가 확인한다. */
+function ListingPreview({
+  parsed,
+  currentSalePrice,
+  isEditing,
+  isCustomLtvOn,
+}: ListingPreviewProps) {
   const salePriceText = formatManwon(parsed.salePrice);
   const current = validateAmount(currentSalePrice);
   const facts = [
@@ -54,4 +59,4 @@ function SharePreview({ parsed, currentSalePrice, isEditing, isCustomLtvOn }: Sh
   );
 }
 
-export default SharePreview;
+export default ListingPreview;

@@ -7,12 +7,12 @@ import { findDraftListing } from "@/lib/utils/listingDraft";
 import { toLoanInput } from "@/lib/utils/toLoanInput";
 
 import styles from "./MortgageCalculator.module.css";
-import { applyShareText } from "./applyShareText";
+import { applyListingText } from "./applyListingText";
 import EmptyResultCard from "./components/EmptyResultCard";
 import LoanInputs, { KB_PRICE_INPUT_ID } from "./components/LoanInputs";
-import PasteSheet from "./components/PasteSheet";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
+import ScreenshotSheet from "./components/ScreenshotSheet";
 import SummaryBar from "./components/SummaryBar";
 import TradesSheet from "./components/TradesSheet";
 import { describeEmptyResult } from "./emptyResultMessage";
@@ -26,7 +26,7 @@ import type { DraftStore } from "@/lib/types/draft";
 import type { ListingInput, ListingStore, ListingWriteResult } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
 import type { TradeLookupStore } from "@/lib/types/tradeLookup";
-import type { ParsedShareText } from "@/lib/utils/parseListingShareText";
+import type { ParsedListingText } from "@/lib/utils/parseListingText";
 
 type MortgageCalculatorProps = {
   listingStore: ListingStore;
@@ -49,10 +49,10 @@ function MortgageCalculator({
   const sheet = useOpenSheet();
   // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
   const [tradeAptName, setTradeAptName] = useState("");
-  // 붙여넣기에서 만든 저장 이름 제안. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다.
+  // 스크린샷에서 만든 저장 이름 제안. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다.
   const [suggestedName, setSuggestedName] = useState("");
   const saveButtonRef = useRef<HTMLButtonElement>(null);
-  const pasteButtonRef = useRef<HTMLButtonElement>(null);
+  const screenshotButtonRef = useRef<HTMLButtonElement>(null);
   const tradesButtonRef = useRef<HTMLButtonElement>(null);
 
   // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
@@ -68,11 +68,11 @@ function MortgageCalculator({
   };
 
   /**
-   * 붙여넣기 적용은 새 매물 계산이다(ADR-017). 사용자 지정 LTV도 끈다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
+   * 스크린샷 적용은 새 매물 계산이다(ADR-017). 사용자 지정 LTV도 끈다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
    * KB시세는 비워졌으니 바로 입력하도록 그 칸으로 포커스를 옮긴다.
    */
-  const handlePasteApply = (parsed: ParsedShareText) => {
-    draftStore.update(applyShareText(draft, parsed));
+  const handleScreenshotApply = (parsed: ParsedListingText) => {
+    draftStore.update(applyListingText(draft, parsed));
     setInputsKey((key) => key + 1);
     setSuggestedName(parsed.suggestedName);
     setTradeAptName(parsed.complexName ?? "");
@@ -127,12 +127,12 @@ function MortgageCalculator({
           </button>
         </div>
         <button
-          ref={pasteButtonRef}
+          ref={screenshotButtonRef}
           type="button"
           className={styles.secondaryAction}
-          onClick={() => sheet.open("paste", pasteButtonRef.current)}
+          onClick={() => sheet.open("screenshot", screenshotButtonRef.current)}
         >
-          붙여넣기로 채우기
+          스크린샷으로 채우기
         </button>
         <LoanInputs
           key={inputsKey}
@@ -173,12 +173,12 @@ function MortgageCalculator({
           onCancel={sheet.close}
         />
       )}
-      {sheet.openSheet === "paste" && (
-        <PasteSheet
+      {sheet.openSheet === "screenshot" && (
+        <ScreenshotSheet
           currentSalePrice={draft.salePrice}
           isEditing={editingListing !== null}
           isCustomLtvOn={draft.customLtv !== null}
-          onApply={handlePasteApply}
+          onApply={handleScreenshotApply}
           onClose={sheet.close}
         />
       )}

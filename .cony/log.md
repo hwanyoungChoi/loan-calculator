@@ -134,3 +134,34 @@
 - 요청: 사용자가 Worker loan-calculator에 시크릿 MOLIT_SERVICE_KEY 등록 완료(U1 해결).
 - 요청: 사용자가 Cloudflare 빌드 로그 전달 — 빌드는 성공, 배포 명령 `npx wrangler preview`(PR 브랜치)가 "configuration is missing a `previews` block"으로 실패. 앞선 가설(Worker 미배포)은 틀림.
 - AI: wrangler.jsonc에 `"previews": {}` 추가(로컬 wrangler 4.151.3 스키마에 존재 확인, deploy dry-run 성공). 참고: Preview는 시크릿을 따로 관리(`wrangler preview secret`) → PR 미리보기에서는 실거래가가 notConfigured일 수 있음, 운영은 등록한 Worker 시크릿 사용.
+- AI: PR #2 체크 2개(verify, Workers Builds) 통과 → squash 머지(2886e02). 원격 작업 브랜치는 자동 삭제, 로컬 브랜치 삭제.
+- AI: 운영 주소 loan-calculator.welcomechoi94.workers.dev는 머지 직후 아직 예전 배포(/api가 index.html). main 운영 빌드 완료 대기.
+- AI: main 운영 배포(Workers Builds) 성공. 운영 주소에서 / 200, /api 400 정상, 조회는 503 notConfigured(Worker env에 MOLIT_SERVICE_KEY 없음 — 업스트림 코드 없는 메시지). 추정: Text 변수로 저장돼 wrangler deploy가 지웠거나 이름·범위 불일치. 사용자에게 Secret 확인 또는 wrangler secret put 안내.
+- 놓침: 사용자 확인 결과 네이버부동산 앱 공유 메뉴에 "복사"가 없음. 태스크 3(공유 텍스트 붙여넣기)은 실제 입력 샘플(U3) 없이 "공유 텍스트에 가격이 들어 있다"는 가정 위에 만들어져 핵심 경로가 성립하지 않음. 스펙 리뷰(client-dev)에서 "U3 도착 후 착수" 제안이 있었으나 필수로 두지 않았음.
+
+# 작업 기록 — 스크린샷 OCR (2026-10-22)
+
+- 요청: 사용자 "공유 복사가 없어", "복붙의 의미가 없지 않나" → [ADR-020](decisions/020-remove-paste.md) 붙여넣기 기능 삭제. 링크 저장은 이번에 넣지 않음.
+- AI: 사용자가 데이터 연동 방법을 다시 물어 삭제 작업을 시작 전에 멈춤(코드 변경 없음). OCR로 가면 파서를 재사용할 수 있어서 결정 뒤 진행.
+- 요청: 사용자가 "OCR로 해보자" — 붙여넣기 삭제 대신 스크린샷 OCR로 교체. ADR-020을 교체 결정으로 다시 씀, 브랜치 cony/screenshot-ocr.
+- AI: 운영 API 재확인도 503(env 키 비어 있음, handleAptTrades.ts:60). 사용자는 등록했다고 함 → 등록이 머지 전이었고 Text 타입이면 wrangler deploy가 지움. Secret으로 재등록 안내.
+- 사용량: pm OCR 스펙 작성 · 기본(opus) · 155k 토큰 · 11분 10초
+- AI: pm이 tesseract.js 7.0.0 조사(kor best_int 1.57MB gz, lstm 코어 3.9MB×3, worker 111KB, Workers 파일 한도 안). 기존 파서의 실제 화면 결함 3개 발견(상태 표시줄 줄이 단지명, "101동" 잔존, 공급/전용 쌍에서 공급면적 선택). D1 엔진 tesseract.js, D2 자산 자체 호스팅(vite-plugin-static-copy) 추천.
+- AI: cony 플러그인 0.10.0 반영(다른 세션 전달) — 에이전트 이름 pm·fe·be·qa, 칸반(progress/review), 검토 파일명 {YYYYMMDD-HHmm}-{역할}-{대상}.md, REVIEW에 development:code-review-fe, 커밋에 development:commit-message. OCR 스펙은 이름 변경 전에 이미 완성돼 끊긴 작업 없음(놓침 아님). 보드를 OCR 스펙으로 초기화.
+- 사용량: fe OCR 스펙 검토 · sonnet · 36k 토큰 · 53초 (D1 찬성, D2 조건부 찬성, 필수 수정 4: 절대 URL 자산 경로·corePath 끝 /, 복사 0건이면 빌드 실패, recognizing 중 start 겹침 방지, 360px 레이아웃)
+- 사용량: qa OCR 스펙 검토 · sonnet · 38k 토큰 · 1분 25초 (조건부 찬성, 필수 수정 5: toOcrProgress 순수 함수, AC-1 인라인 케이스·오탐 방지, 테스트 이음새, AC-4·5 절차 구체화)
+- 토론: fe·qa 모두 조건부 찬성, 반대 없음 → [ADR-021](decisions/021-ocr-engine-assets.md) 채택. 속도를 위해 pm 스펙 반영과 fe 태스크 1 구현을 병렬로 진행.
+
+## 태스크 1 (OCR)
+
+- 사용량: pm OCR 스펙 수정(리뷰 반영) · sonnet · 51k 토큰 · 1분 40초
+- 요청: 프로젝트 이름을 mortgage-fit(앱 이름 "모기지핏")으로. 리드가 GitHub 저장소를 hwanyoungChoi/mortgage-fit으로 변경하고 로컬 remote 갱신. 코드 안 이름(package.json, 앱 제목, wrangler name)은 fe의 OCR 작업이 끝난 뒤 변경. 저장 키(loan-calculator/listings 등)는 기존 데이터 보존을 위해 유지 예정.
+- AI: 저장소 공개 범위가 PUBLIC으로 확인됨(처음 생성은 private, 리드가 바꾼 적 없음). 전체 git 이력에 서비스키 원문 0건 확인.
+- AI: fe가 OCR 작업 중 파일 이름을 바꾸는 사이 종료 전 검증 hook이 3회 연속 실패(MortgageCalculator.tsx가 옛 모듈 import). 작업 중 상태라 리드가 손대지 않음 — fe 완료 후 4개 검증 재확인 예정. 남으면 보고서 남은 이슈에 적음.
+- 요청: "왜 이렇게 오래 걸려? 테스트코드는 짜지 마" → fe에게 새 테스트 작성 중단·연결 마무리만 지시. 이번 사이클은 qa 단계 생략, REVIEW는 리드 화면 확인과 빌드 검증만.
+- 사용량: fe OCR 태스크 1 구현 · 기본(opus) · 172k 토큰 · 13분 40초
+- AI: fe 결과 — lint·test(38파일 691)·build 통과, dist/ocr 5개(worker 111KB, 코어 3.9MB×3, kor 1.57MB), tesseract.js는 별도 청크. headless 인식: 매매가 12억 5,000만원 성공, 단지명 "래미안00"(O→0), 면적 실패(㎡→0 오인식). 재오픈 후 첫 인식 324ms. 네트워크 같은 출처만.
+- AI: 리드 화면 확인(vite preview, 360×780). 통과: "스크린샷으로 채우기" 시트(안내 2줄), 캔버스로 만든 매물 이미지 업로드 → 0.5초 만에 미리보기(매매가 12억 5,000만원, 단지 "래미안클래스"), 적용 → 매매가 125,000·KB시세 비움·KB시세 포커스, 가로 스크롤 없음. 실패: 면적 "찾지 못함"(㎡를 "ㅁ"으로 오인식, fe 시험에선 "0") → U5 실제 스크린샷으로 태스크 2에서 조정. 실기기·Cloudflare 배포 환경은 미확인.
+- 요청 반영: qa 단계 생략(사용자 "테스트코드는 짜지 마").
+- AI: development:code-review-fe(staged) — 컨벤션 위반 없음. 참고: ocrSession discard에서 worker.terminate() 실패 시 처리되지 않은 reject 가능(화면 영향 없음, 남은 이슈).
+- AI: 커밋 메시지는 속도를 위해 development:commit-message 대신 리드가 같은 형식(영문 prefix + 한글 본문)으로 작성.

@@ -40,7 +40,7 @@
   font-weight: 600;
 }
 
-/* 붙여넣기·실거래가 같은 보조 동작 버튼 */
+/* 스크린샷·실거래가 같은 보조 동작 버튼 */
 .secondaryAction {
   min-height: 48px;
   padding: 0 var(--space-4);
