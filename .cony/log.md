@@ -279,3 +279,7 @@
 - 요청: Taste skill(Leonxlnx/taste-skill, design-taste-frontend) 설치 후 UI 다시 디자인 → `~/.claude/skills/design-taste-frontend`에 설치(프로젝트 `.claude/`는 hook 보호)
 - AI: fe가 앱 화면 규칙으로 `achromatic-ledger`(seed 334206779) 선택. 글꼴은 Geist에 한글이 없어 `--keep type`으로 시스템 한글 글꼴 유지
 - AI: 잉크·흰 카드·청회색 바탕, 쉬는 그림자 제거, 주 동작 검정 채움, 선택 칩은 잉크 테두리, 결과 카드의 필요한 자기자금을 장부 합계 줄처럼 가장 크게. 동작·문구·라우트 변경 없음
+
+## README 사진 새 디자인으로 교체
+
+- 요청: 리디자인(#17) 후 README 사진 6장을 운영 주소에서 다시 캡처해 교체
