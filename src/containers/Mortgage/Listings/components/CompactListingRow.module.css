@@ -1,13 +1,20 @@
+.item {
+  border-bottom: 1px solid var(--color-border);
+}
+
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+  width: 100%;
   min-height: 48px;
   padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
+  border: 0;
+  background: none;
   color: inherit;
-  text-decoration: none;
+  font: inherit;
+  text-align: left;
 }
 
 .nameCell {
@@ -44,4 +51,21 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  color: var(--color-text-muted);
+  font-size: 18px;
+  transition: transform 0.15s;
+}
+
+.chevronOpen {
+  composes: chevron;
+  transform: rotate(180deg);
+}
+
+/* 펼친 상세 카드. 줄과 같은 좌우 여백으로 들여 둔다. */
+.detail {
+  padding: 0 var(--space-2) var(--space-3);
 }

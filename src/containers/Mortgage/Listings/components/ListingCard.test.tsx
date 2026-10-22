@@ -48,16 +48,17 @@ function renderCards(listings: Listing[]) {
   return render(
     <ul>
       {listings.map((listing) => (
-        <ListingCard
-          key={listing.id}
-          listing={listing}
-          regulations={LOAN_REGULATIONS}
-          onOpen={() => {}}
-          budget={null}
-          onCopy={() => {}}
-          onDelete={() => {}}
-          onSaveMemo={() => ({ ok: true })}
-        />
+        <li key={listing.id}>
+          <ListingCard
+            listing={listing}
+            regulations={LOAN_REGULATIONS}
+            onOpen={() => {}}
+            budget={null}
+            onCopy={() => {}}
+            onDelete={() => {}}
+            onSaveMemo={() => ({ ok: true })}
+          />
+        </li>
       ))}
     </ul>,
   );
