@@ -40,7 +40,8 @@
   font-weight: 600;
 }
 
-.tradesButton {
+/* 붙여넣기·실거래가 같은 보조 동작 버튼 */
+.secondaryAction {
   min-height: 48px;
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);

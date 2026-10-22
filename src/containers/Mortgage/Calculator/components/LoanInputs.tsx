@@ -45,6 +45,9 @@ const BORROWER_OPTIONS = BORROWERS.map((value) => ({
 
 const NO_ERRORS: Record<AmountField, string | null> = { salePrice: null, kbPrice: null };
 
+/** 붙여넣기 적용 뒤 직접 입력할 칸이라 계산 화면이 이 id로 포커스를 옮긴다. */
+export const KB_PRICE_INPUT_ID = "kbPrice";
+
 function amountErrorOf(raw: string): string | null {
   const validation = validateAmount(raw);
   return validation.status === "error" ? validation.message : null;
@@ -75,7 +78,7 @@ function LoanInputs({ draft, regulations, onChange }: LoanInputsProps) {
         onBlur={() => handleAmountBlur("salePrice")}
       />
       <AmountInput
-        id="kbPrice"
+        id={KB_PRICE_INPUT_ID}
         label="KB시세"
         value={draft.kbPrice}
         error={amountErrors.kbPrice}

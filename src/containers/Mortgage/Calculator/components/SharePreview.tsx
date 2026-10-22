@@ -1,0 +1,57 @@
+import { formatManwon, validateAmount } from "@/lib/utils/amount";
+
+import styles from "./PasteSheet.module.css";
+
+import type { ParsedShareText } from "@/lib/utils/parseListingShareText";
+
+type SharePreviewProps = {
+  parsed: ParsedShareText;
+  /** 지금 매매가 칸의 입력(쉼표 없음) */
+  currentSalePrice: string;
+  isEditing: boolean;
+  isCustomLtvOn: boolean;
+};
+
+const NOT_FOUND = "찾지 못함";
+
+/** 붙여넣기에서 읽은 값과 "적용"이 바꿀 것. 단지명은 추정이라 그대로 보여 주고 사용자가 확인한다. */
+function SharePreview({ parsed, currentSalePrice, isEditing, isCustomLtvOn }: SharePreviewProps) {
+  const salePriceText = formatManwon(parsed.salePrice);
+  const current = validateAmount(currentSalePrice);
+  const facts = [
+    { label: "매매가", value: salePriceText },
+    { label: "단지(추정)", value: parsed.complexName ?? NOT_FOUND },
+    { label: "면적", value: parsed.areaText ?? NOT_FOUND },
+  ];
+  const applyNotes = [
+    "KB시세는 비워집니다",
+    ...(parsed.complexName === null ? [] : ["실거래가 단지명 칸에도 채웁니다"]),
+    ...(isEditing ? ["불러온 매물에 덮어쓰지 않고 새 매물로 계산합니다"] : []),
+    ...(isCustomLtvOn ? ["사용자 지정 LTV는 꺼집니다"] : []),
+  ];
+
+  return (
+    <div className={styles.preview}>
+      <dl className={styles.facts}>
+        {facts.map(({ label, value }) => (
+          <div key={label} className={styles.fact}>
+            <dt className={styles.factLabel}>{label}</dt>
+            <dd className={styles.factValue}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {current.status === "valid" && (
+        <p className={styles.change}>
+          현재 {formatManwon(current.value)} → {salePriceText}
+        </p>
+      )}
+      <ul className={styles.notes}>
+        {applyNotes.map((note) => (
+          <li key={note}>{note}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export default SharePreview;

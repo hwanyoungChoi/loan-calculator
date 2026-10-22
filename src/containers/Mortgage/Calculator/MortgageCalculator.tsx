@@ -7,8 +7,10 @@ import { findDraftListing } from "@/lib/utils/listingDraft";
 import { toLoanInput } from "@/lib/utils/toLoanInput";
 
 import styles from "./MortgageCalculator.module.css";
+import { applyShareText } from "./applyShareText";
 import EmptyResultCard from "./components/EmptyResultCard";
-import LoanInputs from "./components/LoanInputs";
+import LoanInputs, { KB_PRICE_INPUT_ID } from "./components/LoanInputs";
+import PasteSheet from "./components/PasteSheet";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
 import SummaryBar from "./components/SummaryBar";
@@ -16,6 +18,7 @@ import TradesSheet from "./components/TradesSheet";
 import { describeEmptyResult } from "./emptyResultMessage";
 import { useOpenSheet } from "./hooks/useOpenSheet";
 import { toNewCalculationDraft } from "./newCalculationDraft";
+import { pickSuggestedName } from "./pickSuggestedName";
 import { getSaveButtonState } from "./saveButtonState";
 import { describeSummaryTag } from "./summaryTag";
 
@@ -23,6 +26,7 @@ import type { DraftStore } from "@/lib/types/draft";
 import type { ListingInput, ListingStore, ListingWriteResult } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
 import type { TradeLookupStore } from "@/lib/types/tradeLookup";
+import type { ParsedShareText } from "@/lib/utils/parseListingShareText";
 
 type MortgageCalculatorProps = {
   listingStore: ListingStore;
@@ -45,7 +49,10 @@ function MortgageCalculator({
   const sheet = useOpenSheet();
   // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
   const [tradeAptName, setTradeAptName] = useState("");
+  // 붙여넣기에서 만든 저장 이름 제안. 새로고침하면 사라져도 되는 값이라 draft에 넣지 않는다.
+  const [suggestedName, setSuggestedName] = useState("");
   const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const pasteButtonRef = useRef<HTMLButtonElement>(null);
   const tradesButtonRef = useRef<HTMLButtonElement>(null);
 
   // 목록에서 카드나 탭으로 넘어오면 목록의 스크롤 위치가 남아 화면 중간에서 시작한다. 입력부터 보이게 맨 위로 올린다.
@@ -57,6 +64,20 @@ function MortgageCalculator({
     draftStore.update(toNewCalculationDraft(draft));
     setInputsKey((key) => key + 1);
     setTradeAptName("");
+    setSuggestedName("");
+  };
+
+  /**
+   * 붙여넣기 적용은 새 매물 계산이다(ADR-017). 사용자 지정 LTV도 끈다. 이전 매물의 단지명 필터가 남지 않게 읽은 단지명으로 바꾼다(못 읽었으면 비운다).
+   * KB시세는 비워졌으니 바로 입력하도록 그 칸으로 포커스를 옮긴다.
+   */
+  const handlePasteApply = (parsed: ParsedShareText) => {
+    draftStore.update(applyShareText(draft, parsed));
+    setInputsKey((key) => key + 1);
+    setSuggestedName(parsed.suggestedName);
+    setTradeAptName(parsed.complexName ?? "");
+    sheet.close();
+    document.getElementById(KB_PRICE_INPUT_ID)?.focus();
   };
 
   const loanInput = toLoanInput(draft);
@@ -76,12 +97,16 @@ function MortgageCalculator({
         editingListing === null
           ? { ok: false, reason: "notFound" }
           : listingStore.update(editingListing.id, input);
-      if (updated.ok) sheet.close();
+      if (updated.ok) {
+        setSuggestedName("");
+        sheet.close();
+      }
       return updated;
     }
     const added = listingStore.add(input);
     if (!added.ok) return added;
     draftStore.update({ listingId: added.listing.id });
+    setSuggestedName("");
     sheet.close();
     return { ok: true };
   };
@@ -101,6 +126,14 @@ function MortgageCalculator({
             새 계산
           </button>
         </div>
+        <button
+          ref={pasteButtonRef}
+          type="button"
+          className={styles.secondaryAction}
+          onClick={() => sheet.open("paste", pasteButtonRef.current)}
+        >
+          붙여넣기로 채우기
+        </button>
         <LoanInputs
           key={inputsKey}
           draft={draft}
@@ -115,7 +148,7 @@ function MortgageCalculator({
         <button
           ref={tradesButtonRef}
           type="button"
-          className={styles.tradesButton}
+          className={styles.secondaryAction}
           onClick={() => sheet.open("trades", tradesButtonRef.current)}
         >
           이 지역 실거래가 보기
@@ -130,10 +163,23 @@ function MortgageCalculator({
       </div>
       {sheet.openSheet === "save" && loanInput !== null && (
         <SaveSheet
-          initialName={editingListing?.name ?? ""}
+          initialName={pickSuggestedName(
+            editingListing?.name ?? "",
+            draft.listingId,
+            suggestedName,
+          )}
           isEditing={editingListing !== null}
           onSave={(action, name) => saveListing(action, { ...loanInput, name })}
           onCancel={sheet.close}
+        />
+      )}
+      {sheet.openSheet === "paste" && (
+        <PasteSheet
+          currentSalePrice={draft.salePrice}
+          isEditing={editingListing !== null}
+          isCustomLtvOn={draft.customLtv !== null}
+          onApply={handlePasteApply}
+          onClose={sheet.close}
         />
       )}
       {sheet.openSheet === "trades" && (

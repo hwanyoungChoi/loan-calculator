@@ -1,0 +1,124 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+.textarea[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+/* 미리보기와 한 줄 문구가 번갈아 나와도 아래 버튼이 덜컥거리지 않게 미리보기 높이만큼 잡아 둔다. */
+.result {
+  min-height: 176px;
+}
+
+.prompt {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-error);
+  overflow-wrap: anywhere;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.fact {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.factLabel {
+  flex: none;
+  width: 5.5em;
+  color: var(--color-text-muted);
+}
+
+.factValue {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.change {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.notes {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  background: var(--color-primary-bg);
+  font-size: 14px;
+  list-style: none;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.primaryButton {
+  border: 0;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.primaryButton:disabled {
+  opacity: 0.4;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}

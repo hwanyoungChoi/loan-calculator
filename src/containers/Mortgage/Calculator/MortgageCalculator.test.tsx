@@ -92,6 +92,16 @@ function requestedQueries(fetchMock: { mock: { calls: unknown[][] } }) {
   });
 }
 
+/** 네이버부동산 공유 텍스트(가정 샘플) */
+const SALE_SHARE_TEXT = [
+  "[네이버 부동산]",
+  "래미안OO",
+  "아파트 매매 12억 5,000",
+  "공급/전용 112/84㎡ · 25/35층 · 남향",
+  "2015년 입주 · 101동",
+  "https://new.land.naver.com/complexes/00000?articleNo=0000000000",
+].join("\n");
+
 describe("계산 화면 (통합)", () => {
   // draft가 localStorage에 남으므로 테스트마다 빈 저장소와 계산 화면에서 시작한다.
   beforeEach(() => {
@@ -502,5 +512,70 @@ describe("계산 화면 (통합)", () => {
     expect(sigunguOf()).toHaveValue("11680");
     expect(within(sheet).getAllByRole("listitem")).toHaveLength(2);
     expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("#8 붙여넣기: 매매 공유 텍스트를 붙이면 미리보기에 매매가·단지·면적과 적용 안내가 보이고, 적용 전에는 입력이 그대로이며, 적용하면 매매가를 채우고 KB시세를 비워 포커스하고 직접 입력을 끄며 저장 이름을 제안한다. 링크만 붙이면 적용할 수 없다 (AC-7e)", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<AppRoutes />);
+    const salePrice = screen.getByLabelText("매매가");
+    const kbPrice = screen.getByLabelText("KB시세");
+    await user.type(salePrice, "100000");
+    await user.type(kbPrice, "98000");
+    const ltvSwitch = screen.getByRole("switch", { name: "LTV 직접 입력(은행 상담값)" });
+    await user.click(ltvSwitch);
+    await user.type(screen.getByLabelText("사용자 지정 LTV"), "70");
+
+    // 열면 textarea에 포커스, 빈 값이라 적용 비활성
+    const pasteButton = screen.getByRole("button", { name: "붙여넣기로 채우기" });
+    await user.click(pasteButton);
+    let sheet = screen.getByRole("dialog", { name: "붙여넣기로 채우기" });
+    let textarea = within(sheet).getByRole("textbox", { name: "공유 텍스트" });
+    expect(textarea).toHaveFocus();
+    expect(within(sheet).getByRole("button", { name: "적용" })).toBeDisabled();
+
+    // "읽기" 버튼 없이 붙이자마자 미리보기가 뜬다.
+    await user.paste(SALE_SHARE_TEXT);
+    const factValue = (label: string) =>
+      within(sheet).getByText(label, { selector: "dt" }).parentElement?.querySelector("dd")
+        ?.textContent;
+    expect(factValue("매매가")).toBe("12억 5,000만원");
+    expect(factValue("단지(추정)")).toBe("래미안OO");
+    expect(factValue("면적")).toBe("84㎡");
+    expect(within(sheet).getByText("KB시세는 비워집니다")).toBeInTheDocument();
+    expect(within(sheet).getByText("사용자 지정 LTV는 꺼집니다")).toBeInTheDocument();
+    // 적용 전에는 뒤 화면 입력이 바뀌지 않는다.
+    expect(salePrice).toHaveValue("100,000");
+    expect(kbPrice).toHaveValue("98,000");
+
+    await user.click(within(sheet).getByRole("button", { name: "적용" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // 적용은 입력부를 다시 그리므로 칸을 새로 찾는다.
+    expect(screen.getByLabelText("매매가")).toHaveValue("125,000");
+    const appliedKbPrice = screen.getByLabelText("KB시세");
+    expect(appliedKbPrice).toHaveValue("");
+    expect(appliedKbPrice).toHaveFocus();
+    expect(screen.getByRole("switch", { name: "LTV 직접 입력(은행 상담값)" })).not.toBeChecked();
+    expect(screen.queryByLabelText("사용자 지정 LTV")).not.toBeInTheDocument();
+
+    // KB시세를 채우고 저장 시트를 열면 이름 칸에 제안 이름이 들어 있다.
+    await user.type(appliedKbPrice, "120000");
+    await user.click(screen.getByRole("button", { name: "저장" }));
+    const saveSheet = screen.getByRole("dialog");
+    expect(within(saveSheet).getByRole("textbox", { name: "매물 이름" })).toHaveValue(
+      "래미안OO 84㎡",
+    );
+    await user.click(within(saveSheet).getByRole("button", { name: "취소" }));
+
+    // 링크 한 줄만 붙이면 안내 문구와 적용 비활성
+    await user.click(pasteButton);
+    sheet = screen.getByRole("dialog", { name: "붙여넣기로 채우기" });
+    textarea = within(sheet).getByRole("textbox", { name: "공유 텍스트" });
+    expect(textarea).toHaveFocus();
+    await user.paste("https://new.land.naver.com/complexes/00000?articleNo=0000000000");
+    expect(
+      within(sheet).getByText("링크는 읽지 않습니다. 앱의 공유 텍스트 전체를 붙여 넣으세요"),
+    ).toBeInTheDocument();
+    expect(textarea).toHaveAttribute("aria-invalid", "true");
+    expect(within(sheet).getByRole("button", { name: "적용" })).toBeDisabled();
   });
 });
