@@ -32,3 +32,6 @@ dist-ssr
 .dev.vars.*
 !.dev.vars.example
 .wrangler/
+
+# tasteskill 작업 파일
+.taste-skill/

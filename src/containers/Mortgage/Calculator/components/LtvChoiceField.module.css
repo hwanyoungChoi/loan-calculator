@@ -6,5 +6,5 @@
 
 .notice {
   color: var(--color-warning-text);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }

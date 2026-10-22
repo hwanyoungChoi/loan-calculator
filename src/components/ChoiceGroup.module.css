@@ -6,7 +6,7 @@
 
 .legend {
   margin-bottom: var(--space-2);
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
@@ -35,24 +35,24 @@
   justify-content: center;
   min-height: 44px;
   padding: var(--space-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
   background: var(--color-surface);
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.3;
   text-align: center;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
 
+/* 고른 칸은 색 대신 2px 잉크 테두리(1px 테두리 + 안쪽 1px)와 잉크 글자로 표시한다. 크기는 그대로다. */
 .input:checked + .label {
-  border-color: var(--color-primary);
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
-  font-weight: 700;
+  border-color: var(--color-text);
+  box-shadow: inset 0 0 0 1px var(--color-text);
+  font-weight: 600;
 }
 
 .input:focus-visible + .label {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-text);
   outline-offset: 2px;
 }

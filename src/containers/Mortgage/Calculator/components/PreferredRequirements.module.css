@@ -4,9 +4,9 @@
   gap: var(--space-1);
   margin-top: calc(-1 * var(--space-2));
   padding: var(--space-3);
-  border-radius: var(--radius);
-  background: var(--color-primary-bg);
-  font-size: 14px;
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  font-size: var(--fs-body);
 }
 
 .title {
@@ -20,5 +20,5 @@
 
 .tip {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }

@@ -3,9 +3,9 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
   background: var(--color-surface);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
 }
 
 .empty {
@@ -21,13 +21,13 @@
 }
 
 .condition {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: var(--fs-section);
+  font-weight: 600;
 }
 
 .unverified {
   color: var(--color-warning-text);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .rows {
@@ -40,18 +40,35 @@
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
   column-gap: var(--space-3);
   padding: var(--space-2) 0;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-rule);
 }
 
 .emphasisRow {
   composes: row;
-  font-size: 18px;
+  font-size: var(--fs-figure);
   font-weight: 700;
+}
+
+/* 장부의 합계 줄: 진한 줄 아래, 화면에서 가장 큰 숫자. */
+.answerRow {
+  composes: row;
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 2px solid var(--color-text);
+  font-size: var(--fs-answer);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.answerRow .rowLabel {
+  color: var(--color-text);
+  font-size: var(--fs-section);
+  font-weight: 600;
 }
 
 .rowLabel {
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 400;
   align-self: center;
 }
@@ -70,7 +87,10 @@
   flex-direction: column;
   align-items: flex-end;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
+  font-weight: 400;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
@@ -81,7 +101,7 @@
 .warning {
   margin-top: var(--space-1);
   padding: 2px var(--space-2);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
   font-weight: 600;
@@ -90,27 +110,28 @@
 .badge {
   display: inline-block;
   padding: 2px var(--space-2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-badge-bg);
-  color: var(--color-text-muted);
-  font-size: 13px;
+  color: var(--color-badge-text);
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 
 .statusNotice {
   padding: var(--space-2) var(--space-3);
-  border-radius: 6px;
-  background: var(--color-badge-bg);
-  font-size: 14px;
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-body);
 }
 
 .scope {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .basis {
-  font-size: 13px;
+  font-size: var(--fs-small);
   color: var(--color-text-muted);
 }
 
@@ -120,8 +141,11 @@
 }
 
 .basisToggle {
-  color: var(--color-primary);
+  color: var(--color-text);
+  font-weight: 600;
   text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
 }
 
 .basisList {
@@ -131,11 +155,18 @@
   margin-top: var(--space-2);
 }
 
+.basisList strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
 .basisNote {
   margin-top: 2px;
 }
 
 .sourceLink {
-  color: var(--color-primary);
+  color: var(--color-text);
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
   overflow-wrap: anywhere;
 }

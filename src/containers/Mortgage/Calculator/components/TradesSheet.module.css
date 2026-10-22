@@ -26,7 +26,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
 }
 
@@ -34,15 +34,15 @@
   width: 100%;
   min-height: 48px;
   padding: 0 var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
   background: var(--color-surface);
   color: inherit;
   font: inherit;
 }
 
 .control:focus {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--color-text);
   outline-offset: -1px;
   border-color: transparent;
 }
@@ -50,16 +50,17 @@
 .submitButton {
   flex: none;
   min-height: 48px;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-5);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
+  color: var(--color-on-primary);
+  font-weight: 600;
 }
 
 .submitButton:disabled {
-  opacity: 0.4;
+  background: var(--color-raised);
+  color: var(--color-text-muted);
 }
 
 /* 필터는 고정하고 결과만 스크롤한다. 최소 높이로 상태가 바뀌어도 시트가 덜컥거리지 않게 한다. */
@@ -78,5 +79,5 @@
 .notKbPrice {
   flex: none;
   color: var(--color-warning-text);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }

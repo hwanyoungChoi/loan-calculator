@@ -1,5 +1,9 @@
 .item {
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.item:last-child {
+  border-bottom: 0;
 }
 
 .row {
@@ -8,13 +12,17 @@
   justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
-  min-height: 48px;
+  min-height: 52px;
   padding: var(--space-2) var(--space-4);
   border: 0;
   background: none;
   color: inherit;
   font: inherit;
   text-align: left;
+}
+
+.row:focus-visible {
+  outline-offset: -2px;
 }
 
 .nameCell {
@@ -29,7 +37,7 @@
 .name {
   min-width: 0;
   overflow: hidden;
-  font-size: 15px;
+  font-size: var(--fs-section);
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -37,16 +45,17 @@
 .overBadge {
   flex: none;
   padding: 2px var(--space-2);
-  border-radius: 999px;
-  background: var(--color-error);
-  color: #fff;
-  font-size: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-error-bg);
+  color: var(--color-error-ink);
+  font-size: var(--fs-tiny);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .amount {
   flex: none;
-  font-size: 15px;
+  font-size: var(--fs-section);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -56,7 +65,7 @@
 .chevron {
   flex: none;
   color: var(--color-text-muted);
-  font-size: 18px;
+  font-size: var(--fs-figure);
   transition: transform 0.15s;
 }
 
@@ -65,7 +74,14 @@
   transform: rotate(180deg);
 }
 
-/* 펼친 상세 카드. 줄과 같은 좌우 여백으로 들여 둔다. */
+/* 펼친 상세 카드. 바탕색 우물 위에 흰 카드로 앉혀 줄과 구분한다. */
 .detail {
-  padding: 0 var(--space-2) var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
 }

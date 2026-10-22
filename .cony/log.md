@@ -273,3 +273,9 @@
 
 - 요청: 메모가 계산 값과 섞여 보임 → 옅은 회색 상자에 "메모" 이름표를 달아 분리(두 줄 미리보기는 그대로)
 - 요청: 저장 카드에 KB시세도 보이기 → 매매가 바로 아래에 KB시세 줄 추가
+
+## taste skill 리디자인
+
+- 요청: Taste skill(Leonxlnx/taste-skill, design-taste-frontend) 설치 후 UI 다시 디자인 → `~/.claude/skills/design-taste-frontend`에 설치(프로젝트 `.claude/`는 hook 보호)
+- AI: fe가 앱 화면 규칙으로 `achromatic-ledger`(seed 334206779) 선택. 글꼴은 Geist에 한글이 없어 `--keep type`으로 시스템 한글 글꼴 유지
+- AI: 잉크·흰 카드·청회색 바탕, 쉬는 그림자 제거, 주 동작 검정 채움, 선택 칩은 잉크 테두리, 결과 카드의 필요한 자기자금을 장부 합계 줄처럼 가장 크게. 동작·문구·라우트 변경 없음

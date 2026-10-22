@@ -1,22 +1,22 @@
+/* 입력 카드 안의 옅은 우물. 두 금액 중 낮은 쪽이 계산에 쓰인다는 것을 숫자로 보여 준다. */
 .line {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: baseline;
   column-gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  background: var(--color-primary-bg);
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-weight: 600;
   white-space: nowrap;
 }
 
 .amount {
-  color: var(--color-primary);
-  font-size: 18px;
+  font-size: var(--fs-figure);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -26,6 +26,6 @@
 .source {
   grid-column: 1 / -1;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
   text-align: right;
 }

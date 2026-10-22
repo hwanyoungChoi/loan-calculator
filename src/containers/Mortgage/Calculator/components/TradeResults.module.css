@@ -7,11 +7,13 @@
 .summary,
 .reference {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
 }
 
 .sourceLink {
-  color: var(--color-primary);
+  color: var(--color-text);
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
 }
 
 .list {
@@ -22,8 +24,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: var(--space-2) 0;
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-rule);
 }
 
 .rowTop {
@@ -45,7 +47,7 @@
 
 .rowDetail {
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: var(--fs-small);
   font-variant-numeric: tabular-nums;
 }
 
@@ -58,6 +60,7 @@
   color: var(--color-text-muted);
 }
 
+/* 불러오는 동안 줄 높이 그대로 회색 막대를 둔다. */
 .skeletonList {
   display: flex;
   flex-direction: column;
@@ -67,15 +70,15 @@
 
 .skeletonRow {
   height: 44px;
-  border-radius: 6px;
-  background: var(--color-badge-bg);
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
 }
 
 .secondaryButton {
   min-height: 44px;
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
+  font-weight: 600;
 }

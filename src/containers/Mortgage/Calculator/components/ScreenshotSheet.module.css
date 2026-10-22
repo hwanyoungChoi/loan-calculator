@@ -20,6 +20,7 @@
 
 .progressBar {
   width: 100%;
+  accent-color: var(--color-primary);
 }
 
 .error {
@@ -53,24 +54,25 @@
 .factValue {
   min-width: 0;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 
 .change {
-  font-size: 14px;
+  font-size: var(--fs-body);
   font-variant-numeric: tabular-nums;
 }
 
 .notes {
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius);
-  background: var(--color-primary-bg);
-  font-size: 14px;
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+  font-size: var(--fs-body);
   list-style: none;
 }
 
 .rawText {
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .rawText summary {
@@ -85,8 +87,8 @@
   max-height: 160px;
   overflow: auto;
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
   font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -107,22 +109,23 @@
   flex: 1;
   min-height: 48px;
   padding: 0 var(--space-2);
-  border-radius: var(--radius);
-  font-weight: 700;
+  border: 0;
+  border-radius: var(--radius-control);
+  font-weight: 600;
   word-break: keep-all;
 }
 
 .primaryButton {
-  border: 0;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--color-on-primary);
 }
 
 .primaryButton:disabled {
-  opacity: 0.4;
+  background: var(--color-raised);
+  color: var(--color-text-muted);
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-control);
   background: var(--color-surface);
 }

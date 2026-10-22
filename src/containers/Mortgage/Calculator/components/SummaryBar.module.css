@@ -1,4 +1,7 @@
+/* 넓은 화면에서도 내용은 본문 열(480px)에 맞춘다. 바탕 띠만 창 너비로 깔린다. */
 .bar {
+  --bar-inline: max(var(--space-4), calc((100% - 448px) / 2));
+
   position: fixed;
   right: 0;
   bottom: 0;
@@ -6,9 +9,9 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-3);
+  gap: var(--space-2) var(--space-4);
   min-height: var(--summary-bar-height);
-  padding: var(--space-2) var(--space-4) calc(var(--space-2) + env(safe-area-inset-bottom));
+  padding: var(--space-3) var(--bar-inline) calc(var(--space-3) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border);
   background: var(--color-surface);
 }
@@ -16,7 +19,7 @@
 .message {
   flex-basis: 100%;
   color: var(--color-error);
-  font-size: 13px;
+  font-size: var(--fs-small);
   overflow-wrap: anywhere;
 }
 
@@ -36,19 +39,20 @@
   align-self: flex-end;
   margin-top: 2px;
   padding: 0 var(--space-2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-warning-bg);
   color: var(--color-warning-text);
-  font-size: 12px;
+  font-size: var(--fs-tiny);
   font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .figure {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .figure dt {
@@ -63,19 +67,28 @@
   overflow-wrap: anywhere;
 }
 
+/* 두 번째 줄(필요한 자기자금)이 이 화면의 답이라 한 단계 크게 둔다. */
+.figure + .figure dt {
+  color: var(--color-text);
+}
+
+.figure + .figure dd {
+  font-size: var(--fs-figure);
+}
+
 .saveButton {
   flex: none;
-  min-width: 72px;
-  min-height: 44px;
-  padding: 0 var(--space-4);
+  min-width: 80px;
+  min-height: 48px;
+  padding: 0 var(--space-5);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-control);
   background: var(--color-primary);
-  color: #fff;
-  font-weight: 700;
+  color: var(--color-on-primary);
+  font-weight: 600;
 }
 
 .saveButton:disabled {
-  background: var(--color-badge-bg);
+  background: var(--color-raised);
   color: var(--color-text-muted);
 }
