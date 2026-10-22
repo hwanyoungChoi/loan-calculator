@@ -79,8 +79,8 @@ describe("결과 카드 (통합)", () => {
     expect(within(card()).queryByText("미확인")).not.toBeInTheDocument();
     expect(rowValue("적용 LTV")).toBe("LTV 0% · 주택구입 목적 주담대 불가");
     expect(rowValue("예상 한도")).toBe("0만원");
-    // 매매가 전액 + 취득세 등(다주택 중과 8%) 10,500 + 중개보수 825
-    expect(rowValue("필요한 자기자금")).toBe("13억 6,325만원");
+    // 매매가 전액 + 취득세 등(다주택 중과 8%) 10,500 + 중개보수 750
+    expect(rowValue("필요한 자기자금")).toBe("13억 6,250만원");
     expect(
       within(card()).queryByText("이 조건의 LTV는 1차 출처로 확인되지 않아 계산하지 않습니다"),
     ).not.toBeInTheDocument();

@@ -81,7 +81,6 @@ export type BrokerageFeeTier = { below: number | null; rateBp: number; maxFee: n
 
 export type BrokerageFeeRules = {
   tiers: BrokerageFeeTier[];
-  vatPercent: number;
   sources: CostSource[];
 };
 

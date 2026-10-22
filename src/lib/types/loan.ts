@@ -52,8 +52,7 @@ export type BrokerageFeeResult = {
   rateBp: number;
   /** 한도액이 적용됐는지 */
   isCapped: boolean;
-  fee: number;
-  vat: number;
+  /** 만원 올림. 부가세 별도 */
   total: number;
 };
 

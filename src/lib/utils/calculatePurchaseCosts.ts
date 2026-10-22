@@ -62,14 +62,15 @@ function calculateBrokerageFee(salePrice: number, rules: BrokerageFeeRules): Bro
   if (tier === undefined) throw new RangeError("중개보수 마지막 구간은 below: null이어야 합니다");
   const rateWon = salePrice * tier.rateBp;
   const maxWon = tier.maxFee === null ? rateWon : tier.maxFee * 10000;
-  const feeWon = Math.min(rateWon, maxWon);
-  const fee = ceilToManwon(feeWon);
-  const vat = ceilToManwon(feeWon * rules.vatPercent, 100);
-  return { rateBp: tier.rateBp, isCapped: rateWon > maxWon, fee, vat, total: fee + vat };
+  return {
+    rateBp: tier.rateBp,
+    isCapped: rateWon > maxWon,
+    total: ceilToManwon(Math.min(rateWon, maxWon)),
+  };
 }
 
 /**
- * 취득세(본세·지방교육세·농어촌특별세)와 중개보수(상한 기준, 부가세 포함) 추정.
+ * 취득세(본세·지방교육세·농어촌특별세)와 중개보수(상한 기준, 부가세 별도) 추정.
  * 전제: `salePrice`는 만원 단위 양의 정수다. 과세표준과 거래금액은 매매가로 본다(스펙 가정 A4, A6).
  */
 export function calculatePurchaseCosts(input: LoanInput, regulations: Regulations): PurchaseCosts {

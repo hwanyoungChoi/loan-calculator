@@ -20,7 +20,7 @@ function day(n: number): string {
 const OWN_60000 = makeListing({ id: "own-60000", salePrice: 100000, kbPrice: 100000 });
 const OWN_80000 = makeListing({ id: "own-80000", salePrice: 120000, kbPrice: 100000 });
 const OWN_30000 = makeListing({ id: "own-30000", salePrice: 50000, kbPrice: 50000 });
-// 확인된 LTV 0%(규제지역·1주택 미처분): 자기자금 = 매매가 전액 70000 + 부대비용(중과) 6188
+// 확인된 LTV 0%(규제지역·1주택 미처분): 자기자금 = 매매가 전액 70000 + 부대비용(중과) 6160
 const ZERO_LTV = makeListing({
   id: "zero-ltv",
   salePrice: 70000,
@@ -31,14 +31,14 @@ const ZERO_LTV = makeListing({
 describe("sortListings: 자기자금순 (AC-7)", () => {
   it("전제: fixture의 자기자금이 의도한 값이다", () => {
     // 자기자금 = 매매가 − 한도 + 취득세 등·중개보수(ADR-022)
-    expect(calculateLoan(OWN_30000, LOAN_REGULATIONS).ownFunds).toBe(30770);
-    expect(calculateLoan(OWN_60000, LOAN_REGULATIONS).ownFunds).toBe(63850);
+    expect(calculateLoan(OWN_30000, LOAN_REGULATIONS).ownFunds).toBe(30750);
+    expect(calculateLoan(OWN_60000, LOAN_REGULATIONS).ownFunds).toBe(63800);
     expect(calculateLoan(ZERO_LTV, LOAN_REGULATIONS)).toMatchObject({
       status: "ok",
       loanLimit: 0,
-      ownFunds: 76188,
+      ownFunds: 76160,
     });
-    expect(calculateLoan(OWN_80000, LOAN_REGULATIONS).ownFunds).toBe(84752);
+    expect(calculateLoan(OWN_80000, LOAN_REGULATIONS).ownFunds).toBe(84680);
   });
 
   it("자기자금 오름차순이다", () => {
@@ -56,13 +56,13 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
   });
 
   it("자기자금이 같으면 createdAt 내림차순, 그래도 같으면 입력 순서다", () => {
-    // 모두 자기자금 30770: 규제지역·무주택 50000/50000(30000 + 770), 비수도권·무주택(70%) 90895/90895(27269 + 3501)
+    // 모두 자기자금 30750: 규제지역·무주택 50000/50000(30000 + 750), 비수도권·무주택(70%) 90971/90971(27292 + 3458)
     const listings = [
       makeListing({ id: "old", salePrice: 50000, kbPrice: 50000, createdAt: day(1) }),
       makeListing({
         id: "newest",
-        salePrice: 90895,
-        kbPrice: 90895,
+        salePrice: 90971,
+        kbPrice: 90971,
         region: "nonCapital",
         createdAt: day(5),
       }),
@@ -70,7 +70,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
       makeListing({ id: "mid-second", salePrice: 50000, kbPrice: 50000, createdAt: day(3) }),
     ];
     for (const listing of listings) {
-      expect(calculateLoan(listing, LOAN_REGULATIONS).ownFunds).toBe(30770);
+      expect(calculateLoan(listing, LOAN_REGULATIONS).ownFunds).toBe(30750);
     }
 
     expect(ids(sortListings(listings, "ownFunds", LOAN_REGULATIONS))).toEqual([
@@ -93,7 +93,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
   });
 
   describe("미확인 매물 (규제 fixture 주입)", () => {
-    // 수도권 비규제·무주택만 미확인. 원래 70%라면 자기자금 3165(3000 + 부대비용 165)로 가장 작았을 매물들이다.
+    // 수도권 비규제·무주택만 미확인. 원래 70%라면 자기자금 3160(3000 + 부대비용 160)로 가장 작았을 매물들이다.
     const regulations = withUnconfirmedCell("capitalNonRegulated", "noHome");
     const unconfirmedOld = makeListing({
       id: "unconfirmed-old",
@@ -121,7 +121,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
 
     it("전제: fixture 매물은 unconfirmed이고 운영 규제에서는 자기자금이 가장 작다", () => {
       expect(calculateLoan(unconfirmedOld, regulations).status).toBe("unconfirmed");
-      expect(calculateLoan(unconfirmedOld, LOAN_REGULATIONS).ownFunds).toBe(3165);
+      expect(calculateLoan(unconfirmedOld, LOAN_REGULATIONS).ownFunds).toBe(3160);
       expect(calculateLoan(ZERO_LTV, regulations).status).toBe("ok");
     });
 
@@ -195,7 +195,7 @@ describe("sortListings: 요건 미충족·사용자 지정 (AC-3d)", () => {
       borrower: "noHomePreferred",
       createdAt,
     });
-  // 사용자 지정 70%: 담보 100000 × 70% = 70000, 상한 60000 → 자기자금 40000 + 부대비용 3850. 규제(40%)였다면 63850
+  // 사용자 지정 70%: 담보 100000 × 70% = 70000, 상한 60000 → 자기자금 40000 + 부대비용 3800. 규제(40%)였다면 63800
   const CUSTOM_40000 = makeListing({
     id: "custom-40000",
     salePrice: 100000,
@@ -214,7 +214,7 @@ describe("sortListings: 요건 미충족·사용자 지정 (AC-3d)", () => {
     expect(calculateLoan(CUSTOM_40000, regulations)).toMatchObject({
       status: "ok",
       appliedLtv: { source: "custom", rate: 70 },
-      ownFunds: 43850,
+      ownFunds: 43800,
     });
   });
 
