@@ -8,11 +8,6 @@
   background: var(--color-primary-bg);
 }
 
-.hidden {
-  composes: line;
-  visibility: hidden;
-}
-
 .label {
   font-size: 14px;
   font-weight: 600;
