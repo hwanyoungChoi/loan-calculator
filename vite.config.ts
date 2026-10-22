@@ -9,7 +9,7 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  // /api는 wrangler pages dev(pnpm dev:api, 8788)가 맡는다.
+  // /api는 wrangler dev(pnpm dev:api, 8788)의 Worker가 맡는다.
   server: {
     proxy: { "/api": "http://localhost:8788" },
   },

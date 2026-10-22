@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "pnpm build && wrangler pages dev",
+    "dev:api": "wrangler dev --port 8788",
     "build": "tsc -b && vite build",
-    "build:functions": "wrangler pages functions build --outdir .wrangler/functions-check",
+    "build:worker": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

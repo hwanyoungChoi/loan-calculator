@@ -1,16 +1,16 @@
 # 주담대 계산기 2차: LTV 옵션과 매물 데이터 가져오기
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 10:51
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 11:01
 
 ## 태스크
 
 - [x] 1. **LTV 옵션 엔드투엔드**(서민·실수요자 + 사용자 지정 LTV, 저장까지) — AC-1, AC-2, AC-3
 - [x] 2. **실거래가 조회**(첫 서버 코드) — AC-4, AC-5, AC-6, AC-8 T1~T3
-- [ ] 3. **붙여넣기 자동 채움** — AC-7, AC-8 T5 ← 진행 중 (tester)
+- [x] 3. **붙여넣기 자동 채움** — AC-7, AC-8 T5
 
 ## 지금 하는 일
 
-태스크 3 구현·화면 확인 완료. tester가 통합 테스트 #8(가볍게) 작성 중. 다음: 커밋 → 최종 보고서 → PR
+Cloudflare가 Workers로 연결돼 Workers Builds 체크 실패. backend-dev가 Pages Functions → Workers + Static Assets 전환 중
 
 ## 최근 결정
 
@@ -37,6 +37,6 @@
 
 ## PR
 
-아직 없음
+[#2](https://github.com/hwanyoungChoi/loan-calculator/pull/2) · verify 통과 · Workers Builds 실패 → 수정 중
 
 <!-- spec: specs/ltv-options-and-import.md -->

@@ -2,7 +2,7 @@
 
 ## 결과
 
-서민·실수요자 우대 조건과 사용자 지정 LTV를 추가했고, 매물 데이터 입력은 두 가지로 줄였다. 국토부 실거래가 조회(첫 서버 코드, Cloudflare Pages Functions)와 네이버부동산 공유 텍스트 붙여넣기 자동 채움이다. 매물 링크를 직접 가져오는 기능은 세 사이트가 자동 접근을 금지해서 하지 않았다(ADR-019).
+서민·실수요자 우대 조건과 사용자 지정 LTV를 추가했고, 매물 데이터 입력은 두 가지로 줄였다. 국토부 실거래가 조회(첫 서버 코드, Cloudflare Workers + Static Assets)와 네이버부동산 공유 텍스트 붙여넣기 자동 채움이다. 매물 링크를 직접 가져오는 기능은 세 사이트가 자동 접근을 금지해서 하지 않았다(ADR-019).
 
 ## 태스크별 결과
 
@@ -16,7 +16,7 @@
 
 되돌리기 비싼 결정은 **검토 권장**으로 표시했다.
 
-- [ADR-011](../decisions/011-server-pages-functions.md) 서버는 Cloudflare Pages Functions를 쓴다. 호출 증폭은 캐시와 입력 검증으로 막는다. **검토 권장**: Workers로 옮길 수 있게 로직을 `server/`에 분리해 두었다.
+- [ADR-011](../decisions/011-server-pages-functions.md) 서버는 처음에 Cloudflare Pages Functions로 정했다가, 사용자가 저장소를 Workers로 연결해 **Workers + Static Assets로 개정**했다. 호출 증폭은 캐시와 입력 검증으로 막는다. **검토 권장**: 로직을 `server/`에 분리해 두어 진입점만 바꿨다.
 - [ADR-012](../decisions/012-custom-ltv-storage.md) 사용자 지정 LTV는 선택 필드 `customLtvRate?`로 저장한다. ADR-001을 보강해 저장 형식은 선택 필드·enum 추가로만 바꾼다. **검토 권장**.
 - [ADR-013](../decisions/013-ltv-option-rules.md) LTV 계산 우선순위는 사용자 지정 → 요건 미충족 → 미확인 → 규제 순이다. 사용자 지정에도 한도 상한을 적용하고, "새 계산"을 하면 사용자 지정을 끈다.
 - [ADR-014](../decisions/014-client-http.md) react-query와 fetch 래퍼를 쓰고 자동 재시도는 하지 않는다. ADR-003을 개정했다.
@@ -37,7 +37,7 @@
 | AC-5 실거래가 시트          | 통과                         | 통합 #7, 표시 컴포넌트, 시군구 목록. 새로고침 직후 자동 조회 흐름은 리드가 화면에서만 확인                                                                                                                                                                                            |
 | AC-6 키 보관·CI             | 일부 미검증                  | `.dev.vars` 무시, dist에 키·서버 문자열 0건. CI 연기 테스트는 GitHub Actions에서 첫 실행                                                                                                                                                                                              |
 | AC-7 붙여넣기               | 통과(가정 기준), 일부 미검증 | 파서 대표 케이스, fixture 3쌍, 통합 #8(미리보기·적용·LTV 끔·이름 제안·링크만 안내). **실제 공유 텍스트 샘플이 없어** 형식은 추정이다. 테스트를 가볍게 써서 미검증으로 남은 것: 특성 테스트 대부분(줄 순열, 월세, CRLF·탭, 평 단위, 10만 자), 불러온 매물 편집 중 적용, 이름 제안 수명 |
-| AC-8 실환경(배포)           | 미검증                       | Cloudflare Pages 연결과 시크릿 등록이 필요                                                                                                                                                                                                                                            |
+| AC-8 실환경(배포)           | 미검증                       | Worker 시크릿 등록 후 배포 URL로 확인 필요                                                                                                                                                                                                                                            |
 
 테스트는 사용자 요청에 따라 가볍게 썼고, 이번 사이클에서는 변이 확인을 하지 않았다.
 
@@ -71,7 +71,7 @@
 
 ## 사용자 확인 필요
 
-- **U1**: Cloudflare Pages 저장소를 연결하고, 시크릿 `MOLIT_SERVICE_KEY`를 Production과 Preview 둘 다에 등록해야 한다. 그래야 배포된 사이트에서 실거래가가 나온다. 로컬 `.dev.vars`에는 등록했다.
+- **U1**: Cloudflare Worker `loan-calculator`의 Settings → Variables and Secrets에 `MOLIT_SERVICE_KEY`를 Secret으로 등록해야 배포된 사이트에서 실거래가가 나온다. 저장소 연결은 Workers로 되어 있다. 로컬 `.dev.vars`에는 등록했다.
 - **U3**: 네이버부동산 공유 텍스트 실제 샘플 2~3개가 필요하다. 받으면 fixture 파일 2개만 추가하면 된다.
 - **U4**: 10·15 FAQ 첨부 PDF로 서민·실수요자 60%와 1차 세 칸을 대조해야 한다. 비수도권 서민·실수요자는 지금 "미확인"이다.
 

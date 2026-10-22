@@ -123,3 +123,10 @@
 - AI: 테스트 36파일 673 통과·todo 1. 통합 테스트 8개(상한). AC-7은 가정 기준 통과, 특성 테스트 대부분과 일부 화면 경로는 미검증(사용자 요청으로 가볍게).
 
 ## PR
+
+- 요청: PR #2 Auto-fix 켜기, CI 통과 후 머지.
+- AI: GitHub Actions verify는 통과, Cloudflare "Workers Builds: loan-calculator" 체크 실패. 사용자가 저장소를 Pages가 아니라 Workers로 연결한 것으로 판단(체크 이름). 로그는 대시보드 전용이라 못 읽음. 원인 추정: Pages 형식 wrangler.jsonc를 wrangler deploy가 거부. ADR-011 뒤집을 조건에 따라 Workers + Static Assets로 전환 지시(backend-dev).
+- AI: Auto-fix 알림(939e169의 Workers Builds 실패, Cloudflare 봇 배포 상태 코멘트) — 이미 수정 중인 같은 실패. 봇 코멘트는 대응 불필요.
+- 사용량: backend-dev Workers 전환 · 기본(opus) · 27k 토큰 추가분 · 4분 20초
+- 토론 없이 리드 판정: [ADR-011](decisions/011-server-pages-functions.md) 개정(Pages Functions → Workers + Static Assets). 배포 대상이 사용자 설정으로 정해진 사안.
+- AI: 리드가 화면 확인용으로 띄워 둔 옛 Pages dev 서버(8788)를 종료.
