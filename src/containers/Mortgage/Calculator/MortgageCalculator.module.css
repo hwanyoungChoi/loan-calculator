@@ -14,6 +14,13 @@
   font-weight: 700;
 }
 
+.subtitle {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
 /* 하단 바에 저장 불가 이유나 상태 태그가 붙어 높아지면 그만큼 내용이 바에 가리지 않게 한다. */
 .pageWithTallBar {
   composes: page;

@@ -1,4 +1,4 @@
-# loan-calculator
+# mortgage-fit (모기지핏)
 
 주담대 한도·자기자금 계산기. Vite + React 클라이언트를 Cloudflare Workers Static Assets로 서비스하고, 같은 Worker가 `/api/apt-trades`(국토교통부 실거래가 프록시)를 처리한다. 진입점은 `worker/index.ts`, API 로직은 `server/`에 있다.
 

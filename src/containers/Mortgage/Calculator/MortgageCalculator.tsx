@@ -122,7 +122,10 @@ function MortgageCalculator({
         inert={sheet.isOpen}
       >
         <div className={styles.header}>
-          <h1 className={styles.title}>주담대 한도·자기자금 계산기</h1>
+          <h1 className={styles.title}>
+            모기지핏
+            <span className={styles.subtitle}>주담대 한도·자기자금 계산기</span>
+          </h1>
           <button type="button" className={styles.newButton} onClick={handleNewCalculation}>
             새 계산
           </button>
