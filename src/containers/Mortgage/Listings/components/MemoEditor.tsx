@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
 import { LISTING_MEMO_MAX_LENGTH, validateListingMemo } from "@/lib/utils/validateListingMemo";
 import { countChars } from "@/lib/utils/validateListingName";
@@ -36,6 +36,14 @@ function MemoEditor({ listingName, initialMemo, onSave, onClose }: MemoEditorPro
   const countId = `${id}-count`;
   const errorId = `${id}-error`;
 
+  // 열릴 때 커서를 기존 메모 끝에 둔다. autoFocus는 커서를 맨 앞에 둬서 이어 쓰기 불편하다.
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea === null) return;
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+  }, []);
+
   const handleChange = (raw: string) => {
     setMemo(raw);
     if (memoErrorOf(raw) === null) setError(null);
@@ -69,7 +77,6 @@ function MemoEditor({ listingName, initialMemo, onSave, onClose }: MemoEditorPro
         id={id}
         className={styles.textarea}
         rows={3}
-        autoFocus
         value={memo}
         aria-invalid={error !== null}
         aria-describedby={error === null ? countId : `${countId} ${errorId}`}
