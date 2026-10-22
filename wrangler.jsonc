@@ -2,7 +2,7 @@
 // 배포: Worker의 Settings → Variables and Secrets(Secret) / 로컬: 프로젝트 루트 .dev.vars
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "loan-calculator",
+  "name": "mortgage-fit",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-19",
   // wrangler deploy·dev가 먼저 실행한다. Workers Builds에 빌드 명령을 따로 두지 않아도 dist가 생긴다.

@@ -188,3 +188,10 @@
 - AI: 리드 화면 확인(360×780). 통과: 기본 LTV 70%, 70000/68000 규제·무주택 → 한도 4억 7,600만원·취득세 1.67% 1,169만원·지방교육세 117만원·중개보수 308만원·필요한 자기자금 2억 3,994만원(요약 바 동일), "실제 대출은 규제 기준(40%)으로 나올 수 있습니다" 경고, 가나다순(래미안 2동 < 래미안 10동, sort=name 쿼리), 카드 수정·삭제 버튼, "수정 중" 배너 → 변경 저장 → 덮어쓰기(개수 유지, KB시세 갱신), 가로 스크롤 없음.
 - AI: 참고 — 예전에 규제 LTV로 저장한 매물은 열어도 규제 LTV로 계산됨(저장 데이터 그대로). 새로 저장하는 매물부터 70% 기본이 적용됨.
 - 요청 반영: qa 단계 생략(테스트 최소), development:code-review-fe는 diff 규모상 생략하고 리드가 lint·타입·화면으로 확인.
+- AI: PR #5 생성, Auto-fix 켬(상시 규칙). 체크 통과하면 머지.
+- AI: PR #5 체크 2개 통과 → squash 머지(상시 규칙).
+
+# 작업 기록 — mortgage-fit 이름 변경 (2026-10-22)
+
+- 놓침: 사용자가 Cloudflare Worker 이름을 mortgage-fit으로 바꾼 뒤 PR #5 머지의 운영 빌드가 실패(wrangler name "loan-calculator" 불일치). 예전 주소 404, 새 주소 mortgage-fit.welcomechoi94.workers.dev는 PR #4 시점 버전. 이름 변경 PR이 Worker 이름 변경보다 늦었음.
+- AI: 리드가 wrangler.jsonc·package.json name, README 제목, index.html title, 화면 머리글("모기지핏" + 부제)을 변경. 브라우저 저장 키(loan-calculator/*)는 기존 매물 보존을 위해 유지. CLAUDE.md 제목은 보호 파일이라 사용자가 직접 변경 필요.
