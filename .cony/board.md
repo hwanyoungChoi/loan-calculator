@@ -1,10 +1,10 @@
 # 스크린샷 OCR로 매물 매매가·면적 채우기
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 11:59
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-22 13:35
 
 ## 태스크
 
-- [ ] 1. **스크린샷 → 인식 → 미리보기 → 적용 (엔드투엔드 최소)** — AC-1, AC-2, AC-3, AC-4 [REVIEW · 리드]
+- [x] 1. **스크린샷 → 인식 → 미리보기 → 적용 (엔드투엔드 최소)** — AC-1, AC-2, AC-3, AC-4
 - [ ] 2. **실사용 다듬기** — AC-5, 시나리오 6
 
 ## 백로그
@@ -20,7 +20,7 @@
 
 ## 지금 하는 일
 
-태스크 1 구현 완료. 리드가 브라우저에서 OCR 화면 확인 중
+fe 구현 완료(selectCollateralBase 재사용, KB시세 아래 기준 금액 줄). 리드 화면 확인 중
 
 ## 최근 결정
 
@@ -40,6 +40,6 @@
 
 ## PR
 
-[#2](https://github.com/hwanyoungChoi/loan-calculator/pull/2) 머지됨 · OCR PR은 태스크 후
+[#3](https://github.com/hwanyoungChoi/mortgage-fit/pull/3) · CI·Workers Builds 통과 · 머지됨(862f113)
 
 <!-- spec: specs/screenshot-ocr.md -->

@@ -173,7 +173,7 @@ HTTP 엔드포인트는 추가하지 않는다. 서버(`worker/`, `server/`)는 
 
 ## 태스크
 
-- [ ] 1. **스크린샷 → 인식 → 미리보기 → 적용 (엔드투엔드 최소)** — AC-1, AC-2, AC-3, AC-4
+- [x] 1. **스크린샷 → 인식 → 미리보기 → 적용 (엔드투엔드 최소)** — AC-1, AC-2, AC-3, AC-4
   - [ ] 1-1. 의존성과 자산(ADR-021): `tesseract.js`와 `tesseract.js-core`를 같은 정확한 버전 7.0.0으로 직접 의존성에 고정하고(범위 표기 `^` 없음, pnpm은 전이 의존성을 끌어올리지 않는다), `@tesseract.js-data/kor`를 추가한다. 빌드할 때 위 표의 파일 5개를 `dist/ocr/`로 복사하고(`vite-plugin-static-copy` 또는 `vite.config.ts` 안 짧은 인라인 플러그인), dev 서버에서도 같은 경로로 서빙되게 한다. `wrangler.jsonc`는 바꾸지 않는다(dist 전체가 자산이다). **완료 조건**: 복사 대상이 0건이면 `pnpm build`가 실패한다(경로·glob이 틀려도 조용히 통과하지 않는다). 빌드 뒤 `dist/ocr/` 파일 5개가 존재한다. 자산 경로 상수가 절대 URL이고 `corePath`/`langPath` 끝에 `/`가 있다(모듈 계약). (담당: client)
   - [ ] 1-2. `ocrSession.ts`(동적 import, 워커 재사용, `toOcrProgress`, terminate)와 `useScreenshotOcr`(`recognizing` 중 `start` 무시, 취소된 결과 버림, 언마운트 정리) (담당: client)
   - [ ] 1-3. 파서 정리: 이름 바꾸기(`parseListingText`, `applyListingText`, `ListingPreview`), URL·`linkOnly` 삭제, OCR 공백 전처리(금액 단위에만), 단지명 후보 한글 필수와 기호·동 번호 떼기, 양쪽 단위 면적 쌍, 가정 fixture 3쌍 교체 (담당: client)

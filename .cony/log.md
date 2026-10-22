@@ -165,3 +165,12 @@
 - 요청 반영: qa 단계 생략(사용자 "테스트코드는 짜지 마").
 - AI: development:code-review-fe(staged) — 컨벤션 위반 없음. 참고: ocrSession discard에서 worker.terminate() 실패 시 처리되지 않은 reject 가능(화면 영향 없음, 남은 이슈).
 - AI: 커밋 메시지는 속도를 위해 development:commit-message 대신 리드가 같은 형식(영문 prefix + 한글 본문)으로 작성.
+- 요청: PR #3 Auto-fix 켜고 통과 시 머지 → 체크 2개 통과, squash 머지(862f113), 로컬 브랜치 삭제.
+- AI: 운영 배포(Workers Builds main) 성공. /ocr/worker.min.js text/javascript, kor.traineddata.gz application/gzip(Content-Encoding 없음). 리드가 운영 주소에서 캔버스 매물 이미지로 인식 확인 — 첫 실행(엔진 파일 내려받기 포함) 3.0초, 매매가 12억 5,000만원·단지명 정확, 요청 호스트는 운영 출처 하나뿐(AC-4 통과). 실거래가 API는 여전히 503(시크릿).
+
+# 작업 기록 — 기준 금액(낮은 쪽) 노출 (2026-10-22)
+
+- 요청: 요청자(아내) 피드백 "LTV는 뭐지, 매매가·KB시세 중 낮은 금액 기준으로 30%를 자기자본으로 잡았다" → 사용자 "매매가·KB시세 중 낮은 쪽 노출되게 편하게". KB시세 입력 바로 아래에 "기준 금액(낮은 쪽)" 한 줄, 결과 카드 "담보 기준" 라벨을 "기준 금액(매매가·KB시세 중 낮은 쪽)"으로. 테스트는 새로 쓰지 않음.
+- 사용량: fe 기준 금액 노출 · 기본(opus) · 51k 토큰 · 2분 35초
+- AI: 리드 화면 확인(360×780). 통과: KB시세 입력 즉시 아래에 "기준 금액(낮은 쪽) 9억원 · KB시세"(소재지 칩 이동 0px), 결과 카드 첫 줄 "기준 금액(매매가·KB시세 중 낮은 쪽)", 최대 금액에서도 가로 스크롤 없음.
+- 놓침: 결과 카드 금액이 "6억 4,000만 / 원"처럼 글자 중간에서 줄바꿈(기존 overflow-wrap: anywhere). 리드가 rowValue를 word-break: keep-all + overflow-wrap: break-word로 고침 → 띄어쓰기에서만 줄바꿈.
