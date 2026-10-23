@@ -297,3 +297,10 @@
 - 요청: 사용자가 카카오 REST API 키 전달 → Worker 런타임 시크릿 `KAKAO_REST_API_KEY`로 등록(`wrangler secret put`). 로컬 `.dev.vars`는 hook이 막아 사용자가 직접 추가
 - 요청: 사용자가 카카오 Client Secret 전달 → Worker 런타임 시크릿 `KAKAO_CLIENT_SECRET`로 등록
 - 토론: be·fe 스펙 검토(둘 다 조건부 통과) → D1~D5 모두 A로 결정, 조건 반영([ADR-023](decisions/023-account-sync-share.md))
+- 요청(중요): 배포 후 기존 localStorage 사용자의 데이터가 로그인 여부와 상관없이 유지돼야 함 → 스펙에 AC-0(최우선) 추가: 기존 키 이름·형식 변경·삭제·재기록 금지, 새 키 추가만 허용, 1차 형식 회귀 테스트 유지
+
+## 태스크 1 — 공유 링크
+
+- AI(be): 1-1 검증 함수 분리(`validateListingFields.ts`), `ApiError`를 `api.ts`로 이동, 1-2·1-3 라우터(404·405·Origin 403)·`/api/shares`·`migrations/0001_shares.sql`. 로컬 wrangler dev에서 AC-3~5 API 확인
+- AI(be): AC-0 — 로컬 읽기 판정은 분리 전과 같은 규칙, 새 id 정규식은 서버 경계에서만. 1차 형식 회귀 테스트 무수정 통과
+- AI(be): 공유 요청의 `memo:""`는 400 대신 메모 없음으로 저장(로컬 규칙과 같게)

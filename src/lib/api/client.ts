@@ -1,11 +1,16 @@
-import type { ApiError } from "@/lib/types/aptTrade";
+import type { ApiError } from "@/lib/types/api";
 
 type QueryParams = Record<string, string | number | undefined>;
 
 /** 서버가 보내는 오류 코드 전부. 등록이 빠지면 타입 검사에서 걸린다. */
 const API_ERROR_CODES: Record<ApiError["error"], true> = {
   invalidParams: true,
+  unauthorized: true,
+  forbidden: true,
+  notFound: true,
   methodNotAllowed: true,
+  shareGone: true,
+  payloadTooLarge: true,
   notConfigured: true,
   quotaExceeded: true,
   rateLimited: true,

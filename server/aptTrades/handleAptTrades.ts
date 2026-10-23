@@ -3,9 +3,10 @@ import { readMonthCache, writeMonthCache } from "./monthCache";
 import { parseQuery } from "./parseQuery";
 import { parseTradesResponse } from "./parseTradesResponse";
 import { recentMonths } from "./recentMonths";
+import { errorResponse, jsonResponse } from "../http/response";
 
 import type { CacheLike } from "./monthCache";
-import type { ApiError, AptTrade, AptTradesResponse } from "../../src/lib/types/aptTrade";
+import type { AptTrade, AptTradesResponse } from "../../src/lib/types/aptTrade";
 
 /** 요청 전체(모든 달·페이지)가 공유하는 타임아웃 */
 const TIMEOUT_MS = 15_000;
@@ -48,10 +49,6 @@ export async function handleAptTrades(request: Request, env: Env, deps: Deps): P
   const { fetch: fetchImpl, now, cache } = deps;
 
   try {
-    if (request.method !== "GET") {
-      return errorResponse(405, "methodNotAllowed", "GET만 허용합니다", { Allow: "GET" });
-    }
-
     const query = parseQuery(new URL(request.url).searchParams);
     if (!query.ok) return errorResponse(400, "invalidParams", query.message);
 
@@ -165,27 +162,3 @@ function errorForCode(code: string | null): UpstreamFailure["error"] {
 
 /** aptName 필터 비교용: NFC, 공백 제거, 소문자 */
 const normalizeName = (name: string) => name.normalize("NFC").replace(/\s/gu, "").toLowerCase();
-
-function jsonResponse(
-  status: number,
-  body: AptTradesResponse | ApiError,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "X-Content-Type-Options": "nosniff",
-      ...headers,
-    },
-  });
-}
-
-function errorResponse(
-  status: number,
-  error: ApiError["error"],
-  message: string,
-  headers: Record<string, string> = {},
-): Response {
-  return jsonResponse(status, { error, message }, { "Cache-Control": "no-store", ...headers });
-}

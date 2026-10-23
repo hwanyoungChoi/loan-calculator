@@ -1,5 +1,5 @@
-import type { PriceSource } from "@/lib/types/loan";
-import type { Borrower, Region } from "@/lib/types/regulation";
+import type { PriceSource } from "../types/loan";
+import type { Borrower, Region } from "../types/regulation";
 
 /** 화면에 보이는 순서 */
 export const REGIONS: Region[] = ["regulated", "capitalNonRegulated", "nonCapital"];
