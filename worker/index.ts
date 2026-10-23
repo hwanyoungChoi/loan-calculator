@@ -2,6 +2,7 @@ import { handleAptTrades } from "../server/aptTrades/handleAptTrades";
 import { getMe, logout } from "../server/auth/handleAccount";
 import { finishKakaoLogin, startKakaoLogin } from "../server/auth/handleKakaoAuth";
 import { withSession } from "../server/auth/session";
+import { getBudget, importBudget, putBudget } from "../server/budget/handleBudget";
 import { routeApi } from "../server/http/router";
 import {
   createListing,
@@ -91,6 +92,22 @@ const API_ROUTES: ApiRoute<Env>[] = [
         ),
       DELETE: (request, env, { id }) =>
         withSession(request, env.DB, now, (userId) => deleteListing(id, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/budget",
+    methods: {
+      GET: (request, env) =>
+        withSession(request, env.DB, now, (userId) => getBudget(env.DB, userId)),
+      PUT: (request, env) =>
+        withSession(request, env.DB, now, (userId) => putBudget(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/budget/import",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => importBudget(request, env.DB, userId)),
     },
   },
 ];

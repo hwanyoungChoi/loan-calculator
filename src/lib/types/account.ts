@@ -1,4 +1,4 @@
-// /api/me, /api/listings 계약(스펙 account-sync-share "태스크 2"). 응답의 `Listing`은 로컬 타입 그대로다.
+// /api/me, /api/listings 계약(스펙 account-sync-share "태스크 2"), /api/budget 계약(스펙 sort-order-budget-sync). 응답의 `Listing`은 로컬 타입 그대로다.
 import type { Listing, ListingInput } from "./listing";
 
 /** GET /api/me → 200. 로그인 안 했으면 `user`가 null이다. `id`는 내부 id(카카오 회원번호 아님). */
@@ -21,3 +21,15 @@ export type ImportListingsRequest = { listings: Listing[] };
 
 /** POST /api/listings/import → 200 */
 export type ImportListingsResponse = { imported: number; skipped: number };
+
+/** GET·PUT /api/budget → 200. 계정 예산(만원), 없으면 null */
+export type BudgetResponse = { budget: number | null };
+
+/** PUT /api/budget 요청. 1~999,999,999 정수, null이면 지운다. */
+export type BudgetRequest = { budget: number | null };
+
+/** POST /api/budget/import 요청. 계정 예산이 비어 있을 때만 채운다(null 불가). */
+export type ImportBudgetRequest = { budget: number };
+
+/** POST /api/budget/import → 200. 계정의 현재 값(비어 있었으면 보낸 값, 아니면 기존 값) */
+export type ImportBudgetResponse = { budget: number };
