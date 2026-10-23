@@ -283,3 +283,28 @@
 ## README 사진 새 디자인으로 교체
 
 - 요청: 리디자인(#17) 후 README 사진 6장을 운영 주소에서 다시 캡처해 교체
+- 요청: 사용자가 taste 리디자인 확인("맘에 듦") → 디자인 취향 확인 항목 닫음
+
+# 계정 동기화 · 공유 링크
+
+## 기획
+
+- 요청: 카카오 로그인으로 어느 기기에서든 저장 유지 / 업데이트로 기존 로컬 데이터가 사라지지 않게 서버로 이전 / 저장 목록·매물 단위 공유
+- 요청: 로그인 없이도 계속 쓸 수 있게(예). 공유 링크를 받은 사람은 원본과 연결되지 않고 값만 가져와 자기 목록에서 따로 관리
+- 요청: D1은 wrangler로 생성. 카카오 키는 나중에 사용자가 전달
+- 요청: qa는 이전 지시("테스트코드는 짜지마", qa 단계 생략)대로 `team.json`에서 off
+- 요청: wrangler로 D1 `mortgage-fit`(APAC, id bb8c4c21-…) 생성, `wrangler.jsonc`에 바인딩 `DB` 추가
+- 요청: 사용자가 카카오 REST API 키 전달 → Worker 런타임 시크릿 `KAKAO_REST_API_KEY`로 등록(`wrangler secret put`). 로컬 `.dev.vars`는 hook이 막아 사용자가 직접 추가
+- 요청: 사용자가 카카오 Client Secret 전달 → Worker 런타임 시크릿 `KAKAO_CLIENT_SECRET`로 등록
+- 토론: be·fe 스펙 검토(둘 다 조건부 통과) → D1~D5 모두 A로 결정, 조건 반영([ADR-023](decisions/023-account-sync-share.md))
+- 요청(중요): 배포 후 기존 localStorage 사용자의 데이터가 로그인 여부와 상관없이 유지돼야 함 → 스펙에 AC-0(최우선) 추가: 기존 키 이름·형식 변경·삭제·재기록 금지, 새 키 추가만 허용, 1차 형식 회귀 테스트 유지
+
+## 태스크 1 — 공유 링크
+
+- AI(be): 1-1 검증 함수 분리(`validateListingFields.ts`), `ApiError`를 `api.ts`로 이동, 1-2·1-3 라우터(404·405·Origin 403)·`/api/shares`·`migrations/0001_shares.sql`. 로컬 wrangler dev에서 AC-3~5 API 확인
+- AI(be): AC-0 — 로컬 읽기 판정은 분리 전과 같은 규칙, 새 id 정규식은 서버 경계에서만. 1차 형식 회귀 테스트 무수정 통과
+- AI(be): 공유 요청의 `memo:""`는 400 대신 메모 없음으로 저장(로컬 규칙과 같게)
+- AI(fe): 1-4~1-6 공유 시트·`#/share/{token}` 화면·`Sheet`/`useOpenSheet` 승격·`addMany`(100개를 한 번에 써서 일부만 들어가는 일 방지)·`sent-shares`. 카드 테스트에 `onShare` prop 한 줄 추가(fixture·단언 그대로)
+- AI(리드): 360px 화면 확인 — 1차 형식 데이터 그대로 표시, 목록 공유 링크 생성, 다른 저장소(127.0.0.1)에서 받기·추가(새 id, 메모 미포함), 보낸 쪽 원문 불변
+- AI(리드): 컨벤션 검토 위반 없음. 지적 1(공유받기 화면 포커스 재조회 실패 시 목록 사라짐) 수정 — `refetchOnWindowFocus: false`. 낮은 지적(용량 초과 문구, 끊기 후 포커스·status 낭독, 경로 상수)은 남은 이슈
+- 리드: 원격 D1에 0001_shares 마이그레이션 적용

@@ -1,0 +1,84 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: var(--space-1);
+}
+
+.title {
+  font-size: var(--fs-title);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.description {
+  margin-top: var(--space-1);
+  font-size: var(--fs-body);
+}
+
+.baseDate {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+/* 저장 목록의 간단히 보기처럼 흰 카드 한 장 안에 줄을 쌓는다. */
+.list {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--fs-body);
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+.primaryButton,
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--space-5);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+  word-break: keep-all;
+}
+
+.primaryButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.secondaryLink {
+  border: 1px solid var(--color-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+}

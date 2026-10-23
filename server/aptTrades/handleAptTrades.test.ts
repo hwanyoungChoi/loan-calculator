@@ -6,7 +6,8 @@ import { PAGE_SIZE } from "./buildUpstreamUrl";
 import { handleAptTrades } from "./handleAptTrades";
 
 import type { CacheLike } from "./monthCache";
-import type { ApiError, AptTradesResponse } from "../../src/lib/types/aptTrade";
+import type { ApiError } from "../../src/lib/types/api";
+import type { AptTradesResponse } from "../../src/lib/types/aptTrade";
 
 const fixture = (name: string) =>
   readFileSync(new URL(`./__fixtures__/${name}`, import.meta.url), "utf8");
@@ -140,18 +141,13 @@ describe("handleAptTrades", () => {
     expect(body.items.map((t) => t.aptName)).toEqual(["e편한세상 파크"]);
   });
 
-  it("검증 실패·메서드·키 없음은 업스트림을 부르지 않는다", async () => {
+  it("검증 실패·키 없음은 업스트림을 부르지 않는다", async () => {
     const fetchImpl = fakeFetch(() => EMPTY);
 
     const invalid = await call("?lawdCd=99999", fetchImpl);
     expect(invalid.status).toBe(400);
     expect(await invalid.json()).toEqual({ error: "invalidParams", message: expect.any(String) });
     expect(invalid.headers.get("Cache-Control")).toBe("no-store");
-
-    const post = await call("?lawdCd=11680", fetchImpl, { method: "POST" });
-    expect(post.status).toBe(405);
-    expect(post.headers.get("Allow")).toBe("GET");
-    expect(await errorCode(post)).toBe("methodNotAllowed");
 
     for (const env of [{}, { MOLIT_SERVICE_KEY: " \n" }]) {
       const response = await call("?lawdCd=11680", fetchImpl, { env });

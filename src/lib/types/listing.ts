@@ -54,6 +54,8 @@ export type ListingStore = {
   /** 다른 탭의 `storage` 이벤트처럼 외부에서 바뀌었을 때 구독자에게 알린다. */
   notify: () => void;
   add: (input: ListingInput) => { ok: true; listing: Listing } | ListingWriteFailure;
+  /** 여러 개를 새 id로 한 번에 추가한다(공유받기). 전부 들어가거나 하나도 안 들어간다. */
+  addMany: (inputs: ListingInput[]) => { ok: true; listings: Listing[] } | ListingWriteFailure;
   update: (id: string, input: ListingInput) => ListingWriteResult;
   remove: (id: string) => ListingWriteResult;
   reset: () => StorageWriteResult;

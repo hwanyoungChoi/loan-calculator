@@ -21,16 +21,3 @@ export type AptTradesResponse = {
   items: AptTrade[];
   source: { name: "국토교통부 아파트 매매 실거래가"; url: string };
 };
-
-export type ApiError = {
-  error:
-    | "invalidParams"
-    | "methodNotAllowed"
-    | "notConfigured"
-    | "quotaExceeded"
-    | "rateLimited"
-    | "upstream"
-    | "upstreamTimeout"
-    | "internal";
-  message: string;
-};

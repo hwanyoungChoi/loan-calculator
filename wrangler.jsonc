@@ -17,4 +17,12 @@
   },
   // Workers Builds가 PR 브랜치에서 실행하는 `wrangler preview`는 이 블록이 있어야 한다(비어 있어도 됨).
   "previews": {},
+  // 저장 목록 동기화·공유 링크용 DB. 스키마는 migrations/에 두고 `wrangler d1 migrations apply`로 적용한다.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mortgage-fit",
+      "database_id": "bb8c4c21-ee17-4d62-b27e-5cfe14166fc6",
+    },
+  ],
 }

@@ -56,6 +56,7 @@ function renderCards(listings: Listing[]) {
             budget={null}
             onCopy={() => {}}
             onDelete={() => {}}
+            onShare={() => {}}
             onSaveMemo={() => ({ ok: true })}
           />
         </li>
