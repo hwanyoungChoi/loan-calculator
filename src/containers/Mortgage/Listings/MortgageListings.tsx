@@ -19,12 +19,12 @@ import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import ListingCard from "./components/ListingCard";
 import ListingSortGroup from "./components/ListingSortGroup";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
-import { useBudget } from "./hooks/useBudget";
+import { useBudgetSource } from "./hooks/useBudgetSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 import { useListingsView } from "./hooks/useListingsView";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
-import type { BudgetStore } from "@/lib/types/budget";
+import type { BudgetImportStore, BudgetStore } from "@/lib/types/budget";
 import type { DraftStore } from "@/lib/types/draft";
 import type {
   Listing,
@@ -46,7 +46,9 @@ type MortgageListingsProps = {
   /** 로그인 직후 이 기기 매물의 이전. 옮기지 못했으면 목록 위에 이유와 [다시 시도]를 보인다. */
   accountImport: AccountImport;
   draftStore: DraftStore;
+  /** 로그아웃 상태의 예산 원본. 로그인 중에는 첫 이전 때 읽기만 한다. */
   budgetStore: BudgetStore;
+  budgetImportStore: BudgetImportStore;
   sentShareStore: SentShareStore;
   /** 마지막으로 보여 준 정렬·방향·보기. 주소에 없는 값을 채운다. */
   listingsViewStore: ListingsViewStore;
@@ -91,6 +93,7 @@ function MortgageListings({
   accountImport,
   draftStore,
   budgetStore,
+  budgetImportStore,
   sentShareStore,
   listingsViewStore,
   regulations,
@@ -102,7 +105,14 @@ function MortgageListings({
 }: MortgageListingsProps) {
   const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   const { list } = source;
-  const budget = useBudget(budgetStore);
+  const budgetSource = useBudgetSource({
+    status: source.status,
+    budgetStore,
+    budgetImportStore,
+    onUnauthorized: source.expireSession,
+  });
+  // 예산을 불러오는 중이거나 실패하면 예산 초과를 표시하지 않는다(기기 예산으로 대신 계산하지 않음).
+  const budget = budgetSource.state.status === "ok" ? budgetSource.state.budget : null;
   const { sort, order, view } = useListingsView(listingsViewStore, addressView);
   const [writeError, setWriteError] = useState<string | null>(null);
   const sheet = useOpenSheet<ShareTarget>();
@@ -231,7 +241,15 @@ function MortgageListings({
     const listLabel = `저장한 매물 ${sortedListings.length}개`;
     return (
       <>
-        <BudgetBar budget={budget} overBudgetCount={overBudgetCount} onChange={budgetStore.set} />
+        {/* 출처가 바뀌면(로그아웃·401) 열린 폼을 닫아, 계정에 넣으려던 값이 기기 예산으로 저장되지 않게 한다. */}
+        <BudgetBar
+          key={source.status}
+          state={budgetSource.state}
+          overBudgetCount={overBudgetCount}
+          onSave={budgetSource.save}
+          onRetry={budgetSource.retry}
+          isRetrying={budgetSource.isRetrying}
+        />
         <ListingSortGroup sort={sort} order={order} onSelect={handleSortSelect} />
         <ChoiceGroup
           name="listingView"

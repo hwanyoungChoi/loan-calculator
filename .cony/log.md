@@ -352,3 +352,7 @@
 ## 태스크 1 — 정렬 방향·기억
 
 - AI(fe): `order` 파라미터, `sortListings` 방향(첫째 기준만 뒤집기, 계산 불가는 맨 뒤), 새 키 `listings-view`, 주소 우선·없는 값만 기억, 정렬은 `aria-pressed` 버튼 그룹(재선택 시 방향 전환, ↑↓). 360px로 옛 주소 3종·깨진 기억 값·AC-1~3 확인, 기존 키 원문 불변
+
+## 태스크 3 — 로그인 사용자의 예산 출처
+
+- AI(fe): `useAccountBudget`·`useSaveBudget`·`useImportBudget`·`useBudgetSource`, 새 키 `budget-imports`, BudgetBar 상태별 표시·저장 실패 시 폼 유지, `parseBudget`가 `isBudgetAmount` 사용. 360px로 AC-0·AC-5~7 확인, 기존 키 원문 불변

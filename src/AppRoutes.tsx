@@ -11,6 +11,7 @@ import { LOAN_REGULATIONS } from "@/lib/constants/loanRegulations";
 import { PATHS } from "@/lib/constants/paths";
 import { createAccountImportStore } from "@/lib/utils/accountImportStorage";
 import { getBrowserStorage } from "@/lib/utils/browserStorage";
+import { createBudgetImportStore } from "@/lib/utils/budgetImportStorage";
 import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
@@ -39,6 +40,7 @@ function createStores(storage: Storage) {
     draftStore: createDraftStore({ storage }),
     tradeLookupStore: createTradeLookupStore({ storage }),
     budgetStore: createBudgetStore({ storage }),
+    budgetImportStore: createBudgetImportStore({ storage }),
     sentShareStore: createSentShareStore({ storage, now: Date.now }),
     sessionHintStore: createSessionHintStore({ storage }),
     accountImportStore: createAccountImportStore({ storage }),
@@ -54,6 +56,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       draftStore,
       tradeLookupStore,
       budgetStore,
+      budgetImportStore,
       sentShareStore,
       sessionHintStore,
       accountImportStore,
@@ -103,6 +106,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           accountImport={accountImport}
           draftStore={draftStore}
           budgetStore={budgetStore}
+          budgetImportStore={budgetImportStore}
           sentShareStore={sentShareStore}
           listingsViewStore={listingsViewStore}
           regulations={regulations}

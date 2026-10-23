@@ -80,3 +80,8 @@
 {"ts":"2026-10-23T05:43:39.314Z","type":"hook","hook":"guard-bash","decision":"deny","command":"B=/Users/hwanyoungchoi/.claude/plugins/cache/conychoi-plugins/cony/0.16.0/skills/team/board.mjs && cat >> .cony/log.md <<'EOF'\n\n## 태스크 2 — 예산 서버 API\n- AI(be): `isBudgetAmount.ts`(parseBudget와 같은 범위), "}
 {"ts":"2026-10-23T05:43:46.643Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-23T05:44:00.126Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:48:07.818Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T05:48:07.857Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T05:48:07.917Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T05:48:07.940Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-23T05:48:30.235Z","type":"hook","hook":"board-on-stop","decision":"block"}

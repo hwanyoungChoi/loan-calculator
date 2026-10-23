@@ -139,12 +139,12 @@ ALTER TABLE users ADD COLUMN budget INTEGER;
 
 파일 소유: **be** = `migrations/0003_user_budget.sql`, `server/budget/`, `worker/index.ts`, `src/lib/types/account.ts`(예산 타입 추가분), `src/lib/utils/isBudgetAmount.ts`. **fe** = 그 밖의 모든 파일(`src/` 화면·훅·라우트·스토리지, 깨진 기존 테스트 포함).
 
-- [ ] 1. 정렬 방향 전환 + 정렬·방향·보기 기억 (서버 무관, 엔드투엔드로 바로 확인 가능) — AC-0(주소·기억 부분), AC-1, AC-2, AC-3
+- [x] 1. 정렬 방향 전환 + 정렬·방향·보기 기억 (서버 무관, 엔드투엔드로 바로 확인 가능) — AC-0(주소·기억 부분), AC-1, AC-2, AC-3
   - [ ] 1-1. `ListingSortOrder` 타입, `parseRoute`(sort·order·view가 없거나 틀리면 `undefined`), `toRoutePath`·`PATHS.listings`(받은 필드만 쓰고 기본값도 생략하지 않음, 인자 없으면 `#/listings`), `sortListings(listings, sort, order, regulations)`(첫째 기준만 뒤집기, null 맨 뒤 유지). 정렬별 기본 방향 상수는 한 곳(`src/lib/constants/`)에. (담당: fe)
   - [ ] 1-2. `src/lib/utils/listingsViewStorage.ts`(키 `loan-calculator/listings-view`, 필드별 허용 목록 파싱, 최선 기록, `budgetStorage`와 같은 store 모양) → `AppRoutes.createStores`에 추가 → `MortgageListings`가 "화면 상태 결정 규칙"으로 sort·order·view를 정하고, 보인 상태를 기억에 쓰고, 바꿀 때 세 값을 모두 주소에 쓴다. 로그인 결과(`login`) 지우기도 세 값을 쓴다. (담당: fe)
   - [ ] 1-3. 정렬 버튼: 선택된 버튼 재선택 → 방향 전환, 화살표와 방향을 넣은 접근성 이름. 네이티브 라디오의 재선택 문제 처리(화면 절 참고). (담당: fe)
   - [ ] 1-4. 바뀐 구조로 깨지는 기존 테스트(`parseRoute.test.ts`, `sortListings.test.ts`, `AppRoutes.test.tsx` 등)를 새 규칙에 맞게 고친다. (담당: fe)
-- [ ] 2. 예산 서버 API — AC-4, AC-0(D1 부분)
+- [x] 2. 예산 서버 API — AC-4, AC-0(D1 부분)
   - [ ] 2-1. `src/lib/utils/isBudgetAmount.ts`와 `account.ts` 예산 타입을 **가장 먼저** 올린다(fe 3번이 import). (담당: be)
   - [ ] 2-2. `migrations/0003_user_budget.sql`(D1 결정에 따라), 로컬 적용. `server/budget/handleBudget.ts`(GET·PUT·import, 본문 상한 1KB, `withSession`), `worker/index.ts` 경로 표에 `/api/budget`(GET·PUT), `/api/budget/import`(POST) 추가. 원격 적용 → 배포 순서를 PR 본문에 적는다. (담당: be)
 - [ ] 3. 로그인 사용자의 예산 출처 — AC-5, AC-6, AC-7, AC-0(예산 키 부분)

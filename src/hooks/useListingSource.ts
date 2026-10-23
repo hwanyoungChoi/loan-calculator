@@ -45,6 +45,8 @@ export type ListingSource = {
   isRefreshFailed: boolean;
   /** 이 화면에서 세션이 끝났다(401). 계정 줄이 다시 로그인하라고 알린다. */
   isSessionExpired: boolean;
+  /** 서버 쓰기·조회가 401일 때 로그아웃 상태로 바꾸고 계정 줄이 알리게 한다(예산 줄도 같이 쓴다). */
+  expireSession: () => void;
   /** 계정 확인(error) 또는 서버 목록 조회를 다시 한다 */
   retry: () => void;
   isRetrying: boolean;
@@ -200,6 +202,7 @@ export function useListingSource({
     list: selectList(),
     isRefreshFailed: status === "loggedIn" && serverList.isError && serverList.data !== undefined,
     isSessionExpired: isSessionExpired && status === "loggedOut",
+    expireSession,
     retry: () => {
       if (status === "error") void me.refetch();
       else if (status === "loggedIn") void serverList.refetch();
