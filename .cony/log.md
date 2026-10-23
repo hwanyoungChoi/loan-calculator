@@ -356,3 +356,4 @@
 ## 태스크 3 — 로그인 사용자의 예산 출처
 
 - AI(fe): `useAccountBudget`·`useSaveBudget`·`useImportBudget`·`useBudgetSource`, 새 키 `budget-imports`, BudgetBar 상태별 표시·저장 실패 시 폼 유지, `parseBudget`가 `isBudgetAmount` 사용. 360px로 AC-0·AC-5~7 확인, 기존 키 원문 불변
+- 리드: 원격 D1 0003 적용(배포 전), 최종 보고 작성

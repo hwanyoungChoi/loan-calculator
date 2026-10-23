@@ -147,7 +147,7 @@ ALTER TABLE users ADD COLUMN budget INTEGER;
 - [x] 2. 예산 서버 API — AC-4, AC-0(D1 부분)
   - [ ] 2-1. `src/lib/utils/isBudgetAmount.ts`와 `account.ts` 예산 타입을 **가장 먼저** 올린다(fe 3번이 import). (담당: be)
   - [ ] 2-2. `migrations/0003_user_budget.sql`(D1 결정에 따라), 로컬 적용. `server/budget/handleBudget.ts`(GET·PUT·import, 본문 상한 1KB, `withSession`), `worker/index.ts` 경로 표에 `/api/budget`(GET·PUT), `/api/budget/import`(POST) 추가. 원격 적용 → 배포 순서를 PR 본문에 적는다. (담당: be)
-- [ ] 3. 로그인 사용자의 예산 출처 — AC-5, AC-6, AC-7, AC-0(예산 키 부분)
+- [x] 3. 로그인 사용자의 예산 출처 — AC-5, AC-6, AC-7, AC-0(예산 키 부분)
   - [ ] 3-1. API 훅 `src/hooks/useAccountBudget.ts`(`budgetQueryKey`, GET), `useSaveBudget.ts`(PUT, 성공 시 캐시를 응답 값으로), `useImportBudget.ts`(POST). 전역 `src/hooks/`에 두는 이유: `useEndSession`이 로그아웃·401 때 `budgetQueryKey()` 캐시를 지워야 해서(목록 훅과 같은 위치). `useEndSession`에 예산 캐시 제거 추가. (담당: fe)
   - [ ] 3-2. `src/lib/utils/budgetImportStorage.ts`(키 `loan-calculator/budget-imports`). `containers/Mortgage/Listings/hooks/useBudgetSource.ts`: 출처 상태가 loggedOut이면 기존 `budgetStore`, loggedIn이면 이 사용자 기록이 없을 때 이전(기기 예산이 있으면 import로 올려 응답 값을 캐시에 넣고, 없으면 건너뜀) → 성공 시 기록 → 계정 예산 조회. 이전·조회 실패는 오류 상태, 재시도 제공. 로그인 중에는 `budgetStore.set`을 부르지 않는다. 401은 목록과 같은 세션 만료 처리(필요하면 `useListingSource`가 만료 처리 함수를 내보낸다). (담당: fe)
   - [ ] 3-3. `BudgetBar`: 로딩·오류·저장 중·저장 실패 상태, `onChange`를 결과를 돌려주는 비동기로 바꿔 실패 시 폼 유지. `parseBudget`가 `isBudgetAmount`를 쓰도록 바꾼다(동작 같음, 키·형식 그대로). (담당: fe)

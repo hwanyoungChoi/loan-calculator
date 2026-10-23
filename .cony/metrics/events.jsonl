@@ -85,3 +85,5 @@
 {"ts":"2026-10-23T05:48:07.917Z","type":"task","task":2,"from":"review","to":"done","owner":null}
 {"ts":"2026-10-23T05:48:07.940Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-23T05:48:30.235Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:55:57.521Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T05:55:57.558Z","type":"task","task":3,"from":"review","to":"done","owner":null}
