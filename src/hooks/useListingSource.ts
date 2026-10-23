@@ -5,6 +5,7 @@ import { ApiRequestError } from "@/lib/api/client";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { toListingFields } from "@/lib/utils/listingStore";
 
+import { isAccountImportSettled, type AccountImport } from "./useAccountImport";
 import { useCreateListing } from "./useCreateListing";
 import { useDeleteListing } from "./useDeleteListing";
 import { useEndSession } from "./useEndSession";
@@ -33,6 +34,8 @@ type ListingSourceOptions = {
   /** 로그아웃 상태의 원본. 로그인 중에는 쓰지 않는다(AC-0). */
   listingStore: ListingStore;
   sessionHintStore: SessionHintStore;
+  /** 로그인 직후 로컬 매물 이전. 끝나기 전에는 출처를 loading으로 두고 서버 목록을 조회하지 않는다. */
+  accountImport: AccountImport;
 };
 
 export type ListingSource = {
@@ -61,6 +64,7 @@ const NOT_READY: ListingSourceWriteFailure = { ok: false, reason: "notReady" };
 
 /**
  * `/api/me` 결과 → 출처. 받아 둔 응답이 있으면 재조회가 실패해도 그 값을 쓴다.
+ * 로그인했으면 이 기기 매물의 이전이 끝난 뒤에 loggedIn이다(이전 중 빈 서버 목록이 보이지 않게, AC-13c).
  * 응답이 없이 실패하면, 로그인했던 브라우저만 error로 막는다. 로그인한 적 없는 사용자는
  * 서버 장애와 상관없이 지금처럼 로컬로 쓴다(AC-0).
  */
@@ -68,8 +72,12 @@ function selectSourceStatus(
   me: MeResponse | undefined,
   isMeError: boolean,
   hasSessionHint: boolean,
+  accountImport: AccountImport,
 ): ListingSourceStatus {
-  if (me !== undefined) return me.user === null ? "loggedOut" : "loggedIn";
+  if (me !== undefined) {
+    if (me.user === null) return "loggedOut";
+    return isAccountImportSettled(accountImport.state, me.user.id) ? "loggedIn" : "loading";
+  }
   if (!isMeError) return "loading";
   return hasSessionHint ? "error" : "loggedOut";
 }
@@ -98,11 +106,12 @@ function fromLocal(result: { ok: true } | ListingWriteFailure): ListingSourceWri
 export function useListingSource({
   listingStore,
   sessionHintStore,
+  accountImport,
 }: ListingSourceOptions): ListingSource {
   const queryClient = useQueryClient();
   const localSnapshot = useListings(listingStore);
   const me = useMe();
-  const status = selectSourceStatus(me.data, me.isError, sessionHintStore.has());
+  const status = selectSourceStatus(me.data, me.isError, sessionHintStore.has(), accountImport);
   const serverList = useListingList({ enabled: status === "loggedIn" });
   const endSession = useEndSession(sessionHintStore);
   const [isSessionExpired, setIsSessionExpired] = useState(false);

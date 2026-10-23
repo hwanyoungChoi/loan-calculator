@@ -38,3 +38,8 @@
 {"ts":"2026-10-23T03:23:47.944Z","type":"hook","hook":"guard-secrets","decision":"deny","target":".dev.vars"}
 {"ts":"2026-10-23T03:23:58.347Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T03:26:41.207Z","type":"hook","hook":"guard-bash","decision":"ask","command":"SP=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; cd $SP && sed -i '' 's|document.getElementById(\"sale-price\") ?? document.q"}
+{"ts":"2026-10-23T03:30:54.660Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T03:30:54.698Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T03:30:54.720Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-23T03:31:15.431Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T03:35:30.335Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/hooks/useAccountImport.ts"}

@@ -25,6 +25,7 @@ import { pickSuggestedName } from "./pickSuggestedName";
 import { getSaveButtonState, selectSaveStatus } from "./saveButtonState";
 import { describeSummaryTag } from "./summaryTag";
 
+import type { AccountImport } from "@/hooks/useAccountImport";
 import type { DraftStore } from "@/lib/types/draft";
 import type { ListingInput, ListingSourceWriteResult, ListingStore } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
@@ -36,6 +37,7 @@ type MortgageCalculatorProps = {
   /** 로그아웃 상태의 목록 원본 */
   listingStore: ListingStore;
   sessionHintStore: SessionHintStore;
+  accountImport: AccountImport;
   draftStore: DraftStore;
   tradeLookupStore: TradeLookupStore;
   regulations: Regulations;
@@ -54,6 +56,7 @@ const SAVED_NOTICE_MS = 3000;
 function MortgageCalculator({
   listingStore,
   sessionHintStore,
+  accountImport,
   draftStore,
   tradeLookupStore,
   regulations,
@@ -62,7 +65,7 @@ function MortgageCalculator({
 }: MortgageCalculatorProps) {
   const draft = useDraft(draftStore);
   // 로그인 사용자가 서버 매물을 연 채 새로고침해도 편집 배너가 맞게 뜨도록 계산 화면도 출처를 기다린다.
-  const source = useListingSource({ listingStore, sessionHintStore });
+  const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   // 바꾸면 입력부를 새로 그려 금액·LTV 칸의 오류 표시를 걷는다.
   const [inputsKey, setInputsKey] = useState(0);
   const sheet = useOpenSheet<SheetName>();

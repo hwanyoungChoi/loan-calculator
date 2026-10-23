@@ -12,6 +12,7 @@ import SharedListingRow from "./components/SharedListingRow";
 import { useShare } from "./hooks/useShare";
 import { parseShareResponse, type SharedListings } from "./parseShareResponse";
 
+import type { AccountImport } from "@/hooks/useAccountImport";
 import type { ListingSourceWriteFailure, ListingStore } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
 import type { SessionHintStore } from "@/lib/types/sessionHint";
@@ -23,6 +24,7 @@ type MortgageShareProps = {
   /** 로그아웃 상태의 목록 원본 */
   listingStore: ListingStore;
   sessionHintStore: SessionHintStore;
+  accountImport: AccountImport;
   regulations: Regulations;
   /** 추가에 성공하면 저장 목록에 보일 알림과 함께 부른다. 이동은 부르는 쪽이 replace로 한다. */
   onAdded: (notice: string) => void;
@@ -75,6 +77,7 @@ function MortgageShare({
   token,
   listingStore,
   sessionHintStore,
+  accountImport,
   regulations,
   onAdded,
 }: MortgageShareProps) {
@@ -128,6 +131,7 @@ function MortgageShare({
         shared={shared}
         listingStore={listingStore}
         sessionHintStore={sessionHintStore}
+        accountImport={accountImport}
         regulations={regulations}
         onAdded={onAdded}
       />
@@ -143,10 +147,11 @@ function SharedListingsView({
   shared,
   listingStore,
   sessionHintStore,
+  accountImport,
   regulations,
   onAdded,
 }: SharedListingsViewProps) {
-  const source = useListingSource({ listingStore, sessionHintStore });
+  const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const { kind, listings } = shared;

@@ -9,6 +9,7 @@ import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/uti
 import { sortListings } from "@/lib/utils/sortListings";
 
 import styles from "./MortgageListings.module.css";
+import { accountImportProblem } from "./accountImportProblem";
 import { budgetExcess } from "./budgetExcess";
 import AccountBar from "./components/AccountBar";
 import BudgetBar from "./components/BudgetBar";
@@ -19,6 +20,7 @@ import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudget } from "./hooks/useBudget";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 
+import type { AccountImport } from "@/hooks/useAccountImport";
 import type { BudgetStore } from "@/lib/types/budget";
 import type { DraftStore } from "@/lib/types/draft";
 import type {
@@ -37,6 +39,8 @@ type MortgageListingsProps = {
   /** 로그아웃 상태의 목록 원본 */
   listingStore: ListingStore;
   sessionHintStore: SessionHintStore;
+  /** 로그인 직후 이 기기 매물의 이전. 옮기지 못했으면 목록 위에 이유와 [다시 시도]를 보인다. */
+  accountImport: AccountImport;
   draftStore: DraftStore;
   budgetStore: BudgetStore;
   sentShareStore: SentShareStore;
@@ -49,7 +53,7 @@ type MortgageListingsProps = {
   login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
   onSuggestedNameChange: (name: string) => void;
-  /** 다른 화면이 남긴 알림(공유받은 매물 추가 등). 들어올 때 한 번만 보인다. */
+  /** 다른 화면이나 이전이 남긴 알림(공유받은 매물 추가, 계정으로 옮김). 한 번만 보인다. */
   notice: string | null;
   onNoticeChange: (notice: string | null) => void;
 };
@@ -86,6 +90,7 @@ const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 �
 function MortgageListings({
   listingStore,
   sessionHintStore,
+  accountImport,
   draftStore,
   budgetStore,
   sentShareStore,
@@ -97,26 +102,32 @@ function MortgageListings({
   notice,
   onNoticeChange,
 }: MortgageListingsProps) {
-  const source = useListingSource({ listingStore, sessionHintStore });
+  const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   const { list } = source;
   const budget = useBudget(budgetStore);
   const [writeError, setWriteError] = useState<string | null>(null);
   const sheet = useOpenSheet<ShareTarget>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
-  const [shownNotice] = useState(notice);
+  // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
+  const [shownNotice, setShownNotice] = useState(notice);
   // 로그인 결과도 한 번 잡은 뒤 주소에서 지운다. 새로고침해도 안내가 다시 뜨지 않는다.
   const [loginResult] = useState(login);
   useListingsScrollRestoration();
 
   useEffect(() => {
-    if (notice !== null) onNoticeChange(null);
+    if (notice === null) return;
+    setShownNotice(notice);
+    onNoticeChange(null);
   }, [notice, onNoticeChange]);
 
   useEffect(() => {
     if (login !== undefined) window.location.replace(PATHS.listings(sort, view));
   }, [login, sort, view]);
 
+  // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
+  const importProblem =
+    source.status === "loggedIn" ? accountImportProblem(accountImport.state) : null;
   const sortedListings = list.status === "ok" ? sortListings(list.listings, sort, regulations) : [];
 
   /** 정렬·보기는 새로고침해도 남게 주소에 두고, 바꿀 때 히스토리는 쌓지 않는다. */
@@ -171,7 +182,9 @@ function MortgageListings({
     if (list.status === "loading") {
       return (
         <p className={styles.notice} aria-busy="true">
-          저장 목록을 불러오는 중
+          {accountImport.state?.status === "running"
+            ? "이 기기의 매물을 계정으로 옮기는 중"
+            : "저장 목록을 불러오는 중"}
         </p>
       );
     }
@@ -310,6 +323,16 @@ function MortgageListings({
           onRetry={source.retry}
           isRetrying={source.isRetrying}
         />
+        {importProblem !== null && (
+          <div className={styles.notice}>
+            <p role="alert">{importProblem.message}</p>
+            {importProblem.canRetry && (
+              <button type="button" className={styles.retryButton} onClick={accountImport.retry}>
+                다시 시도
+              </button>
+            )}
+          </div>
+        )}
         {shownNotice !== null && (
           <p role="status" className={styles.addedNotice}>
             {shownNotice}
