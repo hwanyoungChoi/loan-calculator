@@ -53,3 +53,9 @@
 {"ts":"2026-10-23T04:28:25.525Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T04:29:39.841Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
 {"ts":"2026-10-23T04:30:01.945Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:34:27.401Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:36:40.400Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-23T04:38:17.219Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":1}
+{"ts":"2026-10-23T04:43:07.024Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; P=/Users/hwanyoungchoi/cony-sandbox/loan-calculator; rm -rf $S/main-src && "}
+{"ts":"2026-10-23T04:52:07.625Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T04:52:26.348Z","type":"hook","hook":"board-on-stop","decision":"block"}

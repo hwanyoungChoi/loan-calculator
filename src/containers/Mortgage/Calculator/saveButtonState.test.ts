@@ -22,19 +22,34 @@ const SAVED = makeListing({ ...INPUT, id: "a" });
 describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
   it("두 금액이 유효하고 저장소가 정상이면 활성 '저장'", () => {
     expect(
-      getSaveButtonState({ listingsStatus: "ok", loanInput: INPUT, editingListing: null }),
+      getSaveButtonState({
+        listingsStatus: "ok",
+        loanInput: INPUT,
+        extraCosts: [],
+        editingListing: null,
+      }),
     ).toEqual({ label: "저장", isDisabled: false, message: null });
   });
 
   it("금액이 하나라도 유효하지 않으면 비활성 '저장'(이유는 필드 아래 오류로 보인다)", () => {
     expect(
-      getSaveButtonState({ listingsStatus: "ok", loanInput: null, editingListing: null }),
+      getSaveButtonState({
+        listingsStatus: "ok",
+        loanInput: null,
+        extraCosts: [],
+        editingListing: null,
+      }),
     ).toEqual({ label: "저장", isDisabled: true, message: null });
   });
 
   it("불러온 매물과 입력이 같으면 비활성 '저장됨' (AC-7)", () => {
     expect(
-      getSaveButtonState({ listingsStatus: "ok", loanInput: INPUT, editingListing: SAVED }),
+      getSaveButtonState({
+        listingsStatus: "ok",
+        loanInput: INPUT,
+        extraCosts: [],
+        editingListing: SAVED,
+      }),
     ).toMatchObject({ label: "저장됨", isDisabled: true });
   });
 
@@ -43,6 +58,7 @@ describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
       getSaveButtonState({
         listingsStatus: "ok",
         loanInput: { ...INPUT, kbPrice: 118000 },
+        extraCosts: [],
         editingListing: SAVED,
       }),
     ).toEqual({ label: "변경 저장", isDisabled: false, message: null });
@@ -51,7 +67,12 @@ describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
   it("목록이 손상되면 입력과 무관하게 비활성이고 손상 안내를 붙인다 (AC-6d)", () => {
     for (const loanInput of [INPUT, null]) {
       expect(
-        getSaveButtonState({ listingsStatus: "corrupt", loanInput, editingListing: null }),
+        getSaveButtonState({
+          listingsStatus: "corrupt",
+          loanInput,
+          extraCosts: [],
+          editingListing: null,
+        }),
       ).toEqual({
         label: "저장",
         isDisabled: true,
@@ -62,7 +83,12 @@ describe("getSaveButtonState (계산 화면 저장 버튼)", () => {
 
   it("저장소 접근 불가면 비활성이고 안내를 붙인다 (AC-6e)", () => {
     expect(
-      getSaveButtonState({ listingsStatus: "unavailable", loanInput: INPUT, editingListing: null }),
+      getSaveButtonState({
+        listingsStatus: "unavailable",
+        loanInput: INPUT,
+        extraCosts: [],
+        editingListing: null,
+      }),
     ).toEqual({
       label: "저장",
       isDisabled: true,
@@ -79,6 +105,7 @@ describe("저장 버튼: 사용자 지정 LTV (AC-3e)", () => {
     return getSaveButtonState({
       listingsStatus: "ok",
       loanInput: toLoanInput(draft),
+      extraCosts: [],
       editingListing,
     });
   }
@@ -142,7 +169,9 @@ describe("저장 버튼: 사용자 지정 LTV (AC-3e)", () => {
       borrower: "noHomePreferred",
     };
     expect(calculateLoan(loanInput).status).toBe("ineligible");
-    expect(getSaveButtonState({ listingsStatus: "ok", loanInput, editingListing: null })).toEqual({
+    expect(
+      getSaveButtonState({ listingsStatus: "ok", loanInput, extraCosts: [], editingListing: null }),
+    ).toEqual({
       label: "저장",
       isDisabled: false,
       message: null,

@@ -15,6 +15,7 @@ describe("applyListingText (AC-2)", () => {
       customLtv: "55",
       isCustomLtvInput: false,
       isAreaOver85: true,
+      extraCosts: [],
     };
     const parsed = {
       ok: true as const,

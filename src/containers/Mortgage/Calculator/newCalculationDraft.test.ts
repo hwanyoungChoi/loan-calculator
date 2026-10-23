@@ -15,6 +15,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       customLtv: "55",
       isCustomLtvInput: true,
       isAreaOver85: true,
+      extraCosts: [],
     };
     expect(toNewCalculationDraft(draft)).toEqual({
       salePrice: "",
@@ -25,6 +26,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       customLtv: "70",
       isCustomLtvInput: false,
       isAreaOver85: false,
+      extraCosts: [],
     });
   });
 
@@ -38,6 +40,7 @@ describe("toNewCalculationDraft ('새 계산', AC-3e, ADR-013, ADR-022)", () => 
       customLtv: "",
       isCustomLtvInput: false,
       isAreaOver85: false,
+      extraCosts: [],
     };
     expect(toNewCalculationDraft(draft).customLtv).toBe("70");
   });

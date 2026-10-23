@@ -5,6 +5,7 @@ import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
+import { summarizeExtraCostRows, toExtraCosts } from "@/lib/utils/extraCosts";
 import { findDraftListing } from "@/lib/utils/listingDraft";
 import { toLoanInput } from "@/lib/utils/toLoanInput";
 
@@ -12,6 +13,7 @@ import styles from "./MortgageCalculator.module.css";
 import { applyListingText } from "./applyListingText";
 import EditingBanner from "./components/EditingBanner";
 import EmptyResultCard from "./components/EmptyResultCard";
+import ExtraCostsSection from "./components/ExtraCostsSection";
 import LoanInputs, { KB_PRICE_INPUT_ID, SALE_PRICE_INPUT_ID } from "./components/LoanInputs";
 import ResultCard from "./components/ResultCard";
 import SaveSheet, { type SaveAction } from "./components/SaveSheet";
@@ -88,8 +90,9 @@ function MortgageCalculator({
     return () => window.clearTimeout(timer);
   }, [savedNotice]);
 
-  const handleNewCalculation = () => {
-    draftStore.update(toNewCalculationDraft(draft));
+  /** 새 계산 상태로 비운다. 저장에 성공한 뒤에도 부른다. */
+  const resetToNewCalculation = () => {
+    draftStore.update(toNewCalculationDraft(draftStore.getSnapshot()));
     setInputsKey((key) => key + 1);
     setTradeAptName("");
     setSuggestedName("");
@@ -111,10 +114,27 @@ function MortgageCalculator({
   const loanInput = toLoanInput(draft);
   const result = loanInput === null ? null : calculateLoan(loanInput, regulations);
   const summaryTag = describeSummaryTag(result);
+  const extraCosts = toExtraCosts(draft.extraCosts);
   const editingListing = findDraftListing(source.list, draft.listingId);
-  const saveInput = { listingsStatus: source.list.status, loanInput, editingListing };
+  const saveInput = { listingsStatus: source.list.status, loanInput, extraCosts, editingListing };
   const saveButton = getSaveButtonState(saveInput);
   const hasInputChanges = selectSaveStatus(saveInput) !== "saved";
+  // 저장 시트·[이름 바꾸기]·저장 버튼이 같은 저장 값을 본다. 금액이나 추가 비용 줄 하나라도 틀리면 null이다(ADR-024 C2).
+  const listingValues =
+    loanInput === null || extraCosts === null ? null : { ...loanInput, extraCosts };
+
+  /**
+   * [새 계산]은 추가 비용 줄도 비운다(스펙 U6). 저장하지 않은 줄이 있으면 한 번 묻는다.
+   * 불러온 매물 그대로("저장됨")면 줄은 저장본에 있으므로 묻지 않는다.
+   */
+  const handleNewCalculation = () => {
+    const extraCostCount = draft.extraCosts.length;
+    const isConfirmed =
+      extraCostCount === 0 ||
+      !hasInputChanges ||
+      window.confirm(`추가 비용 ${extraCostCount}줄도 함께 비워집니다. 새 계산을 시작할까요?`);
+    if (isConfirmed) resetToNewCalculation();
+  };
 
   /**
    * 저장·덮어쓰기에 성공하면 "새 계산"과 같은 상태로 비우고 알린 뒤, 다음 매물을 바로 입력하게 매매가로 포커스를 옮긴다.
@@ -133,7 +153,7 @@ function MortgageCalculator({
           : await source.update(editingListing.id, input);
     if (!saved.ok) return saved;
     const isDraftUnchanged = draftStore.getSnapshot() === submittedDraft;
-    if (isDraftUnchanged) handleNewCalculation();
+    if (isDraftUnchanged) resetToNewCalculation();
     setSavedNotice(`'${input.name}' 저장했습니다`);
     sheet.close();
     if (isDraftUnchanged) document.getElementById(SALE_PRICE_INPUT_ID)?.focus();
@@ -161,7 +181,7 @@ function MortgageCalculator({
         {editingListing !== null && (
           <EditingBanner
             name={editingListing.name}
-            isRenameDisabled={loanInput === null}
+            isRenameDisabled={listingValues === null}
             renameButtonRef={renameButtonRef}
             onRename={() => sheet.open("save", renameButtonRef.current)}
           />
@@ -184,8 +204,18 @@ function MortgageCalculator({
         {loanInput === null ? (
           <EmptyResultCard message={describeEmptyResult(draft)} />
         ) : (
-          <ResultCard input={loanInput} regulations={regulations} />
+          <ResultCard
+            input={loanInput}
+            regulations={regulations}
+            extraCosts={summarizeExtraCostRows(draft.extraCosts)}
+          />
         )}
+        <ExtraCostsSection
+          // 입력부와 같이 새로 그려 줄 오류 표시와 고른 분류를 걷는다. 형제와 key가 겹치지 않게 접두를 붙인다.
+          key={`extra-costs-${inputsKey}`}
+          rows={draft.extraCosts}
+          onChange={(rows) => draftStore.update({ extraCosts: rows })}
+        />
         <button
           ref={tradesButtonRef}
           type="button"
@@ -205,7 +235,7 @@ function MortgageCalculator({
       <div role="status" className={styles.noticeRegion}>
         {savedNotice !== null && <p className={styles.notice}>{savedNotice}</p>}
       </div>
-      {sheet.openSheet === "save" && loanInput !== null && (
+      {sheet.openSheet === "save" && listingValues !== null && (
         <SaveSheet
           initialName={pickSuggestedName(
             editingListing?.name ?? "",
@@ -214,7 +244,7 @@ function MortgageCalculator({
           )}
           isEditing={editingListing !== null}
           hasInputChanges={hasInputChanges}
-          onSave={(action, name) => saveListing(action, { ...loanInput, name })}
+          onSave={(action, name) => saveListing(action, { ...listingValues, name })}
           onCancel={sheet.close}
         />
       )}
@@ -223,6 +253,7 @@ function MortgageCalculator({
           currentSalePrice={draft.salePrice}
           isEditing={editingListing !== null}
           isLtvDefault={ltvChoiceOf(draft) === DEFAULT_CUSTOM_LTV}
+          extraCostCount={draft.extraCosts.length}
           onApply={handleScreenshotApply}
           onClose={sheet.close}
         />

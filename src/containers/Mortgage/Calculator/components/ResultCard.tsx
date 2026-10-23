@@ -4,6 +4,7 @@ import { calculateLoan, hasUnconfirmedOwnFunds } from "@/lib/utils/calculateLoan
 import { describeCondition } from "@/lib/utils/describeCondition";
 
 import CapRow from "./CapRow";
+import ExtraCostResultRows from "./ExtraCostResultRows";
 import LtvRow from "./LtvRow";
 import PurchaseCostRows from "./PurchaseCostRows";
 import RegulationBasis from "./RegulationBasis";
@@ -12,13 +13,18 @@ import ResultRow from "./ResultRow";
 
 import type { LoanInput, LoanResult } from "@/lib/types/loan";
 import type { Regulations } from "@/lib/types/regulation";
+import type { ExtraCostSummary } from "@/lib/utils/extraCosts";
 
 type ResultCardProps = {
   /** 계산할 수 있는 입력. 입력이 덜 됐을 때는 `EmptyResultCard`를 쓴다. */
   input: LoanInput;
   /** 테스트에서 미확인 fixture를 끼워 넣을 수 있도록 prop으로 받는다(ADR-008). */
   regulations: Regulations;
+  /** 추가 비용 줄의 상태. 없으면 줄이 없는 것으로 보고 두 줄을 그리지 않는다(기존 화면 그대로). */
+  extraCosts?: ExtraCostSummary;
 };
+
+const NO_EXTRA_COSTS: ExtraCostSummary = { status: "none" };
 
 type StatusNotices = {
   [Status in LoanResult["status"]]: (
@@ -52,8 +58,9 @@ const UNVERIFIED_REQUIREMENTS = "소득·무주택세대주 요건은 확인하�
 /**
  * 계산 과정을 숨기지 않는다: 기준 금액 → LTV → LTV 금액 → 상한 → 예상 한도 → 집값 중 내 돈(매매가 − 예상 한도) → 취득세 등 → 중개보수 → 자기자금.
  * 부대비용에 미확인 항목(다주택 중과 농특세)이 있으면 자기자금을 지우지 않고 그 항목만 뺀 값과 표시를 함께 보여 준다(ADR-022).
+ * 추가 비용 줄이 있으면 자기자금(답) 아래에 "추가 비용"과 "총 필요 금액"을 붙인다. 답은 자기자금 하나라 총 필요 금액은 한 단계 작게 둔다(ADR-024).
  */
-function ResultCard({ input, regulations }: ResultCardProps) {
+function ResultCard({ input, regulations, extraCosts = NO_EXTRA_COSTS }: ResultCardProps) {
   const result = calculateLoan(input, regulations);
   const statusNotice = describeStatus(result, regulations);
 
@@ -99,6 +106,7 @@ function ResultCard({ input, regulations }: ResultCardProps) {
           details={hasUnconfirmedOwnFunds(result) ? "농특세 미확인(빼고 계산한 값)" : undefined}
           variant="answer"
         />
+        <ExtraCostResultRows extraCosts={extraCosts} ownFunds={result.ownFunds} />
       </dl>
       {statusNotice !== null && <p className={styles.statusNotice}>{statusNotice}</p>}
       <p className={styles.scope}>DSR·소득 심사 미반영. 등기 비용(법무사·채권·인지세)은 제외</p>

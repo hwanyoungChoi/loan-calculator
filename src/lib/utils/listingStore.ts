@@ -28,7 +28,8 @@ function toSnapshot(result: LoadListingsResult): ListingSnapshot {
 
 /**
  * 호출 쪽 객체에 다른 키가 섞여 있어도 저장 필드만 옮긴다.
- * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를 쓰지 않는다.
+ * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를, 추가 비용이 없으면(빈 배열 포함) `extraCosts` 키를 쓰지 않는다.
+ * 로컬 저장·서버 POST·PUT·로그인 이전·공유 스냅샷이 모두 이 함수를 거친다. 여기서 빠지는 필드는 그 경로 모두에서 사라진다.
  * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022). 메모만 `update`가 따로 이어 준다.
  */
 export function toListingFields({
@@ -40,6 +41,7 @@ export function toListingFields({
   customLtvRate,
   isAreaOver85,
   memo,
+  extraCosts,
 }: ListingInput): ListingInput {
   return {
     name,
@@ -50,6 +52,7 @@ export function toListingFields({
     ...(typeof customLtvRate === "number" && { customLtvRate }),
     ...(isAreaOver85 === true && { isAreaOver85 }),
     ...(typeof memo === "string" && memo !== "" && { memo }),
+    ...(extraCosts !== undefined && extraCosts.length > 0 && { extraCosts }),
   };
 }
 

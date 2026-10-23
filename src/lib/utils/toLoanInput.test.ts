@@ -13,6 +13,7 @@ const DRAFT: Draft = {
   customLtv: null,
   isCustomLtvInput: false,
   isAreaOver85: false,
+  extraCosts: [],
 };
 
 describe("toLoanInput: 사용자 지정 LTV (AC-3, ADR-012 변환 지점)", () => {

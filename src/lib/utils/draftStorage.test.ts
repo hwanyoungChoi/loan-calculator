@@ -21,6 +21,7 @@ const DEFAULT: Draft = {
   customLtv: "70",
   isCustomLtvInput: false,
   isAreaOver85: false,
+  extraCosts: [],
 };
 
 const VALID: Draft = {
@@ -32,6 +33,7 @@ const VALID: Draft = {
   customLtv: null,
   isCustomLtvInput: false,
   isAreaOver85: false,
+  extraCosts: [],
 };
 
 /** 유효한 draft의 필드를 바꾸거나(값) 지운(undefined) 원문 */
@@ -164,6 +166,7 @@ describe("createDraftStore", () => {
       customLtv: "70",
       isCustomLtvInput: false,
       isAreaOver85: false,
+      extraCosts: [],
     };
     expect(store.getSnapshot()).toEqual(expected);
     expect(listener).toHaveBeenCalledTimes(2);
