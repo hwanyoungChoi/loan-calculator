@@ -434,7 +434,10 @@ describe("계산 화면 (통합)", () => {
         jsonResponse({ error: "notConfigured", message: "MOLIT_SERVICE_KEY" }, 503),
       );
     });
-    vi.stubGlobal("fetch", fetchMock);
+    // 앱 시작 때의 로그인 확인(/api/me)은 실거래가 요청 기록에 넣지 않는다.
+    vi.stubGlobal("fetch", (url: string) =>
+      url === "/api/me" ? Promise.resolve(jsonResponse({ user: null })) : fetchMock(url),
+    );
     renderWithQueryClient(<AppRoutes />);
 
     const openButton = screen.getByRole("button", { name: "이 지역 실거래가 보기" });

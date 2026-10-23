@@ -48,6 +48,37 @@ export type ListingWriteFailure = { ok: false; reason: "corrupt" | "unavailable"
 
 export type ListingWriteResult = { ok: true } | ListingWriteFailure;
 
+/**
+ * 저장 목록의 출처(ADR-023). loading: `/api/me` 응답 전, loggedOut: 로컬 스토어, loggedIn: 서버,
+ * error: 로그인했던 브라우저에서 `/api/me`가 실패(쓰기를 막고 로컬로 돌리지 않는다).
+ */
+export type ListingSourceStatus = "loading" | "loggedOut" | "loggedIn" | "error";
+
+/**
+ * 화면이 그리는 목록. 로컬 스냅샷 3값에 더해 출처가 정해지기 전(loading), 계정 확인 실패(accountError),
+ * 서버 목록 첫 조회 실패(loadFailed)가 있다.
+ */
+export type ListingListState =
+  ListingSnapshot | { status: "loading" } | { status: "accountError" } | { status: "loadFailed" };
+
+/**
+ * 출처를 거친 쓰기의 실패. 로컬 사유에 더해
+ * notReady: 출처가 아직 정해지지 않음(loading·error), unauthorized: 세션 만료(401),
+ * deletedElsewhere: 다른 기기에서 삭제됨(404), limit: 계정 매물 상한(500개), network: 연결·서버 오류.
+ */
+export type ListingSourceWriteFailure = {
+  ok: false;
+  reason:
+    | ListingWriteFailure["reason"]
+    | "notReady"
+    | "unauthorized"
+    | "deletedElsewhere"
+    | "limit"
+    | "network";
+};
+
+export type ListingSourceWriteResult = { ok: true } | ListingSourceWriteFailure;
+
 export type ListingStore = {
   getSnapshot: () => ListingSnapshot;
   subscribe: (listener: () => void) => () => void;

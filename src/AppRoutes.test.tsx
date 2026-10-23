@@ -147,7 +147,8 @@ describe("저장 흐름 (통합)", () => {
 
     // 목록: 기준일, 2개, 자기자금순
     expect(baseDateText()).toBeInTheDocument();
-    let list = screen.getByRole("list", { name: "저장한 매물 2개" });
+    // 로그인 확인(/api/me)이 끝나 출처가 정해진 뒤에 목록이 뜬다.
+    let list = await screen.findByRole("list", { name: "저장한 매물 2개" });
     expect(listingNames(list)).toEqual(["자이 3단지", "래미안 101동"]);
 
     // 스크롤 복원 (AC-8e): 목록 → 카드(push) → 계산 화면은 맨 위 → 뒤로 가기 → 같은 위치

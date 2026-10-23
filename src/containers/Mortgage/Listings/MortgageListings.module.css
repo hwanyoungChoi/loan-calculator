@@ -70,6 +70,27 @@
 .error {
   color: var(--color-error);
   font-size: var(--fs-body);
+  overflow-wrap: anywhere;
+}
+
+/* 받아 둔 목록은 그대로 두고 다시 조회에 실패했다는 작은 경고 */
+.warning {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--fs-small);
+}
+
+.retryButton {
+  min-height: 40px;
+  margin-top: var(--space-2);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
 }
 
 .empty {

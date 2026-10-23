@@ -9,7 +9,7 @@ import {
 
 import styles from "./SaveSheet.module.css";
 
-import type { ListingWriteFailure, ListingWriteResult } from "@/lib/types/listing";
+import type { ListingSourceWriteFailure, ListingSourceWriteResult } from "@/lib/types/listing";
 
 /** add: 새 매물로 저장, overwrite: 불러온 매물(draft.listingId)에 덮어쓰기 */
 export type SaveAction = "add" | "overwrite";
@@ -20,14 +20,21 @@ type SaveSheetProps = {
   isEditing: boolean;
   /** 입력이 불러온 저장본과 다른지(`selectSaveStatus`). 덮어쓰기가 무엇을 바꾸는지 알린다 */
   hasInputChanges: boolean;
-  onSave: (action: SaveAction, name: string) => ListingWriteResult;
+  /** 성공하면 부르는 쪽이 시트를 닫는다. 실패하면 시트와 이름을 그대로 두고 이유를 보인다. */
+  onSave: (action: SaveAction, name: string) => Promise<ListingSourceWriteResult>;
   onCancel: () => void;
 };
 
-const WRITE_FAILURE_MESSAGES: Record<ListingWriteFailure["reason"], string> = {
+const WRITE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string> = {
   unavailable: "저장하지 못했습니다. 이 브라우저에서 저장소를 사용할 수 없습니다",
   corrupt: "저장된 목록이 손상되어 저장할 수 없습니다(목록 화면에서 초기화)",
   notFound: "덮어쓸 매물이 목록에 없습니다. 새로 저장하세요",
+  notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
+  unauthorized: "로그인이 끝났습니다. 다시 로그인해 주세요",
+  // 목록을 다시 받아 편집 연결이 풀리므로 기본 버튼이 새로 저장이 된다.
+  deletedElsewhere: "다른 기기에서 삭제된 매물입니다. 새로 저장할 수 있습니다",
+  limit: "계정에는 매물을 500개까지 저장할 수 있습니다",
+  network: "저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
 const NAME_INPUT_ID = "listing-name";
@@ -52,6 +59,8 @@ function SaveSheet({ initialName, isEditing, hasInputChanges, onSave, onCancel }
   const [name, setName] = useState(initialName);
   const [nameError, setNameError] = useState<string | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
+  // 두 번 눌러 두 벌 저장되지 않게 저장 중에는 저장 버튼을 막는다.
+  const [isSaving, setIsSaving] = useState(false);
 
   const primaryAction: SaveAction = isEditing ? "overwrite" : "add";
 
@@ -60,7 +69,8 @@ function SaveSheet({ initialName, isEditing, hasInputChanges, onSave, onCancel }
     if (nameErrorOf(raw) === null) setNameError(null);
   };
 
-  const submit = (action: SaveAction) => {
+  const submit = async (action: SaveAction) => {
+    if (isSaving) return;
     const validation = validateListingName(name);
     if (!validation.ok) {
       setNameError(validation.message);
@@ -68,13 +78,15 @@ function SaveSheet({ initialName, isEditing, hasInputChanges, onSave, onCancel }
       nameInputRef.current?.focus();
       return;
     }
-    const result = onSave(action, validation.name);
+    setIsSaving(true);
+    const result = await onSave(action, validation.name);
+    setIsSaving(false);
     setWriteError(result.ok ? null : WRITE_FAILURE_MESSAGES[result.reason]);
   };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    submit(primaryAction);
+    void submit(primaryAction);
   };
 
   const describedBy = nameError === null ? NAME_COUNT_ID : `${NAME_COUNT_ID} ${NAME_ERROR_ID}`;
@@ -123,11 +135,16 @@ function SaveSheet({ initialName, isEditing, hasInputChanges, onSave, onCancel }
             취소
           </button>
           {isEditing && (
-            <button type="button" className={styles.secondaryButton} onClick={() => submit("add")}>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              disabled={isSaving}
+              onClick={() => void submit("add")}
+            >
               새로 저장
             </button>
           )}
-          <button type="submit" className={styles.primaryButton}>
+          <button type="submit" className={styles.primaryButton} disabled={isSaving}>
             {isEditing ? "덮어쓰기" : "저장"}
           </button>
         </div>

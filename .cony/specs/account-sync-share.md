@@ -136,6 +136,8 @@ type ShareKind = "listing" | "list";
 | `loan-calculator/sent-shares`     | `[{ token, kind, ownerKey, expiresAt }]` 내가 만든 링크와 끊기 키. 다음 단계 "보낸 링크 목록"이 쓴다. 지금 버리면 이미 만든 링크를 영영 못 끊는다. 쓸 때마다 `expiresAt`이 지난 항목을 걸러 내 무한히 늘지 않게 하고, 끊기에 성공한 항목은 지운다 | 1      |
 | `loan-calculator/account-imports` | `{ [userId]: string[] }` 이 기기에서 그 계정으로 옮긴(또는 옮기지 않기로 한) 매물 id 목록                                                                                                                                                         | 3      |
 
+- `loan-calculator/session-hint` (태스크 2 추가): `/api/me`가 사용자를 돌려줬을 때만 기록, `{user:null}`·로그아웃·401에 지움. `/api/me` 실패 시 이 키가 있으면 `error`(쓰기 막음), 없으면 `loggedOut`(로컬).
+
 ## API 계약
 
 ### 공통

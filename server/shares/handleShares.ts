@@ -1,5 +1,5 @@
 import { parseShareRequest } from "./parseShareRequest";
-import { randomBase64url, sha256Hex } from "./shareCrypto";
+import { randomBase64url, sha256Hex } from "../crypto/tokens";
 import { readJsonBody } from "../http/readJsonBody";
 import { errorResponse, jsonResponse, noContentResponse } from "../http/response";
 

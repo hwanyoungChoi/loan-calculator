@@ -1,9 +1,10 @@
 import { isSameAsListing } from "@/lib/utils/listingDraft";
 
-import type { Listing, ListingSnapshot } from "@/lib/types/listing";
+import type { Listing, ListingListState } from "@/lib/types/listing";
 import type { LoanInput } from "@/lib/types/loan";
 
-type SaveStatus = "ready" | "changed" | "saved" | "invalidInput" | "corrupt" | "unavailable";
+type SaveStatus =
+  "ready" | "changed" | "saved" | "invalidInput" | Exclude<ListingListState["status"], "ok">;
 
 export type SaveButtonState = {
   label: string;
@@ -24,10 +25,22 @@ const SAVE_BUTTON_STATES: Record<SaveStatus, SaveButtonState> = {
     message: "저장된 목록이 손상되어 저장할 수 없습니다(목록 화면에서 초기화)",
   },
   unavailable: { label: "저장", isDisabled: true, message: "이 브라우저에서는 저장할 수 없습니다" },
+  // 출처(로컬/계정)가 정해지기 전에 저장하면 로그인 사용자의 매물이 로컬로 가거나 편집 중인 매물이 복제된다.
+  loading: { label: "저장", isDisabled: true, message: "저장 목록을 불러오는 중입니다" },
+  accountError: {
+    label: "저장",
+    isDisabled: true,
+    message: "계정 상태를 확인하지 못해 저장할 수 없습니다(저장 목록 화면에서 다시 시도)",
+  },
+  loadFailed: {
+    label: "저장",
+    isDisabled: true,
+    message: "저장 목록을 불러오지 못해 저장할 수 없습니다(저장 목록 화면에서 다시 시도)",
+  },
 };
 
 type SaveButtonInput = {
-  listingsStatus: ListingSnapshot["status"];
+  listingsStatus: ListingListState["status"];
   /** 두 금액이 모두 유효할 때만 값이 있다 */
   loanInput: LoanInput | null;
   /** draft.listingId가 가리키는 저장본(목록에 없으면 null) */

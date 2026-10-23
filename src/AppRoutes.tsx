@@ -14,6 +14,7 @@ import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
 import { createSentShareStore } from "@/lib/utils/sentShareStorage";
+import { createSessionHintStore } from "@/lib/utils/sessionHintStorage";
 import { createTradeLookupStore } from "@/lib/utils/tradeLookupStorage";
 
 import type { Regulations } from "@/lib/types/regulation";
@@ -36,14 +37,15 @@ function createStores(storage: Storage) {
     tradeLookupStore: createTradeLookupStore({ storage }),
     budgetStore: createBudgetStore({ storage }),
     sentShareStore: createSentShareStore({ storage, now: Date.now }),
+    sessionHintStore: createSessionHintStore({ storage }),
   };
 }
 
 /** 라우트별 화면 선택은 이 파일 한 곳에서 한다. 화면들은 같은 스토어를 공유한다. */
 function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) {
-  const [{ listingStore, draftStore, tradeLookupStore, budgetStore, sentShareStore }] = useState(
-    () => createStores(storage ?? getBrowserStorage()),
-  );
+  const [
+    { listingStore, draftStore, tradeLookupStore, budgetStore, sentShareStore, sessionHintStore },
+  ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
   // 저장 시트 이름 제안. 목록의 "복사"가 채우고 계산 화면이 쓰므로 두 화면 위에 둔다.
   const [suggestedName, setSuggestedName] = useState("");
@@ -63,6 +65,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
         <MortgageShare
           token={route.token}
           listingStore={listingStore}
+          sessionHintStore={sessionHintStore}
           regulations={regulations}
           onAdded={handleSharedListingsAdded}
         />
@@ -72,12 +75,14 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       return (
         <MortgageListings
           listingStore={listingStore}
+          sessionHintStore={sessionHintStore}
           draftStore={draftStore}
           budgetStore={budgetStore}
           sentShareStore={sentShareStore}
           regulations={regulations}
           sort={route.sort}
           view={route.view}
+          login={route.login}
           onSuggestedNameChange={setSuggestedName}
           notice={listingsNotice}
           onNoticeChange={setListingsNotice}
@@ -87,6 +92,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
     return (
       <MortgageCalculator
         listingStore={listingStore}
+        sessionHintStore={sessionHintStore}
         draftStore={draftStore}
         tradeLookupStore={tradeLookupStore}
         regulations={regulations}
