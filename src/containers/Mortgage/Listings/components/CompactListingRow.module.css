@@ -1,16 +1,26 @@
 .item {
+  position: relative;
   border-bottom: 1px solid var(--color-rule);
+  background: var(--color-surface);
 }
 
 .item:last-child {
   border-bottom: 0;
 }
 
+/* 끄는 동안 원래 줄은 비운 우물로 남아 놓일 자리를 보인다. 떠 있는 줄은 DragOverlay가 그린다. */
+.placeholder {
+  composes: item;
+  background: var(--color-bg);
+}
+
+.placeholder > * {
+  opacity: 0;
+}
+
 .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
   width: 100%;
   min-height: 52px;
   padding: var(--space-2) var(--space-4);
@@ -21,67 +31,23 @@
   text-align: left;
 }
 
+/*
+ * 꾹 눌러 드는 줄. 세로 스크롤과 확대 제스처는 그대로 두고(touch-action: manipulation),
+ * 길게 누를 때 글자 선택·iOS 메뉴가 뜨지 않게 한다.
+ */
+.draggableRow {
+  composes: row;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 .row:focus-visible {
   outline-offset: -2px;
-}
-
-.nameCell {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-/* 긴 이름은 한 줄에서 말줄임한다. */
-.name {
-  min-width: 0;
-  overflow: hidden;
-  font-size: var(--fs-section);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.overBadge {
-  flex: none;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
-  background: var(--color-error-bg);
-  color: var(--color-error-ink);
-  font-size: var(--fs-tiny);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.amount {
-  flex: none;
-  font-size: var(--fs-section);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.chevron {
-  flex: none;
-  color: var(--color-text-muted);
-  font-size: var(--fs-figure);
-  transition: transform 0.15s;
-}
-
-.chevronOpen {
-  composes: chevron;
-  transform: rotate(180deg);
 }
 
 /* 펼친 상세 카드. 바탕색 우물 위에 흰 카드로 앉혀 줄과 구분한다. */
 .detail {
   padding: var(--space-3);
   background: var(--color-bg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .chevron {
-    transition: none;
-  }
 }

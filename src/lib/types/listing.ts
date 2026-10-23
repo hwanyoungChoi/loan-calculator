@@ -39,7 +39,8 @@ export type ListingInput = Pick<
   memo?: string;
 };
 
-export type ListingSort = "ownFunds" | "recent" | "name";
+/** custom은 사용자가 끌어 정한 순서(ADR-026). 방향이 없다. */
+export type ListingSort = "ownFunds" | "recent" | "name" | "custom";
 
 /** 정렬 방향. 첫째 기준에만 적용한다(ADR-025). asc = 작은·이른·가 쪽부터 */
 export type ListingSortOrder = "asc" | "desc";

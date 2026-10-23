@@ -1,0 +1,13 @@
+/* 끄는 동안 손가락을 따라 뜬 줄. 그림자는 떠 있는 것에만 쓴다. 줄(CompactListingRow .row)과 같은 높이·여백이다. */
+.lifted {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-height: 52px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lifted);
+  cursor: grabbing;
+}

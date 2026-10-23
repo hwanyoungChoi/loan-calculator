@@ -26,6 +26,9 @@
   --color-badge-text: #3d3d3d;
   --color-scrim: rgb(10 10 10 / 45%);
 
+  /* 그림자는 떠 있는 것(끌고 있는 줄)에만 쓴다. 쉬는 면에는 쓰지 않는다. */
+  --shadow-lifted: 0 8px 24px rgb(10 10 10 / 14%), 0 2px 6px rgb(10 10 10 / 10%);
+
   --radius-sheet: 12px;
   --radius-card: 8px;
   --radius-control: 6px;

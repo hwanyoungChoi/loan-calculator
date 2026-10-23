@@ -6,7 +6,14 @@ import type { Regulations } from "@/lib/types/regulation";
 /** 첫째 기준 비교값에 곱한다. 동률 처리는 방향과 상관없이 그대로다(ADR-025). */
 const ORDER_SIGN: Record<ListingSortOrder, 1 | -1> = { asc: 1, desc: -1 };
 
-type Sorter = (listings: Listing[], sign: 1 | -1, regulations: Regulations) => Listing[];
+type SortContext = {
+  sign: 1 | -1;
+  regulations: Regulations;
+  /** 직접 정렬 순서(매물 id). 없으면 null */
+  customOrder: string[] | null;
+};
+
+type Sorter = (listings: Listing[], context: SortContext) => Listing[];
 
 /** 이른 시각이 앞. ISO 문자열의 오프셋이 달라도 맞게 비교하려고 시각 값으로 비교한다. */
 function byOldest(a: string, b: string): number {
@@ -22,7 +29,7 @@ function byNewest(a: string, b: string): number {
  * 자기자금 순(asc 적은 순, desc 많은 순) → createdAt 최신순 → 입력 순서.
  * 계산 불가(미확인·요건 미충족, 자기자금 null)는 둘을 구분하지 않고 방향과 상관없이 맨 뒤에 createdAt 최신순이다.
  */
-const sortByOwnFunds: Sorter = (listings, sign, regulations) =>
+const sortByOwnFunds: Sorter = (listings, { sign, regulations }) =>
   listings
     .map((listing) => ({ listing, ownFunds: calculateLoan(listing, regulations).ownFunds }))
     .sort((a, b) => {
@@ -36,30 +43,52 @@ const sortByOwnFunds: Sorter = (listings, sign, regulations) =>
     .map(({ listing }) => listing);
 
 /** updatedAt 순(desc 최신 먼저). 자기자금을 쓰지 않으므로 미확인 여부는 순서에 영향이 없다. */
-const sortByRecent: Sorter = (listings, sign) =>
+const sortByRecent: Sorter = (listings, { sign }) =>
   listings.toSorted((a, b) => byOldest(a.updatedAt, b.updatedAt) * sign);
 
 /** 한국어 이름순. 숫자는 자연 정렬이라 "2단지"가 "10단지"보다 앞이다(ECMA-402). */
 const nameCollator = new Intl.Collator("ko", { numeric: true });
 
 /** 이름순(asc 가→하) → 같으면 createdAt 최신순 */
-const sortByName: Sorter = (listings, sign) =>
+const sortByName: Sorter = (listings, { sign }) =>
   listings.toSorted(
     (a, b) => nameCollator.compare(a.name, b.name) * sign || byNewest(a.createdAt, b.createdAt),
   );
+
+/**
+ * 직접 정렬(ADR-026). 순서에 없는 매물(새로 저장·공유로 추가·이전)은 맨 위에 createdAt 최신순,
+ * 그 아래는 순서대로다. 순서에 있지만 목록에 없는 id(지운 매물)는 무시한다. 방향은 쓰지 않는다.
+ */
+const sortByCustom: Sorter = (listings, { customOrder }) => {
+  const positions = new Map((customOrder ?? []).map((id, index) => [id, index]));
+  return listings.toSorted((a, b) => {
+    const positionA = positions.get(a.id);
+    const positionB = positions.get(b.id);
+    if (positionA === undefined || positionB === undefined) {
+      if (positionA !== positionB) return positionA === undefined ? -1 : 1;
+      return byNewest(a.createdAt, b.createdAt);
+    }
+    return positionA - positionB;
+  });
+};
 
 const SORTERS: Record<ListingSort, Sorter> = {
   ownFunds: sortByOwnFunds,
   recent: sortByRecent,
   name: sortByName,
+  custom: sortByCustom,
 };
 
-/** 정렬은 안정 정렬이고 입력 배열을 바꾸지 않는다. 결과는 현재 규제로 다시 계산한 값 기준이다(ADR-007). */
+/**
+ * 정렬은 안정 정렬이고 입력 배열을 바꾸지 않는다. 결과는 현재 규제로 다시 계산한 값 기준이다(ADR-007).
+ * `customOrder`는 직접 정렬에서만 읽는다(없으면 전부 순서에 없는 매물로 본다).
+ */
 export function sortListings(
   listings: Listing[],
   sort: ListingSort,
   order: ListingSortOrder,
   regulations: Regulations,
+  customOrder: string[] | null = null,
 ): Listing[] {
-  return SORTERS[sort](listings, ORDER_SIGN[order], regulations);
+  return SORTERS[sort](listings, { sign: ORDER_SIGN[order], regulations, customOrder });
 }

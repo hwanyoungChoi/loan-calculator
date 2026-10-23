@@ -1,0 +1,141 @@
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+  type DragStartEvent,
+  type KeyboardCodes,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { useState, type ComponentProps } from "react";
+
+import styles from "./CompactListingList.module.css";
+import CompactListingRow from "./CompactListingRow";
+import CompactListingSummary from "./CompactListingSummary";
+
+import type ListingCard from "./ListingCard";
+import type { Listing } from "@/lib/types/listing";
+
+type CardProps = Omit<ComponentProps<typeof ListingCard>, "listing">;
+
+type CompactListingListProps = CardProps & {
+  /** 보이는 순서 그대로 */
+  listings: Listing[];
+  label: string;
+  canReorder: boolean;
+  /** 놓은 뒤의 전체 순서(매물 id). 제자리에 놓으면 부르지 않는다. */
+  onReorder: (ids: string[]) => void;
+};
+
+/** 꾹 누르기(ADR-026): 약 250ms를 5px 안에서 누르고 있어야 든다. 그 전에 움직이면 스크롤이고, 짧게 떼면 펼치기다. */
+const LONG_PRESS = { delay: 250, tolerance: 5 };
+
+/** 엔터는 줄의 펼치기·접기로 남겨 두고 스페이스로 든다. 든 뒤에는 스페이스·엔터로 놓고 Esc로 취소한다. */
+const KEYBOARD_CODES: KeyboardCodes = {
+  start: ["Space"],
+  cancel: ["Escape"],
+  end: ["Space", "Enter"],
+};
+
+const SCREEN_READER_INSTRUCTIONS = {
+  draggable:
+    "순서를 바꾸려면 스페이스 키로 들고 위아래 화살표로 옮긴 뒤 스페이스나 엔터 키로 놓습니다. Esc 키로 취소합니다. 터치 화면에서는 길게 눌러 끕니다.",
+};
+
+/** 간단히 보기 목록. 줄을 들어 끌면 순서를 바꾼다(마우스·터치는 꾹 누르기, 키보드는 스페이스). */
+function CompactListingList({
+  listings,
+  label,
+  canReorder,
+  onReorder,
+  ...cardProps
+}: CompactListingListProps) {
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: LONG_PRESS }),
+    useSensor(TouchSensor, { activationConstraint: LONG_PRESS }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+      keyboardCodes: KEYBOARD_CODES,
+    }),
+  );
+  const ids = listings.map((listing) => listing.id);
+  const activeListing = listings.find((listing) => listing.id === activeId) ?? null;
+
+  const nameOf = (id: UniqueIdentifier) =>
+    listings.find((listing) => listing.id === id)?.name ?? "";
+  const positionOf = (id: UniqueIdentifier) => ids.indexOf(String(id)) + 1;
+
+  const announcements: Announcements = {
+    onDragStart: ({ active }) =>
+      `'${nameOf(active.id)}' 매물을 들었습니다. 전체 ${ids.length}개 중 ${positionOf(active.id)}번째입니다.`,
+    onDragOver: ({ active, over }) =>
+      over === null
+        ? `'${nameOf(active.id)}' 매물이 목록 밖에 있습니다.`
+        : `'${nameOf(active.id)}' 매물을 ${positionOf(over.id)}번째 자리로 옮겼습니다.`,
+    onDragEnd: ({ active, over }) =>
+      over === null
+        ? `'${nameOf(active.id)}' 매물을 놓았습니다. 순서는 그대로입니다.`
+        : `'${nameOf(active.id)}' 매물을 ${positionOf(over.id)}번째 자리에 놓았습니다.`,
+    onDragCancel: ({ active }) =>
+      `옮기기를 취소했습니다. '${nameOf(active.id)}' 매물은 ${positionOf(active.id)}번째 자리 그대로입니다.`,
+  };
+
+  const handleDragStart = ({ active }: DragStartEvent) => setActiveId(active.id);
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveId(null);
+    if (over === null || active.id === over.id) return;
+    onReorder(arrayMove(ids, ids.indexOf(String(active.id)), ids.indexOf(String(over.id))));
+  };
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      accessibility={{ announcements, screenReaderInstructions: SCREEN_READER_INSTRUCTIONS }}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
+    >
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <ul aria-label={label}>
+          {listings.map((listing) => (
+            <CompactListingRow
+              key={listing.id}
+              listing={listing}
+              canReorder={canReorder}
+              {...cardProps}
+            />
+          ))}
+        </ul>
+      </SortableContext>
+      <DragOverlay>
+        {activeListing !== null && (
+          <div className={styles.lifted}>
+            <CompactListingSummary
+              listing={activeListing}
+              regulations={cardProps.regulations}
+              budget={cardProps.budget}
+              isExpanded={false}
+            />
+          </div>
+        )}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+export default CompactListingList;

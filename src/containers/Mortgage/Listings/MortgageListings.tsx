@@ -14,12 +14,13 @@ import { accountImportProblem } from "./accountImportProblem";
 import { budgetExcess } from "./budgetExcess";
 import AccountBar from "./components/AccountBar";
 import BudgetBar from "./components/BudgetBar";
-import CompactListingRow from "./components/CompactListingRow";
+import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import ListingCard from "./components/ListingCard";
 import ListingSortGroup from "./components/ListingSortGroup";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
+import { useListingOrderSource } from "./hooks/useListingOrderSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 import { useListingsView } from "./hooks/useListingsView";
 
@@ -33,6 +34,11 @@ import type {
   ListingStore,
   ListingView,
 } from "@/lib/types/listing";
+import type {
+  ListingOrderImportStore,
+  ListingOrderSaveFailure,
+  ListingOrderStore,
+} from "@/lib/types/listingOrder";
 import type { ListingsViewState, ListingsViewStore } from "@/lib/types/listingsView";
 import type { Regulations } from "@/lib/types/regulation";
 import type { LoginResult } from "@/lib/types/route";
@@ -49,6 +55,9 @@ type MortgageListingsProps = {
   /** 로그아웃 상태의 예산 원본. 로그인 중에는 첫 이전 때 읽기만 한다. */
   budgetStore: BudgetStore;
   budgetImportStore: BudgetImportStore;
+  /** 로그아웃 상태의 직접 정렬 순서 원본. 로그인 중에는 첫 이전 때 읽기만 한다. */
+  listingOrderStore: ListingOrderStore;
+  listingOrderImportStore: ListingOrderImportStore;
   sentShareStore: SentShareStore;
   /** 마지막으로 보여 준 정렬·방향·보기. 주소에 없는 값을 채운다. */
   listingsViewStore: ListingsViewStore;
@@ -84,6 +93,16 @@ const DELETE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
   network: "삭제하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
+/** 순서 저장 실패는 원래 순서로 되돌린 뒤 알린다. unauthorized는 계정 줄이 알린다. */
+const ORDER_FAILURE_MESSAGES: Record<ListingOrderSaveFailure["reason"], string | null> = {
+  notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
+  unauthorized: null,
+  network: "순서를 저장하지 못해 원래 순서로 되돌렸습니다. 연결을 확인하고 다시 시도해 주세요",
+};
+
+/** 끌어 놓은 순서. 저장이 끝나고 주소가 직접 정렬로 바뀔 때까지 이 순서로 보인다(되돌아가 깜빡이지 않게). */
+type PendingOrder = { ids: string[]; isSaved: boolean };
+
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
 /** 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007). */
@@ -94,6 +113,8 @@ function MortgageListings({
   draftStore,
   budgetStore,
   budgetImportStore,
+  listingOrderStore,
+  listingOrderImportStore,
   sentShareStore,
   listingsViewStore,
   regulations,
@@ -113,8 +134,17 @@ function MortgageListings({
   });
   // 예산을 불러오는 중이거나 실패하면 예산 초과를 표시하지 않는다(기기 예산으로 대신 계산하지 않음).
   const budget = budgetSource.state.status === "ok" ? budgetSource.state.budget : null;
+  const orderSource = useListingOrderSource({
+    status: source.status,
+    listingOrderStore,
+    listingOrderImportStore,
+    onUnauthorized: source.expireSession,
+  });
   const { sort, order, view } = useListingsView(listingsViewStore, addressView);
+  const [pendingOrder, setPendingOrder] = useState<PendingOrder | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
+  // 끄는 손이 있는 목록 바로 위에 보인다(목록 위쪽 알림은 스크롤해 내려와 있으면 보이지 않는다).
+  const [orderError, setOrderError] = useState<string | null>(null);
   const sheet = useOpenSheet<ShareTarget>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
@@ -134,11 +164,29 @@ function MortgageListings({
     if (login !== undefined) window.location.replace(PATHS.listings({ sort, order, view }));
   }, [login, sort, order, view]);
 
+  useEffect(() => {
+    if (pendingOrder?.isSaved && sort === "custom") setPendingOrder(null);
+  }, [pendingOrder, sort]);
+
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
     source.status === "loggedIn" ? accountImportProblem(accountImport.state) : null;
+  const displayedSort = pendingOrder === null ? sort : "custom";
+  const savedOrder = orderSource.state.status === "ok" ? orderSource.state.ids : null;
   const sortedListings =
-    list.status === "ok" ? sortListings(list.listings, sort, order, regulations) : [];
+    list.status === "ok"
+      ? sortListings(
+          list.listings,
+          displayedSort,
+          order,
+          regulations,
+          pendingOrder?.ids ?? savedOrder,
+        )
+      : [];
+  // 직접 정렬인데 계정 순서를 아직 못 받았으면 다른 순서로 대신 보이지 않는다.
+  const isCustomOrderMissing =
+    displayedSort === "custom" && pendingOrder === null && orderSource.state.status !== "ok";
+  const canReorder = orderSource.state.status === "ok" && pendingOrder === null;
 
   /**
    * 정렬·방향·보기는 새로고침해도 남게 세 값을 모두 주소에 두고(기본값도 생략하지 않음), 히스토리는 쌓지 않는다.
@@ -147,6 +195,25 @@ function MortgageListings({
   const handleSortSelect = (nextSort: ListingSort) => {
     const nextOrder = nextSort === sort ? OPPOSITE_SORT_ORDER[order] : DEFAULT_SORT_ORDER[nextSort];
     window.location.replace(PATHS.listings({ sort: nextSort, order: nextOrder, view }));
+  };
+
+  /**
+   * 끌어 놓은 순서를 저장한다. 다른 정렬로 보던 중이면 보이던 순서에서 바꾼 순서로 직접 정렬이 된다.
+   * 저장하지 못하면 순서(와 바꾼 정렬)를 되돌리고 한 줄로 알린다.
+   */
+  const handleReorder = async (ids: string[]) => {
+    const previousView = { sort, order, view };
+    setPendingOrder({ ids, isSaved: false });
+    if (sort !== "custom")
+      window.location.replace(PATHS.listings({ ...previousView, sort: "custom" }));
+    const result = await orderSource.save(ids);
+    setOrderError(result.ok ? null : ORDER_FAILURE_MESSAGES[result.reason]);
+    if (result.ok) {
+      setPendingOrder((pending) => (pending?.ids === ids ? { ids, isSaved: true } : pending));
+      return;
+    }
+    setPendingOrder(null);
+    if (previousView.sort !== "custom") window.location.replace(PATHS.listings(previousView));
   };
 
   const handleViewChange = (nextView: ListingView) => {
@@ -250,7 +317,7 @@ function MortgageListings({
           onRetry={budgetSource.retry}
           isRetrying={budgetSource.isRetrying}
         />
-        <ListingSortGroup sort={sort} order={order} onSelect={handleSortSelect} />
+        <ListingSortGroup sort={displayedSort} order={order} onSelect={handleSortSelect} />
         <ChoiceGroup
           name="listingView"
           legend="보기"
@@ -264,47 +331,76 @@ function MortgageListings({
             최신 목록을 불러오지 못했습니다. 마지막으로 불러온 목록입니다
           </p>
         )}
-        {view === "compact" ? (
-          <div className={styles.compactTable}>
-            <div className={styles.compactHeader} aria-hidden="true">
-              <span>이름</span>
-              <span>필요한 자기자금</span>
-            </div>
-            <ul aria-label={listLabel}>
-              {sortedListings.map((listing) => (
-                <CompactListingRow
-                  key={listing.id}
-                  listing={listing}
-                  regulations={regulations}
-                  budget={budget}
-                  onOpen={handleOpen}
-                  onCopy={handleCopy}
-                  onDelete={handleDelete}
-                  onShare={handleShare}
-                  onSaveMemo={handleSaveMemo}
-                />
-              ))}
-            </ul>
-          </div>
-        ) : (
-          <ul className={styles.list} aria-label={listLabel}>
-            {sortedListings.map((listing) => (
-              <li key={listing.id}>
-                <ListingCard
-                  listing={listing}
-                  regulations={regulations}
-                  budget={budget}
-                  onOpen={handleOpen}
-                  onCopy={handleCopy}
-                  onDelete={handleDelete}
-                  onShare={handleShare}
-                  onSaveMemo={handleSaveMemo}
-                />
-              </li>
-            ))}
-          </ul>
+        {orderError !== null && (
+          <p role="alert" className={styles.error}>
+            {orderError}
+          </p>
         )}
+        {renderListings(listLabel)}
       </>
+    );
+  };
+
+  const renderListings = (listLabel: string) => {
+    if (isCustomOrderMissing) {
+      if (orderSource.state.status === "loadFailed") {
+        return (
+          <div className={styles.notice}>
+            <p role="alert">직접 정한 순서를 불러오지 못했습니다</p>
+            <button
+              type="button"
+              className={styles.retryButton}
+              disabled={orderSource.isRetrying}
+              onClick={orderSource.retry}
+            >
+              다시 시도
+            </button>
+          </div>
+        );
+      }
+      return (
+        <p className={styles.notice} aria-busy="true">
+          직접 정한 순서를 불러오는 중
+        </p>
+      );
+    }
+    return view === "compact" ? (
+      <div className={styles.compactTable}>
+        <div className={styles.compactHeader} aria-hidden="true">
+          <span>이름</span>
+          <span>필요한 자기자금</span>
+        </div>
+        <CompactListingList
+          listings={sortedListings}
+          label={listLabel}
+          canReorder={canReorder}
+          onReorder={handleReorder}
+          regulations={regulations}
+          budget={budget}
+          onOpen={handleOpen}
+          onCopy={handleCopy}
+          onDelete={handleDelete}
+          onShare={handleShare}
+          onSaveMemo={handleSaveMemo}
+        />
+      </div>
+    ) : (
+      <ul className={styles.list} aria-label={listLabel}>
+        {sortedListings.map((listing) => (
+          <li key={listing.id}>
+            <ListingCard
+              listing={listing}
+              regulations={regulations}
+              budget={budget}
+              onOpen={handleOpen}
+              onCopy={handleCopy}
+              onDelete={handleDelete}
+              onShare={handleShare}
+              onSaveMemo={handleSaveMemo}
+            />
+          </li>
+        ))}
+      </ul>
     );
   };
 

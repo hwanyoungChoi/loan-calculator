@@ -5,6 +5,11 @@ import { withSession } from "../server/auth/session";
 import { getBudget, importBudget, putBudget } from "../server/budget/handleBudget";
 import { routeApi } from "../server/http/router";
 import {
+  getListingOrder,
+  importListingOrder,
+  putListingOrder,
+} from "../server/listingOrder/handleListingOrder";
+import {
   createListing,
   deleteListing,
   importListings,
@@ -108,6 +113,22 @@ const API_ROUTES: ApiRoute<Env>[] = [
     methods: {
       POST: (request, env) =>
         withSession(request, env.DB, now, (userId) => importBudget(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/listing-order",
+    methods: {
+      GET: (request, env) =>
+        withSession(request, env.DB, now, (userId) => getListingOrder(env.DB, userId)),
+      PUT: (request, env) =>
+        withSession(request, env.DB, now, (userId) => putListingOrder(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/listing-order/import",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => importListingOrder(request, env.DB, userId)),
     },
   },
 ];

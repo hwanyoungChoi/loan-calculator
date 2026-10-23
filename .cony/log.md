@@ -365,3 +365,11 @@
 - AI(리드): 작은 변경이라 pm 스펙·검토 없이 fe에게 바로(사용자의 속도 요청)
 - AI(fe): 카드 메모 line-clamp 제거(`pre-wrap`), `LISTING_MEMO_MAX_LENGTH` 5000, MemoEditor 자동 높이(최대 50vh)·쉼표 글자 수, import를 바이트 기준(400KB·100개)으로 분할. 최악 크기 재계산(매물 37.5KB, 공유 하나 들어감, 목록 공유는 기존 413 문구). 로컬 curl·360px로 4,999/5,000/5,001자, 긴 메모 40개 이전(2요청), 원문 불변 확인
 - 놓침(위험): 배포 직후 새로고침 안 한 옛 탭은 500자 초과 메모가 든 목록을 손상으로 보고 [초기화]를 보여 줄 수 있음(옛 번들이라 코드로 못 막음). 사용자에게 열린 탭 새로고침·초기화 누르지 말 것 안내. 버전 확인 장치는 다음 단계 후보
+
+# 직접 정렬(드래그 순서)
+
+- 요청: 간단히 목록에서 꾹 눌러 드래그로 순서를 자유롭게 바꾸고, 서버·상세히 목록에도 같은 순서로
+- AI(리드): 사용자 속도 요청으로 pm·검토 생략, 저장은 순서만 따로(로컬 새 키·`users.listing_order`), 드래그는 `@dnd-kit` ([ADR-026](decisions/026-custom-order.md))
+- AI(be): `migrations/0004_listing_order.sql`, `/api/listing-order` GET·PUT·import(COALESCE), `isListingOrder`(500개·id 검증·중복 금지). 로컬 curl로 200·400·401·403·405·413, 마이그레이션 전후 기존 행 불변
+- AI(fe): `@dnd-kit/core` 6.3.1·`sortable` 10.0.0·`utilities` 3.2.2, 정렬 [직접], 간단히 보기 꾹 눌러(250ms) 끌기·키보드 드래그·한국어 안내, 새 키 `listing-order`·`listing-order-imports`, 출처 규칙은 예산과 같음, PUT 실패 시 되돌림, 정렬 칩 2×2. 360px 터치 에뮬레이션 67항목 통과, 기존 키 원문 불변
+- 리드: 원격 D1 0004 적용(배포 전), 기존 users 2·listings 20 그대로
