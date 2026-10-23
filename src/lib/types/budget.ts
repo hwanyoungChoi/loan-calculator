@@ -1,3 +1,5 @@
+import type { UserIdRecordStore } from "./storage";
+
 /** 내 예산(만원). null이면 예산 없음. */
 export type BudgetStore = {
   getSnapshot: () => number | null;
@@ -6,11 +8,7 @@ export type BudgetStore = {
 };
 
 /** `loan-calculator/budget-imports`: 이 기기의 예산 이전을 끝낸(또는 올릴 예산이 없던) 사용자 id */
-export type BudgetImportStore = {
-  /** 읽지 못하거나 형식이 어긋나면 기록 없음이다. */
-  has: (userId: string) => boolean;
-  add: (userId: string) => void;
-};
+export type BudgetImportStore = UserIdRecordStore;
 
 /**
  * 예산 줄이 그리는 예산. 출처가 정해지기 전(loading), 계정 확인 실패(accountError),

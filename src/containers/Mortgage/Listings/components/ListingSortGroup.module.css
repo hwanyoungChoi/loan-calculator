@@ -11,9 +11,10 @@
   font-weight: 600;
 }
 
+/* 네 칸을 한 줄에 두면 360px에서 "자기자금순"이 글자 중간에서 끊겨 2×2로 둔다. */
 .options {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--space-2);
 }
 

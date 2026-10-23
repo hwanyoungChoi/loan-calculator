@@ -98,3 +98,6 @@
 {"ts":"2026-10-23T12:30:58.472Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T12:32:40.527Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-23T12:44:13.975Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-23T12:44:56.547Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T12:45:44.728Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; R=/Users/hwanyoungchoi/cony-sandbox/loan-calculator; cd $S/wr && rm -rf sta"}
+{"ts":"2026-10-23T13:02:31.464Z","type":"hook","hook":"board-on-stop","decision":"block"}

@@ -370,3 +370,5 @@
 
 - 요청: 간단히 목록에서 꾹 눌러 드래그로 순서를 자유롭게 바꾸고, 서버·상세히 목록에도 같은 순서로
 - AI(리드): 사용자 속도 요청으로 pm·검토 생략, 저장은 순서만 따로(로컬 새 키·`users.listing_order`), 드래그는 `@dnd-kit` ([ADR-026](decisions/026-custom-order.md))
+- AI(be): `migrations/0004_listing_order.sql`, `/api/listing-order` GET·PUT·import(COALESCE), `isListingOrder`(500개·id 검증·중복 금지). 로컬 curl로 200·400·401·403·405·413, 마이그레이션 전후 기존 행 불변
+- AI(fe): `@dnd-kit/core` 6.3.1·`sortable` 10.0.0·`utilities` 3.2.2, 정렬 [직접], 간단히 보기 꾹 눌러(250ms) 끌기·키보드 드래그·한국어 안내, 새 키 `listing-order`·`listing-order-imports`, 출처 규칙은 예산과 같음, PUT 실패 시 되돌림, 정렬 칩 2×2. 360px 터치 에뮬레이션 67항목 통과, 기존 키 원문 불변

@@ -1,3 +1,5 @@
+import { HAS_SORT_ORDER } from "@/lib/constants/listingsView";
+
 import type { Route } from "@/lib/types/route";
 
 type ListingsPathParams = Omit<Extract<Route, { name: "listings" }>, "name">;
@@ -6,12 +8,13 @@ export const PATHS = {
   calculator: "#/",
   /**
    * 받은 값만 쿼리에 쓰고 기본값이어도 생략하지 않는다(값 없음 = 기억 사용, ADR-025 D2). 인자가 없으면 `#/listings`.
-   * `login`은 로그인에서 돌아온 결과(서버가 붙인다).
+   * 방향이 없는 정렬(직접)이면 `order`는 쓰지 않는다. `login`은 로그인에서 돌아온 결과(서버가 붙인다).
    */
   listings: ({ sort, order, view, login }: ListingsPathParams = {}) => {
+    const hasOrder = order !== undefined && (sort === undefined || HAS_SORT_ORDER[sort]);
     const query = new URLSearchParams({
       ...(sort !== undefined && { sort }),
-      ...(order !== undefined && { order }),
+      ...(hasOrder && { order }),
       ...(view !== undefined && { view }),
       ...(login !== undefined && { login }),
     }).toString();
