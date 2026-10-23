@@ -388,7 +388,7 @@ be와 fe가 병렬로 일해도 같은 파일을 건드리지 않도록 소유�
     - `ListingStore`(동기)는 그대로 두고 `useListingSource` 어댑터가 로컬 결과를 `Promise.resolve`로 감싸 두 출처가 같은 Promise 결과 모양을 돌려준다. 메모 편집은 로그인 시 PATCH.
     - 계산 화면 저장 시트·목록 메모·삭제의 비동기 결과 처리(저장 중, 실패, 404, 401, 500개 상한), 저장 중 입력이 바뀌면 리셋하지 않고 알림만, `loading`·`error`에서 저장 버튼 비활성 + 이유, `MemoEditor`의 입력 보존, 공유받기·공유 만들기가 로그인 상태에서 서버 목록을 쓰게. 쓰기 실패 문구는 `Record<reason, string>` 유지.
     - **깨지는 기존 테스트 수정**: `AppRoutes.test.tsx`, `MortgageCalculator.test.tsx`, `ListingCard.test.tsx` 등. 새 테스트는 쓰지 않는다. `pnpm test` 통과.
-- [ ] 3. **기존 로컬 데이터 서버 이전(기기별 로그인 시, 로컬 유지, 중복 없음)** — AC-11, AC-12
+- [x] 3. **기존 로컬 데이터 서버 이전(기기별 로그인 시, 로컬 유지, 중복 없음)** — AC-11, AC-12
   - [ ] 3-1. `useAccountImport`(`src/hooks/`, 앱 시작 시 두 화면 공통): `/api/me`가 사용자면 마커 비교 → (다른 userId 키가 있고 이 userId는 첫 이전이면 `window.confirm`, 취소 시 마커에 제외 기록) → 100개 단위 import(배치마다 마커 갱신) → 목록 무효화 → 알림. 이전이 정해질 때까지 목록 쿼리는 `enabled: false`(로딩 유지). 손상·접근 불가면 건너뛰고 안내, 실패하면 "옮기지 못했습니다 [다시 시도]". 실행 중 재진입 방지 (담당: fe, 파일 소유: `src/hooks/useAccountImport*`, `src/AppRoutes*`와 `src/containers/Mortgage/Listings/`의 알림 표시, `loan-calculator/account-imports` 헬퍼)
   - [ ] 3-2. 2·3을 한 PR로 묶어 배포, AC-6~12 확인, 실기 확인 AC-13 (담당: 리드)
   - be: 추가 작업 없음(2-3의 import 엔드포인트를 쓴다).

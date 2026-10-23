@@ -43,3 +43,5 @@
 {"ts":"2026-10-23T03:30:54.720Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-23T03:31:15.431Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T03:35:30.335Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/hooks/useAccountImport.ts"}
+{"ts":"2026-10-23T03:40:40.275Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T03:40:40.313Z","type":"task","task":3,"from":"review","to":"done","owner":null}
