@@ -13,7 +13,7 @@ export type Listing = {
   customLtvRate?: number;
   /** 전용 85㎡ 초과일 때만 키를 쓴다. 키 없음 = 85㎡ 이하(ADR-022, ADR-012 규칙). */
   isAreaOver85?: true;
-  /** 1~500자(코드포인트). 메모가 없으면 키를 쓰지 않는다(ADR-012 규칙). */
+  /** 1~5,000자(코드포인트). 메모가 없으면 키를 쓰지 않는다(ADR-012 규칙). */
   memo?: string;
   /** 1~30줄. 없으면 키를 쓰지 않는다(ADR-012 규칙, 빈 배열도 저장하지 않음). 순서 = 입력 순서(ADR-024) */
   extraCosts?: ExtraCost[];

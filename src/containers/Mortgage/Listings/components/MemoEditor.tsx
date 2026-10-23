@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 
+import { formatThousands } from "@/lib/utils/amount";
 import { LISTING_MEMO_MAX_LENGTH, validateListingMemo } from "@/lib/utils/validateListingMemo";
 import { countChars } from "@/lib/utils/validateListingName";
 
@@ -80,14 +81,14 @@ function MemoEditor({ listingName, initialMemo, onSave, onClose }: MemoEditorPro
           {listingName} 메모
         </label>
         <span id={countId} className={styles.count}>
-          {countChars(memo.trim())}/{LISTING_MEMO_MAX_LENGTH}
+          {formatThousands(countChars(memo.trim()))}/{formatThousands(LISTING_MEMO_MAX_LENGTH)}
         </span>
       </div>
       <textarea
         ref={textareaRef}
         id={id}
         className={styles.textarea}
-        rows={3}
+        rows={6}
         value={memo}
         aria-invalid={error !== null}
         aria-describedby={error === null ? countId : `${countId} ${errorId}`}

@@ -25,13 +25,20 @@
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * 긴 메모(최대 5,000자)를 고칠 수 있게 내용만큼 늘어나되(field-sizing을 지원하는 브라우저), 6줄보다 작아지지 않고
+ * 화면 절반을 넘으면 안에서 스크롤한다(저장 버튼이 멀어지지 않게). 지원하지 않는 브라우저는 rows(6줄) + 손잡이 크기 조절.
+ */
 .textarea {
   width: 100%;
+  min-height: calc(6lh + 2 * var(--space-2) + 2px);
+  max-height: 50vh;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-control);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   font: inherit;
+  field-sizing: content;
   resize: vertical;
 }
 
