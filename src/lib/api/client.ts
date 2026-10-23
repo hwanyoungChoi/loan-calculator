@@ -60,11 +60,36 @@ function toSearch(params: QueryParams): string {
   return search === "" ? "" : `?${search}`;
 }
 
-/** 같은 출처의 `/api/*`를 부르는 fetch 래퍼(ADR-014). 값이 undefined인 파라미터는 보내지 않는다. */
-async function get<T>(path: string, { params = {} }: { params?: QueryParams } = {}): Promise<T> {
-  const response = await fetch(`${path}${toSearch(params)}`);
+type RequestOptions = {
+  params?: QueryParams;
+  /** JSON으로 보낸다. */
+  body?: unknown;
+  headers?: Record<string, string>;
+};
+
+/**
+ * 같은 출처의 `/api/*`를 부르는 fetch 래퍼(ADR-014). 값이 undefined인 파라미터는 보내지 않는다.
+ * 204는 본문이 없으므로 파싱하지 않는다(공유 끊기 등).
+ */
+async function request<T>(
+  method: string,
+  path: string,
+  { params = {}, body, headers = {} }: RequestOptions = {},
+): Promise<T> {
+  const response = await fetch(`${path}${toSearch(params)}`, {
+    method,
+    headers: body === undefined ? headers : { "Content-Type": "application/json", ...headers },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
   if (!response.ok) throw new ApiRequestError(response.status, await readApiError(response));
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }
 
-export const apiClient = { get };
+export const apiClient = {
+  get: <T>(path: string, options?: Pick<RequestOptions, "params">) =>
+    request<T>("GET", path, options),
+  post: <T>(path: string, body: unknown) => request<T>("POST", path, { body }),
+  delete: (path: string, options?: Pick<RequestOptions, "headers">) =>
+    request<void>("DELETE", path, options),
+};

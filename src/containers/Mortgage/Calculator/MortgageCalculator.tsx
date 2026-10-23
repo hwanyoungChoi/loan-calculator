@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useDraft } from "@/hooks/useDraft";
 import { useListings } from "@/hooks/useListings";
+import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { findDraftListing } from "@/lib/utils/listingDraft";
@@ -18,7 +19,6 @@ import ScreenshotSheet from "./components/ScreenshotSheet";
 import SummaryBar from "./components/SummaryBar";
 import TradesSheet from "./components/TradesSheet";
 import { describeEmptyResult } from "./emptyResultMessage";
-import { useOpenSheet } from "./hooks/useOpenSheet";
 import { ltvChoiceOf } from "./ltvChoice";
 import { toNewCalculationDraft } from "./newCalculationDraft";
 import { pickSuggestedName } from "./pickSuggestedName";
@@ -41,6 +41,9 @@ type MortgageCalculatorProps = {
   onSuggestedNameChange: (name: string) => void;
 };
 
+/** 계산 화면의 시트. 한 번에 하나만 열린다(ADR-017). */
+type SheetName = "save" | "screenshot" | "trades";
+
 /** 저장 알림이 보이는 시간 */
 const SAVED_NOTICE_MS = 3000;
 
@@ -57,7 +60,7 @@ function MortgageCalculator({
   const listings = useListings(listingStore);
   // 바꾸면 입력부를 새로 그려 금액·LTV 칸의 오류 표시를 걷는다.
   const [inputsKey, setInputsKey] = useState(0);
-  const sheet = useOpenSheet();
+  const sheet = useOpenSheet<SheetName>();
   // 실거래가 단지명 필터. 시트를 닫았다 열어도 같은 조회가 캐시에서 뜨게 여기 둔다. 매물 열기는 이 화면을 새로 그려 비운다.
   const [tradeAptName, setTradeAptName] = useState("");
   const [savedNotice, setSavedNotice] = useState<string | null>(null);

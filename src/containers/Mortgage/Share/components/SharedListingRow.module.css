@@ -1,0 +1,57 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.name {
+  font-size: var(--fs-section);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.condition {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+.figures {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-1);
+}
+
+.figure {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--fs-body);
+}
+
+.figure dt {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.figure dd {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.emphasisFigure {
+  composes: figure;
+  font-weight: 700;
+}
+
+.emphasisFigure dt {
+  color: var(--color-text);
+  font-weight: 600;
+}

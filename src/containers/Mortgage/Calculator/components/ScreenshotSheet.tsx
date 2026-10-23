@@ -1,5 +1,6 @@
 import { useRef, type ChangeEvent } from "react";
 
+import Sheet from "@/components/Sheet";
 import {
   parseListingText,
   type ListingTextFailureReason,
@@ -9,7 +10,6 @@ import {
 import ListingPreview from "./ListingPreview";
 import RecognitionProgress from "./RecognitionProgress";
 import styles from "./ScreenshotSheet.module.css";
-import Sheet from "./Sheet";
 import { useScreenshotOcr, type ScreenshotOcrState } from "../hooks/useScreenshotOcr";
 
 type ScreenshotSheetProps = {

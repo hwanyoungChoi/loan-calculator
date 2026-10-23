@@ -31,7 +31,7 @@ function toSnapshot(result: LoadListingsResult): ListingSnapshot {
  * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를 쓰지 않는다.
  * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022). 메모만 `update`가 따로 이어 준다.
  */
-function toListingFields({
+export function toListingFields({
   name,
   salePrice,
   kbPrice,
@@ -114,6 +114,21 @@ export function createListingStore({ storage, createId, now }: ListingStoreOptio
       };
       const result = commit([...current.listings, listing]);
       return result.ok ? { ok: true, listing } : result;
+    },
+
+    addMany(inputs) {
+      const current = readWritableListings();
+      if (!current.ok) return current;
+      const timestamp = now();
+      const added: Listing[] = inputs.map((input) => ({
+        id: createId(),
+        ...toListingFields(input),
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      }));
+      // 한 번에 쓴다. 중간에 실패해 일부만 들어가면 다시 시도할 때 두 벌이 된다.
+      const result = commit([...current.listings, ...added]);
+      return result.ok ? { ok: true, listings: added } : result;
     },
 
     update(id, input) {

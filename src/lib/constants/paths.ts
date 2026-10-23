@@ -10,4 +10,6 @@ export const PATHS = {
     }).toString();
     return query === "" ? "#/listings" : `#/listings?${query}`;
   },
+  /** 토큰은 받은 그대로 둔다(대소문자 구분). */
+  share: (token: string) => `#/share/${token}`,
 };

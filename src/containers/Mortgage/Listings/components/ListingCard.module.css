@@ -150,27 +150,31 @@
   line-clamp: 2;
 }
 
-/* 수정·복사·메모·삭제는 카드 아래 한 줄에 둔다. 360px에서도 이름 자리를 줄이지 않는다. */
+/*
+ * 수정·복사·메모·공유·삭제는 카드 아래 한 줄에 같은 폭으로 둔다. 360px의 간단히 보기 펼침(가장 좁은 자리)에서도
+ * 줄이 넘치거나 잘리지 않게 버튼이 줄어든다. 이름 자리는 줄이지 않는다.
+ */
 .actions {
   display: flex;
-  justify-content: flex-end;
   gap: var(--space-2);
   padding: 0 var(--space-4) var(--space-4);
 }
 
 .deleteButton {
   display: inline-flex;
+  flex: 1 1 0;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
+  min-width: 0;
   min-height: 40px;
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-1);
   border: 0;
   border-radius: var(--radius-control);
   background: var(--color-raised);
   color: var(--color-error);
   font-size: var(--fs-body);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .editButton {
@@ -184,5 +188,9 @@
 }
 
 .memoButton {
+  composes: editButton;
+}
+
+.shareButton {
   composes: editButton;
 }

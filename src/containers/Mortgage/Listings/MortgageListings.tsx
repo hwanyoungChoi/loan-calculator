@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { useListings } from "@/hooks/useListings";
+import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
@@ -13,6 +14,7 @@ import BudgetBar from "./components/BudgetBar";
 import CompactListingRow from "./components/CompactListingRow";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import ListingCard from "./components/ListingCard";
+import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudget } from "./hooks/useBudget";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
 
@@ -26,11 +28,13 @@ import type {
   ListingWriteFailure,
 } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
+import type { SentShareStore } from "@/lib/types/sentShare";
 
 type MortgageListingsProps = {
   listingStore: ListingStore;
   draftStore: DraftStore;
   budgetStore: BudgetStore;
+  sentShareStore: SentShareStore;
   regulations: Regulations;
   /** 주소(`#/listings?sort=`)에서 읽은 정렬. 정렬의 단일 출처다. */
   sort: ListingSort;
@@ -38,6 +42,9 @@ type MortgageListingsProps = {
   view: ListingView;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
   onSuggestedNameChange: (name: string) => void;
+  /** 다른 화면이 남긴 알림(공유받은 매물 추가 등). 들어올 때 한 번만 보인다. */
+  notice: string | null;
+  onNoticeChange: (notice: string | null) => void;
 };
 
 const SORT_OPTIONS: { value: ListingSort; label: string }[] = [
@@ -65,15 +72,29 @@ function MortgageListings({
   listingStore,
   draftStore,
   budgetStore,
+  sentShareStore,
   regulations,
   sort,
   view,
   onSuggestedNameChange,
+  notice,
+  onNoticeChange,
 }: MortgageListingsProps) {
   const snapshot = useListings(listingStore);
   const budget = useBudget(budgetStore);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const sheet = useOpenSheet<ShareTarget>();
+  const shareListButtonRef = useRef<HTMLButtonElement>(null);
+  // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
+  const [shownNotice] = useState(notice);
   useListingsScrollRestoration();
+
+  useEffect(() => {
+    if (notice !== null) onNoticeChange(null);
+  }, [notice, onNoticeChange]);
+
+  const sortedListings =
+    snapshot.status === "ok" ? sortListings(snapshot.listings, sort, regulations) : [];
 
   /** 정렬·보기는 새로고침해도 남게 주소에 두고, 바꿀 때 히스토리는 쌓지 않는다. */
   const handleSortChange = (nextSort: ListingSort) => {
@@ -106,6 +127,15 @@ function MortgageListings({
     setDeleteError(result.ok ? null : DELETE_FAILURE_MESSAGES[result.reason]);
   };
 
+  /** 시트는 연 시점의 매물을 담는다(링크는 만든 시점의 스냅샷). */
+  const handleShare = (listing: Listing, button: HTMLButtonElement) => {
+    sheet.open({ kind: "listing", listings: [listing] }, button);
+  };
+
+  const handleShareList = () => {
+    sheet.open({ kind: "list", listings: sortedListings }, shareListButtonRef.current);
+  };
+
   const renderBody = () => {
     if (snapshot.status === "unavailable") {
       return <p className={styles.notice}>{UNAVAILABLE_MESSAGE}</p>;
@@ -125,7 +155,6 @@ function MortgageListings({
         </div>
       );
     }
-    const sortedListings = sortListings(snapshot.listings, sort, regulations);
     const overBudgetCount = sortedListings.filter(
       (listing) => budgetExcess(calculateLoan(listing, regulations).ownFunds, budget) !== null,
     ).length;
@@ -170,6 +199,7 @@ function MortgageListings({
                   onOpen={handleOpen}
                   onCopy={handleCopy}
                   onDelete={handleDelete}
+                  onShare={handleShare}
                   onSaveMemo={handleSaveMemo}
                 />
               ))}
@@ -186,6 +216,7 @@ function MortgageListings({
                   onOpen={handleOpen}
                   onCopy={handleCopy}
                   onDelete={handleDelete}
+                  onShare={handleShare}
                   onSaveMemo={handleSaveMemo}
                 />
               </li>
@@ -196,16 +227,43 @@ function MortgageListings({
     );
   };
 
+  // 시트가 열린 동안 뒤 화면은 inert로 키보드·보조기기에서 빼낸다(aria-modal이 약속하는 동작).
   return (
-    <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>저장 목록</h1>
-        <p className={styles.baseDate}>
-          규제 기준일 {regulations.baseDate} · 현재 규제로 다시 계산한 값입니다
-        </p>
-      </header>
-      {renderBody()}
-    </div>
+    <>
+      <div className={styles.page} inert={sheet.isOpen}>
+        <header className={styles.header}>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>저장 목록</h1>
+            {sortedListings.length > 0 && (
+              <button
+                ref={shareListButtonRef}
+                type="button"
+                className={styles.shareListButton}
+                onClick={handleShareList}
+              >
+                목록 공유
+              </button>
+            )}
+          </div>
+          <p className={styles.baseDate}>
+            규제 기준일 {regulations.baseDate} · 현재 규제로 다시 계산한 값입니다
+          </p>
+        </header>
+        {shownNotice !== null && (
+          <p role="status" className={styles.addedNotice}>
+            {shownNotice}
+          </p>
+        )}
+        {renderBody()}
+      </div>
+      {sheet.openSheet !== null && (
+        <ShareSheet
+          target={sheet.openSheet}
+          sentShareStore={sentShareStore}
+          onClose={sheet.close}
+        />
+      )}
+    </>
   );
 }
 

@@ -14,6 +14,35 @@
   margin-bottom: var(--space-1);
 }
 
+/* 제목 오른쪽에 [목록 공유]. 360px에서도 제목과 한 줄에 둔다. */
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.shareListButton {
+  flex: none;
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.addedNotice {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-control);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--fs-body);
+  overflow-wrap: anywhere;
+}
+
 .title {
   font-size: var(--fs-title);
   font-weight: 600;

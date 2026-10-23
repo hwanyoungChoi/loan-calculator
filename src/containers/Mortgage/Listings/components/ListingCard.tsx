@@ -21,6 +21,8 @@ type ListingCardProps = {
   onOpen: (listing: Listing) => void;
   onCopy: (listing: Listing) => void;
   onDelete: (listing: Listing) => void;
+  /** 공유 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
+  onShare: (listing: Listing, button: HTMLButtonElement) => void;
   onSaveMemo: (listing: Listing, memo: string) => ListingWriteResult;
 };
 
@@ -32,7 +34,7 @@ const STATUS_BADGES: Record<LoanResult["status"], string | null> = {
 };
 
 /**
- * 핵심 지표(매매가, KB시세, 예상 한도, 자기자금)와 조건 요약. 계산된 매물은 자기자금 아래에 내역(집값 중 내 돈, 취득세 등, 중개보수)을 작게 붙인다. 본문을 누르거나 "수정"을 누르면 계산 화면으로 열고, "복사"는 같은 값을 새 매물로 연다.
+ * 핵심 지표(매매가, KB시세, 예상 한도, 자기자금)와 조건 요약. 계산된 매물은 자기자금 아래에 내역(집값 중 내 돈, 취득세 등, 중개보수)을 작게 붙인다. 본문을 누르거나 "수정"을 누르면 계산 화면으로 열고, "복사"는 같은 값을 새 매물로 연다. "공유"는 이 매물의 공유 링크 시트를 연다.
  * 예산을 넘으면 이름 앞에 "초과"와 넘는 금액을, 예산 안이면 남는 금액을 보이고, 메모가 있으면 아래에 두 줄까지 보이고 "메모"로 카드 안에서 고친다.
  * 본문 링크와 버튼 영역은 형제라 인터랙티브 요소가 겹치지 않는다(ADR-022 D7). 목록의 `<li>`는 부모가 감싼다(상세히 보기, 간단히 보기의 펼침).
  */
@@ -43,6 +45,7 @@ function ListingCard({
   onOpen,
   onCopy,
   onDelete,
+  onShare,
   onSaveMemo,
 }: ListingCardProps) {
   const [isMemoOpen, setIsMemoOpen] = useState(false);
@@ -141,6 +144,14 @@ function ListingCard({
           onClick={() => setIsMemoOpen((isOpen) => !isOpen)}
         >
           메모
+        </button>
+        <button
+          type="button"
+          className={styles.shareButton}
+          aria-label={`${listing.name} 공유`}
+          onClick={(event) => onShare(listing, event.currentTarget)}
+        >
+          공유
         </button>
         <button
           type="button"

@@ -2,23 +2,22 @@ import { PATHS } from "@/lib/constants/paths";
 
 import styles from "./TabNav.module.css";
 
-import type { Route } from "@/lib/types/route";
+import type { TabName } from "@/lib/types/route";
 import type { MouseEvent } from "react";
 
-type RouteName = Route["name"];
-
 type TabNavProps = {
-  current: RouteName;
+  /** null이면 어느 탭도 선택 표시하지 않는다(공유받기 화면) */
+  current: TabName | null;
   /** 탭으로 화면을 바꾸기 직전에 부른다. */
   onNavigate: () => void;
 };
 
-const TABS: Record<RouteName, { label: string; href: string }> = {
+const TABS: Record<TabName, { label: string; href: string }> = {
   calculator: { label: "계산", href: PATHS.calculator },
   listings: { label: "저장 목록", href: PATHS.listings() },
 };
 
-const TAB_ORDER: RouteName[] = ["calculator", "listings"];
+const TAB_ORDER: TabName[] = ["calculator", "listings"];
 
 /** 새 탭에서 열기 같은 브라우저 기본 동작은 막지 않는다. */
 function isModifiedClick(event: MouseEvent) {

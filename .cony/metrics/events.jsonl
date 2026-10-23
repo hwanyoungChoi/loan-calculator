@@ -28,3 +28,6 @@
 {"ts":"2026-10-23T02:55:15.117Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":2}
 {"ts":"2026-10-23T02:55:25.573Z","type":"hook","hook":"verify-on-stop","decision":"block","attempts":3}
 {"ts":"2026-10-23T02:55:31.231Z","type":"hook","hook":"verify-on-stop","decision":"allow-after-max","attempts":4}
+{"ts":"2026-10-23T02:58:04.411Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T03:09:14.524Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T03:10:05.068Z","type":"hook","hook":"board-on-stop","decision":"block"}
