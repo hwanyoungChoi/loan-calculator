@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { useDraft } from "@/hooks/useDraft";
-import { useListings } from "@/hooks/useListings";
+import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { DEFAULT_CUSTOM_LTV } from "@/lib/constants/draft";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
@@ -25,14 +25,19 @@ import { pickSuggestedName } from "./pickSuggestedName";
 import { getSaveButtonState, selectSaveStatus } from "./saveButtonState";
 import { describeSummaryTag } from "./summaryTag";
 
+import type { AccountImport } from "@/hooks/useAccountImport";
 import type { DraftStore } from "@/lib/types/draft";
-import type { ListingInput, ListingStore, ListingWriteResult } from "@/lib/types/listing";
+import type { ListingInput, ListingSourceWriteResult, ListingStore } from "@/lib/types/listing";
 import type { Regulations } from "@/lib/types/regulation";
+import type { SessionHintStore } from "@/lib/types/sessionHint";
 import type { TradeLookupStore } from "@/lib/types/tradeLookup";
 import type { ParsedListingText } from "@/lib/utils/parseListingText";
 
 type MortgageCalculatorProps = {
+  /** 로그아웃 상태의 목록 원본 */
   listingStore: ListingStore;
+  sessionHintStore: SessionHintStore;
+  accountImport: AccountImport;
   draftStore: DraftStore;
   tradeLookupStore: TradeLookupStore;
   regulations: Regulations;
@@ -50,6 +55,8 @@ const SAVED_NOTICE_MS = 3000;
 /** 계산 화면은 항상 draft만 본다(ADR-004). */
 function MortgageCalculator({
   listingStore,
+  sessionHintStore,
+  accountImport,
   draftStore,
   tradeLookupStore,
   regulations,
@@ -57,7 +64,8 @@ function MortgageCalculator({
   onSuggestedNameChange: setSuggestedName,
 }: MortgageCalculatorProps) {
   const draft = useDraft(draftStore);
-  const listings = useListings(listingStore);
+  // 로그인 사용자가 서버 매물을 연 채 새로고침해도 편집 배너가 맞게 뜨도록 계산 화면도 출처를 기다린다.
+  const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   // 바꾸면 입력부를 새로 그려 금액·LTV 칸의 오류 표시를 걷는다.
   const [inputsKey, setInputsKey] = useState(0);
   const sheet = useOpenSheet<SheetName>();
@@ -103,24 +111,32 @@ function MortgageCalculator({
   const loanInput = toLoanInput(draft);
   const result = loanInput === null ? null : calculateLoan(loanInput, regulations);
   const summaryTag = describeSummaryTag(result);
-  const editingListing = findDraftListing(listings, draft.listingId);
-  const saveInput = { listingsStatus: listings.status, loanInput, editingListing };
+  const editingListing = findDraftListing(source.list, draft.listingId);
+  const saveInput = { listingsStatus: source.list.status, loanInput, editingListing };
   const saveButton = getSaveButtonState(saveInput);
   const hasInputChanges = selectSaveStatus(saveInput) !== "saved";
 
-  /** 저장·덮어쓰기에 성공하면 "새 계산"과 같은 상태로 비우고 알린 뒤, 다음 매물을 바로 입력하게 매매가로 포커스를 옮긴다. */
-  const saveListing = (action: SaveAction, input: ListingInput): ListingWriteResult => {
+  /**
+   * 저장·덮어쓰기에 성공하면 "새 계산"과 같은 상태로 비우고 알린 뒤, 다음 매물을 바로 입력하게 매매가로 포커스를 옮긴다.
+   * 저장을 기다리는 동안 입력이 바뀌었으면 비우지 않고 알리기만 한다(고친 입력이 지워지지 않게).
+   */
+  const saveListing = async (
+    action: SaveAction,
+    input: ListingInput,
+  ): Promise<ListingSourceWriteResult> => {
+    const submittedDraft = draftStore.getSnapshot();
     const saved =
       action === "add"
-        ? listingStore.add(input)
+        ? await source.add(input)
         : editingListing === null
           ? ({ ok: false, reason: "notFound" } as const)
-          : listingStore.update(editingListing.id, input);
+          : await source.update(editingListing.id, input);
     if (!saved.ok) return saved;
-    handleNewCalculation();
+    const isDraftUnchanged = draftStore.getSnapshot() === submittedDraft;
+    if (isDraftUnchanged) handleNewCalculation();
     setSavedNotice(`'${input.name}' 저장했습니다`);
     sheet.close();
-    document.getElementById(SALE_PRICE_INPUT_ID)?.focus();
+    if (isDraftUnchanged) document.getElementById(SALE_PRICE_INPUT_ID)?.focus();
     return { ok: true };
   };
 

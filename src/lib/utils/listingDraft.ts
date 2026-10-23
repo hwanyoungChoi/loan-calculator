@@ -4,7 +4,7 @@ import { isOneOf } from "./isOneOf";
 import { truncateListingName } from "./validateListingName";
 
 import type { Draft } from "@/lib/types/draft";
-import type { Listing, ListingSnapshot } from "@/lib/types/listing";
+import type { Listing, ListingListState } from "@/lib/types/listing";
 import type { LoanInput } from "@/lib/types/loan";
 
 /** 저장 매물을 열 때 draft를 통째로 바꿀 값(ADR-004). 사용자 지정 LTV가 칩 값(40·70·80)이 아니면 [직접 입력]으로 연다. */
@@ -35,7 +35,7 @@ export function copiedListingName(name: string): string {
 
 /** draft.listingId가 가리키는 매물. 정상 로드된 목록에 없으면(삭제됨) null로 본다. */
 export function findDraftListing(
-  snapshot: ListingSnapshot,
+  snapshot: ListingListState,
   listingId: string | null,
 ): Listing | null {
   if (listingId === null || snapshot.status !== "ok") return null;

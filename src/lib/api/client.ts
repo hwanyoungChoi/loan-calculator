@@ -69,7 +69,7 @@ type RequestOptions = {
 
 /**
  * 같은 출처의 `/api/*`를 부르는 fetch 래퍼(ADR-014). 값이 undefined인 파라미터는 보내지 않는다.
- * 204는 본문이 없으므로 파싱하지 않는다(공유 끊기 등).
+ * 204는 본문이 없으므로 파싱하지 않는다(공유 끊기·매물 삭제·로그아웃).
  */
 async function request<T>(
   method: string,
@@ -89,7 +89,10 @@ async function request<T>(
 export const apiClient = {
   get: <T>(path: string, options?: Pick<RequestOptions, "params">) =>
     request<T>("GET", path, options),
-  post: <T>(path: string, body: unknown) => request<T>("POST", path, { body }),
+  /** 본문 없는 POST(로그아웃)는 `body`를 넘기지 않는다. */
+  post: <T>(path: string, body?: unknown) => request<T>("POST", path, { body }),
+  put: <T>(path: string, body: unknown) => request<T>("PUT", path, { body }),
+  patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, { body }),
   delete: (path: string, options?: Pick<RequestOptions, "headers">) =>
     request<void>("DELETE", path, options),
 };

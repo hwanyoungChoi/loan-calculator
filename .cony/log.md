@@ -308,3 +308,17 @@
 - AI(리드): 360px 화면 확인 — 1차 형식 데이터 그대로 표시, 목록 공유 링크 생성, 다른 저장소(127.0.0.1)에서 받기·추가(새 id, 메모 미포함), 보낸 쪽 원문 불변
 - AI(리드): 컨벤션 검토 위반 없음. 지적 1(공유받기 화면 포커스 재조회 실패 시 목록 사라짐) 수정 — `refetchOnWindowFocus: false`. 낮은 지적(용량 초과 문구, 끊기 후 포커스·status 낭독, 경로 상수)은 남은 이슈
 - 리드: 원격 D1에 0001_shares 마이그레이션 적용
+
+## 태스크 2 — 카카오 로그인 + 서버 저장
+
+- AI(be): 2-1~2-3 세션(D1, 슬라이딩 연장)·카카오 login/callback·logout·me·`/api/listings` CRUD·PATCH 메모·import(json_each, 500개 상한), `shareCrypto`→`server/crypto/tokens.ts`. 키 없는 경로와 AC-6·AC-8 curl 확인(로컬 시크릿 미로드 설정). 실제 카카오 토큰 교환은 운영에서 처음 실행
+- AI(be): 기존 로컬 id(32자 hex, `legacy-a` 형식)가 서버 id 정규식을 통과하고 import 200 확인(AC-0)
+- AI(리드): be의 계약 해석 2건 유지 — PATCH 메모 앞뒤 공백 정리(클라이언트 규칙과 같음), 키 없을 때 callback은 failed
+- AI(fe): 2-4·2-5 `useMe`·목록 훅·`useListingSource`(loggedOut=로컬 스토어, loggedIn=서버, loading·error=쓰기 막음)·계정 줄·카카오 버튼·로그인 안내·비동기 저장 처리. 기존 테스트 3개 최소 수정(1차 형식 fixture·단언 그대로)
+- AI(fe): 새 키 `loan-calculator/session-hint` — `/api/me` 실패 시 로그인한 적 없는 브라우저는 로컬로 계속 쓰고, 로그인했던 브라우저만 쓰기를 막는다(AC-0과 출처 상태 규칙 양립)
+- AI(리드): 500개 상한은 400을 상한으로 보는 현재 규칙 유지. 360px에서 로그아웃 상태 기존 데이터·예산 그대로 + 계정 줄 확인
+
+## 태스크 3 — 로컬 데이터 이전
+
+- AI(fe): `useAccountImport`(앱에서 한 번), 100개 단위 import, `account-imports` 사용자별 기록, 이전 끝날 때까지 `loading`, 실패·상한·손상 안내, 다른 계정 기록 있으면 한 번 확인. 헤드리스 360px에서 AC-0·AC-11·AC-12(a~g)·AC-13c 32항목 통과, 로컬 원문 불변, 시험 행 정리
+- 리드: 원격 D1에 0002_accounts 마이그레이션 적용, 최종 보고서 작성

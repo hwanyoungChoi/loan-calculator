@@ -9,7 +9,7 @@ import { budgetExcess, budgetLeft } from "../budgetExcess";
 import styles from "./ListingCard.module.css";
 import MemoEditor from "./MemoEditor";
 
-import type { Listing, ListingWriteResult } from "@/lib/types/listing";
+import type { Listing, ListingSourceWriteResult } from "@/lib/types/listing";
 import type { LoanResult } from "@/lib/types/loan";
 import type { Regulations } from "@/lib/types/regulation";
 
@@ -23,7 +23,7 @@ type ListingCardProps = {
   onDelete: (listing: Listing) => void;
   /** 공유 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
   onShare: (listing: Listing, button: HTMLButtonElement) => void;
-  onSaveMemo: (listing: Listing, memo: string) => ListingWriteResult;
+  onSaveMemo: (listing: Listing, memo: string) => Promise<ListingSourceWriteResult>;
 };
 
 /** 계산하지 못한 매물 배지. 상태가 늘면 여기 등록하지 않은 것이 타입 검사에서 걸린다. */

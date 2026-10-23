@@ -136,6 +136,8 @@ type ShareKind = "listing" | "list";
 | `loan-calculator/sent-shares`     | `[{ token, kind, ownerKey, expiresAt }]` 내가 만든 링크와 끊기 키. 다음 단계 "보낸 링크 목록"이 쓴다. 지금 버리면 이미 만든 링크를 영영 못 끊는다. 쓸 때마다 `expiresAt`이 지난 항목을 걸러 내 무한히 늘지 않게 하고, 끊기에 성공한 항목은 지운다 | 1      |
 | `loan-calculator/account-imports` | `{ [userId]: string[] }` 이 기기에서 그 계정으로 옮긴(또는 옮기지 않기로 한) 매물 id 목록                                                                                                                                                         | 3      |
 
+- `loan-calculator/session-hint` (태스크 2 추가): `/api/me`가 사용자를 돌려줬을 때만 기록, `{user:null}`·로그아웃·401에 지움. `/api/me` 실패 시 이 키가 있으면 `error`(쓰기 막음), 없으면 `loggedOut`(로컬).
+
 ## API 계약
 
 ### 공통
@@ -373,7 +375,7 @@ be와 fe가 병렬로 일해도 같은 파일을 건드리지 않도록 소유�
   - [ ] 1-5. 승격: `Sheet`(+css)를 `src/components/`로, `useOpenSheet`를 `src/hooks/`로 옮기고 기존 사용처 import 수정. 공유 시트(카드 [공유], 머리글 [목록 공유], 메모 체크, 복사·공유하기·끊기, 끊은 뒤 [복사]·[공유하기] 제거 + [닫기], 101개 이상이면 안내). 360px 카드 버튼 4개 배치 (담당: fe, 파일 소유: `src/components/Sheet*`, `src/hooks/useOpenSheet.ts`, `src/containers/Mortgage/Listings/`, `src/containers/Mortgage/Calculator/components/SaveSheet.tsx` 등 import 수정, 관련 기존 테스트)
   - [ ] 1-6. `#/share/{token}` 라우트: `Route`에 `{ name: "share", token }`(토큰 대소문자 유지), `parseRoute`·`toRoutePath`·`PATHS.share(token)`, `TabNav` 좁히기(`current`가 탭 이름이거나 `null`). 공유받기 화면(응답 재검증, 로딩·성공·404/410·오류, 잘못된 토큰 모양), 로컬 스토어 일괄 추가(`addMany`, 한 번의 commit, 알려진 필드만), 완료 후 replace + 알림(메모리 상태), 로그아웃 상태 카카오톡 인앱 브라우저 안내 문구 (담당: fe, 파일 소유: `src/lib/utils/parseRoute*`, `src/lib/constants/paths.ts`, `src/lib/types/route.ts`, `src/components/TabNav.tsx`, `src/hooks/useHashRoute.ts`, `src/lib/utils/listingStore.ts`·`src/lib/types/listing.ts`, `src/AppRoutes*`, 공유받기 컨테이너 `src/containers/Mortgage/Share/`)
   - [ ] 1-7. 원격 마이그레이션 적용(`--remote`), AC-1~5 확인 (담당: 리드)
-- [ ] 2. **카카오 로그인 + 서버 저장(로그인 사용자는 서버가 원본)** — AC-6~AC-10
+- [x] 2. **카카오 로그인 + 서버 저장(로그인 사용자는 서버가 원본)** — AC-6~AC-10
   - [ ] 2-1. `migrations/0002_accounts.sql`, `server/auth/session.ts`(만들기·검증·연장·삭제, Lucia 방식, 상수 시간 비교, 슬라이딩 갱신 한 곳, 쿠키 파싱 실패는 401) (담당: be, 파일 소유: `migrations/0002_*`, `server/auth/session.ts`)
   - [ ] 2-2. `server/auth/kakao*`: login·callback(state 쿠키, 토큰·사용자 정보 호출, `AbortSignal.timeout(10_000)`, users upsert는 DO NOTHING 후 SELECT, 로그인 시 같은 사용자의 만료 세션 정리), `/api/auth/logout`, `/api/me`, `Env`에 `KAKAO_REST_API_KEY`·`KAKAO_CLIENT_SECRET`, 미설정 시 notConfigured (담당: be, 파일 소유: `server/auth/`(session.ts 제외), `worker/` 라우팅 항목, `Env` 정의)
   - [ ] 2-3. `server/listings/`: GET·POST(500개 상한)·PUT(메모 보존 단일 UPDATE)·PATCH(메모 전용 단일 UPDATE)·DELETE `/api/listings`, `/api/listings/import`(1~100개, `json_each` 한 문장, imported/skipped, 상한), id·시각 검증은 1-1의 공유 검증 함수 사용 (담당: be, 파일 소유: `server/listings/`, `worker/` 라우팅 항목)
@@ -386,7 +388,7 @@ be와 fe가 병렬로 일해도 같은 파일을 건드리지 않도록 소유�
     - `ListingStore`(동기)는 그대로 두고 `useListingSource` 어댑터가 로컬 결과를 `Promise.resolve`로 감싸 두 출처가 같은 Promise 결과 모양을 돌려준다. 메모 편집은 로그인 시 PATCH.
     - 계산 화면 저장 시트·목록 메모·삭제의 비동기 결과 처리(저장 중, 실패, 404, 401, 500개 상한), 저장 중 입력이 바뀌면 리셋하지 않고 알림만, `loading`·`error`에서 저장 버튼 비활성 + 이유, `MemoEditor`의 입력 보존, 공유받기·공유 만들기가 로그인 상태에서 서버 목록을 쓰게. 쓰기 실패 문구는 `Record<reason, string>` 유지.
     - **깨지는 기존 테스트 수정**: `AppRoutes.test.tsx`, `MortgageCalculator.test.tsx`, `ListingCard.test.tsx` 등. 새 테스트는 쓰지 않는다. `pnpm test` 통과.
-- [ ] 3. **기존 로컬 데이터 서버 이전(기기별 로그인 시, 로컬 유지, 중복 없음)** — AC-11, AC-12
+- [x] 3. **기존 로컬 데이터 서버 이전(기기별 로그인 시, 로컬 유지, 중복 없음)** — AC-11, AC-12
   - [ ] 3-1. `useAccountImport`(`src/hooks/`, 앱 시작 시 두 화면 공통): `/api/me`가 사용자면 마커 비교 → (다른 userId 키가 있고 이 userId는 첫 이전이면 `window.confirm`, 취소 시 마커에 제외 기록) → 100개 단위 import(배치마다 마커 갱신) → 목록 무효화 → 알림. 이전이 정해질 때까지 목록 쿼리는 `enabled: false`(로딩 유지). 손상·접근 불가면 건너뛰고 안내, 실패하면 "옮기지 못했습니다 [다시 시도]". 실행 중 재진입 방지 (담당: fe, 파일 소유: `src/hooks/useAccountImport*`, `src/AppRoutes*`와 `src/containers/Mortgage/Listings/`의 알림 표시, `loan-calculator/account-imports` 헬퍼)
   - [ ] 3-2. 2·3을 한 PR로 묶어 배포, AC-6~12 확인, 실기 확인 AC-13 (담당: 리드)
   - be: 추가 작업 없음(2-3의 import 엔드포인트를 쓴다).

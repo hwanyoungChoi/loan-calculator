@@ -1,5 +1,16 @@
 import { handleAptTrades } from "../server/aptTrades/handleAptTrades";
+import { getMe, logout } from "../server/auth/handleAccount";
+import { finishKakaoLogin, startKakaoLogin } from "../server/auth/handleKakaoAuth";
+import { withSession } from "../server/auth/session";
 import { routeApi } from "../server/http/router";
+import {
+  createListing,
+  deleteListing,
+  importListings,
+  listListings,
+  replaceListing,
+  updateListingMemo,
+} from "../server/listings/handleListings";
 import { createShare, getShare, revokeShare } from "../server/shares/handleShares";
 
 import type { ApiRoute } from "../server/http/router";
@@ -7,6 +18,8 @@ import type { ApiRoute } from "../server/http/router";
 // 시크릿은 wrangler.jsonc에 없어서 `wrangler types`로 만들지 않고 손으로 쓴다.
 interface Env {
   MOLIT_SERVICE_KEY?: string;
+  KAKAO_REST_API_KEY?: string;
+  KAKAO_CLIENT_SECRET?: string;
   DB: D1Database;
   ASSETS: Fetcher;
 }
@@ -30,6 +43,54 @@ const API_ROUTES: ApiRoute<Env>[] = [
     methods: {
       GET: (_request, env, { token }) => getShare(token, env.DB, now),
       DELETE: (request, env, { token }) => revokeShare(request, token, env.DB),
+    },
+  },
+  {
+    path: "/api/auth/kakao/login",
+    methods: { GET: (request, env) => startKakaoLogin(request, env) },
+  },
+  {
+    path: "/api/auth/kakao/callback",
+    methods: { GET: (request, env) => finishKakaoLogin(request, env, env.DB, { fetch, now }) },
+  },
+  {
+    path: "/api/auth/logout",
+    methods: { POST: (request, env) => logout(request, env.DB) },
+  },
+  {
+    path: "/api/me",
+    methods: { GET: (request, env) => getMe(request, env.DB, now) },
+  },
+  {
+    path: "/api/listings",
+    methods: {
+      GET: (request, env) =>
+        withSession(request, env.DB, now, (userId) => listListings(env.DB, userId)),
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => createListing(request, env.DB, userId, now)),
+    },
+  },
+  // `/api/listings/:id`보다 먼저 둔다(첫 번째로 맞는 경로를 쓴다).
+  {
+    path: "/api/listings/import",
+    methods: {
+      POST: (request, env) =>
+        withSession(request, env.DB, now, (userId) => importListings(request, env.DB, userId)),
+    },
+  },
+  {
+    path: "/api/listings/:id",
+    methods: {
+      PUT: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) =>
+          replaceListing(request, id, env.DB, userId, now),
+        ),
+      PATCH: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) =>
+          updateListingMemo(request, id, env.DB, userId, now),
+        ),
+      DELETE: (request, env, { id }) =>
+        withSession(request, env.DB, now, (userId) => deleteListing(id, env.DB, userId)),
     },
   },
 ];

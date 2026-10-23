@@ -53,10 +53,12 @@
 .hint {
   color: var(--color-text-muted);
   font-size: var(--fs-small);
+  word-break: keep-all;
 }
 
 .primaryButton,
 .primaryLink,
+.secondaryButton,
 .secondaryLink {
   display: inline-flex;
   align-items: center;
@@ -77,8 +79,17 @@
   color: var(--color-text-muted);
 }
 
+.secondaryButton,
 .secondaryLink {
   border: 1px solid var(--color-control);
   background: var(--color-surface);
   color: var(--color-text);
+}
+
+/* 로그아웃 상태 안내 뒤에 [카카오로 로그인]을 붙인다. 링크는 줄을 바꿔도 왼쪽에 둔다. */
+.loginHint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }
