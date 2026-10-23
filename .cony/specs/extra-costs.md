@@ -236,7 +236,7 @@ curl -i -X POST http://localhost:8788/api/listings \
 
 ### 태스크 목록
 
-- [ ] 1. **엔드투엔드 최소: 계산 화면에서 적고, 결과에 보이고, 저장·다시 열기·덮어쓰기** (검증 함수가 공용이라 로그인 상태 서버 저장도 이 태스크로 동작한다. 서버 확인은 태스크 3) — AC-0, AC-1~AC-3
+- [x] 1. **엔드투엔드 최소: 계산 화면에서 적고, 결과에 보이고, 저장·다시 열기·덮어쓰기** (검증 함수가 공용이라 로그인 상태 서버 저장도 이 태스크로 동작한다. 서버 확인은 태스크 3) — AC-0, AC-1~AC-3
   - [ ] 1-1. **선행·be 단독(계약)**: `ExtraCost` 타입·상수 파일, `validateListingFields`에 `extraCosts` 검증과 알려진 키만 다시 만들기(빈 배열은 키 없음), `listing.ts` 필드 추가(예외). 서버 핸들러(POST·PUT·PATCH·import·shares)를 읽어 바꿀 곳이 없는지 확인하고 결과를 PR 설명에 적는다. 로컬 `wrangler dev`에서 AC-6 curl을 먼저 돌린다. `pnpm lint`·`format:check`·`test`·`build` 통과 후 커밋. (담당: be)
   - [ ] 1-2. 계산·draft 기반 (담당: fe, 파일: `src/lib/utils/extraCosts.ts`(새), `src/lib/types/draft.ts`, `src/lib/constants/draft.ts`, `src/lib/utils/draftStorage.ts`, `src/lib/utils/listingDraft.ts`, `src/lib/utils/listingStore.ts`의 `toListingFields`, `src/containers/Mortgage/Calculator/newCalculationDraft.ts`·`applyListingText.ts`·`saveButtonState.ts`, 깨지는 기존 테스트)
     - `parseDraft`는 `extraCosts`만 관대하게(없음·틀림 = `[]`, 다른 필드는 유지).
@@ -245,9 +245,9 @@ curl -i -X POST http://localhost:8788/api/listings \
   - [ ] 1-3. 화면 (담당: fe, 파일: `src/containers/Mortgage/Calculator/`의 `MortgageCalculator.tsx`, `components/ExtraCostsSection.tsx`(+css, 새), `components/ResultCard.tsx`(+필요 시 `ResultRow`), `extraCostPresets.ts`(새))
     - 분류 선택·칩·[직접 입력]·줄 편집·삭제 후 포커스·30줄 상한·오류 문구, 결과 카드 두 줄, 저장 입력에 `extraCosts`.
   - [ ] 1-4. 리드: AC-0(배포 전 프로필 준비 포함)·AC-1~AC-3 확인.
-- [ ] 2. **저장 목록 카드에 합계·총 필요 금액·내역** — AC-4
+- [x] 2. **저장 목록 카드에 합계·총 필요 금액·내역** — AC-4
   - [ ] 2-1. `ListingCard`에 두 줄과 본문 링크 밖 `<details>` 내역(분류별 묶음은 1-2의 `groupExtraCosts`), 360px 배치. `CompactListingRow`·정렬·예산은 바꾸지 않는다. (담당: fe, 파일: `src/containers/Mortgage/Listings/components/ListingCard.tsx`(+css), 필요 시 `components/ExtraCostList.tsx`(새))
-- [ ] 3. **서버·공유·이전에서 함께 다루기** — AC-5~AC-7
+- [x] 3. **서버·공유·이전에서 함께 다루기** — AC-5~AC-7
   - [ ] 3-1. `useAccountImport`의 배치 크기 100 → 40(주석에 크기 계산 근거), 공유 시트의 `payloadTooLarge` 문구, 공유받기 매물 줄에 추가 비용·총 필요 금액 한 줄. (담당: fe, 파일: `src/hooks/useAccountImport.ts`, `src/containers/Mortgage/Listings/components/ShareSheet.tsx`, `src/containers/Mortgage/Share/components/SharedListingRow.tsx`(+css))
   - [ ] 3-2. 원격 확인: AC-5(D1 `data`)·AC-6(운영 curl)·AC-7. 마이그레이션 없음을 확인. (담당: 리드, be가 curl 스크립트 제공)
 

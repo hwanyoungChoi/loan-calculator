@@ -59,3 +59,10 @@
 {"ts":"2026-10-23T04:43:07.024Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; P=/Users/hwanyoungchoi/cony-sandbox/loan-calculator; rm -rf $S/main-src && "}
 {"ts":"2026-10-23T04:52:07.625Z","type":"task","task":1,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-23T04:52:26.348Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:54:38.505Z","type":"task","task":1,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T04:54:53.358Z","type":"task","task":2,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-23T04:54:53.381Z","type":"task","task":2,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T04:54:53.415Z","type":"task","task":2,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T04:54:53.438Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-23T04:54:53.460Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
+{"ts":"2026-10-23T04:54:53.495Z","type":"task","task":3,"from":"review","to":"done","owner":null}
