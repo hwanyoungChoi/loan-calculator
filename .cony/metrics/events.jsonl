@@ -45,3 +45,10 @@
 {"ts":"2026-10-23T03:35:30.335Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/hooks/useAccountImport.ts"}
 {"ts":"2026-10-23T03:40:40.275Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-23T03:40:40.313Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T03:41:28.093Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T03:43:19.641Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-23T04:13:36.909Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-23T04:13:59.828Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:26:05.044Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:28:25.525Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:29:39.841Z","type":"task","task":1,"from":"todo","to":"progress","owner":"be"}
