@@ -1,3 +1,4 @@
+import type { ExtraCost } from "./extraCost";
 import type { Borrower, Region } from "./regulation";
 import type { StorageWriteResult } from "./storage";
 
@@ -14,6 +15,8 @@ export type Listing = {
   isAreaOver85?: true;
   /** 1~500자(코드포인트). 메모가 없으면 키를 쓰지 않는다(ADR-012 규칙). */
   memo?: string;
+  /** 1~30줄. 없으면 키를 쓰지 않는다(ADR-012 규칙, 빈 배열도 저장하지 않음). 순서 = 입력 순서(ADR-024) */
+  extraCosts?: ExtraCost[];
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */
@@ -23,7 +26,14 @@ export type Listing = {
 /** add/update에 넘기는 값. id와 시각은 스토어가 채운다. */
 export type ListingInput = Pick<
   Listing,
-  "name" | "salePrice" | "kbPrice" | "region" | "borrower" | "customLtvRate" | "isAreaOver85"
+  | "name"
+  | "salePrice"
+  | "kbPrice"
+  | "region"
+  | "borrower"
+  | "customLtvRate"
+  | "isAreaOver85"
+  | "extraCosts"
 > & {
   /** 키가 있으면 메모를 이 값으로 바꾸고(빈 문자열이면 지움), 키가 없으면 덮어쓰기에서도 기존 메모를 둔다. */
   memo?: string;
