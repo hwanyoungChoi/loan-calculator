@@ -28,6 +28,7 @@ describe("listingToDraft (AC-7 카드 열기)", () => {
       customLtv: null,
       isCustomLtvInput: false,
       isAreaOver85: false,
+      extraCosts: [],
     });
   });
 });

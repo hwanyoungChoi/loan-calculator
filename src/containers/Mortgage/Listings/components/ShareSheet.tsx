@@ -29,11 +29,24 @@ const TITLES: Record<ShareKind, (listings: Listing[]) => string> = {
 
 const MEMO_HINT_ID = "share-memo-hint";
 
-/** 서버가 이유를 보냈으면 그대로, 아니면(연결 실패 등) 연결 확인 안내 */
-function describeCreateError(error: Error): string {
-  return error instanceof ApiRequestError && error.body !== null
-    ? `링크를 만들지 못했습니다(${error.body.message})`
-    : "링크를 만들지 못했습니다. 연결을 확인하고 다시 시도해 주세요";
+/**
+ * 128KB를 넘었을 때(413 payloadTooLarge). 매물 하나는 최악에도 들어가므로 하나씩 보내기를 권하고,
+ * 메모를 보내는 중이면 메모 빼기도 권한다(ADR-024 D3·C5). 서버 문구("요청 본문은 128KB 이하…")는 보이지 않는다.
+ */
+function describePayloadTooLarge(includeMemo: boolean): string {
+  return includeMemo
+    ? "내용이 많아 링크 하나에 담을 수 없습니다. 메모를 빼거나 매물을 하나씩 공유해 주세요"
+    : "내용이 많아 링크 하나에 담을 수 없습니다. 매물을 하나씩 공유해 주세요";
+}
+
+/** 크기 초과는 할 일을 알리고, 그 밖에 서버가 이유를 보냈으면 그대로, 아니면(연결 실패 등) 연결 확인 안내 */
+function describeCreateError(error: Error, includeMemo: boolean): string {
+  if (!(error instanceof ApiRequestError) || error.body === null) {
+    return "링크를 만들지 못했습니다. 연결을 확인하고 다시 시도해 주세요";
+  }
+  return error.body.error === "payloadTooLarge"
+    ? describePayloadTooLarge(includeMemo)
+    : `링크를 만들지 못했습니다(${error.body.message})`;
 }
 
 /**
@@ -85,7 +98,7 @@ function ShareSheet({ target, sentShareStore, onClose }: ShareSheetProps) {
         )}
         {createShare.isError && (
           <p role="alert" className={styles.error}>
-            {describeCreateError(createShare.error)}
+            {describeCreateError(createShare.error, includeMemo)}
           </p>
         )}
         <button

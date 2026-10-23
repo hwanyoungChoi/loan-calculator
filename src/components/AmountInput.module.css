@@ -9,6 +9,16 @@
   font-weight: 600;
 }
 
+/* 화면에서는 숨기고 보조기기에는 읽힌다(isCompact) */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .control {
   position: relative;
 }

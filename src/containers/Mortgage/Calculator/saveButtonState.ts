@@ -1,10 +1,16 @@
 import { isSameAsListing } from "@/lib/utils/listingDraft";
 
+import type { ExtraCost } from "@/lib/types/extraCost";
 import type { Listing, ListingListState } from "@/lib/types/listing";
 import type { LoanInput } from "@/lib/types/loan";
 
 type SaveStatus =
-  "ready" | "changed" | "saved" | "invalidInput" | Exclude<ListingListState["status"], "ok">;
+  | "ready"
+  | "changed"
+  | "saved"
+  | "invalidInput"
+  | "invalidExtraCosts"
+  | Exclude<ListingListState["status"], "ok">;
 
 export type SaveButtonState = {
   label: string;
@@ -19,6 +25,8 @@ const SAVE_BUTTON_STATES: Record<SaveStatus, SaveButtonState> = {
   changed: { label: "변경 저장", isDisabled: false, message: null },
   saved: { label: "저장됨", isDisabled: true, message: null },
   invalidInput: { label: "저장", isDisabled: true, message: null },
+  // 추가 비용 영역은 결과 카드 아래라 화면 밖일 수 있다. 줄 아래 오류와 별도로 버튼 옆에서 알린다.
+  invalidExtraCosts: { label: "저장", isDisabled: true, message: "추가 비용 항목을 확인하세요" },
   corrupt: {
     label: "저장",
     isDisabled: true,
@@ -43,6 +51,8 @@ type SaveButtonInput = {
   listingsStatus: ListingListState["status"];
   /** 두 금액이 모두 유효할 때만 값이 있다 */
   loanInput: LoanInput | null;
+  /** 추가 비용 줄이 모두 유효할 때만 값이 있다(줄이 없으면 빈 배열, `toExtraCosts`) */
+  extraCosts: ExtraCost[] | null;
   /** draft.listingId가 가리키는 저장본(목록에 없으면 null) */
   editingListing: Listing | null;
 };
@@ -51,12 +61,14 @@ type SaveButtonInput = {
 export function selectSaveStatus({
   listingsStatus,
   loanInput,
+  extraCosts,
   editingListing,
 }: SaveButtonInput): SaveStatus {
   if (listingsStatus !== "ok") return listingsStatus;
+  if (extraCosts === null) return "invalidExtraCosts";
   if (loanInput === null) return "invalidInput";
   if (editingListing === null) return "ready";
-  return isSameAsListing(loanInput, editingListing) ? "saved" : "changed";
+  return isSameAsListing({ ...loanInput, extraCosts }, editingListing) ? "saved" : "changed";
 }
 
 export function getSaveButtonState(input: SaveButtonInput): SaveButtonState {

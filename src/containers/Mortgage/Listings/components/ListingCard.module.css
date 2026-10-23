@@ -122,6 +122,67 @@
   font-size: var(--fs-tiny);
 }
 
+/*
+ * 추가 비용·총 필요 금액: 자기자금(답)보다 한 단계 약하게, 내역(작고 흐림)의 하위로 읽히지 않게 위를 띄운다(ADR-024).
+ * 예산·정렬은 자기자금 기준이라 총 필요 금액을 답처럼 키우지 않는다.
+ */
+.extraFigure {
+  composes: figure;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-rule);
+}
+
+.totalFigure {
+  composes: figure;
+  font-weight: 600;
+}
+
+.totalFigure dt {
+  color: var(--color-text);
+}
+
+/* [추가 비용 내역 n개]: 본문 링크 밖의 펼침. 메모 우물과 같은 들여쓰기 */
+.extraCosts {
+  margin: 0 var(--space-4) var(--space-3);
+  font-size: var(--fs-small);
+}
+
+.extraCostsSummary {
+  padding: var(--space-2) 0;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 3px;
+}
+
+.extraCostGroups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+}
+
+.extraCostGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.extraCostGroupTitle {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.extraCostItems {
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
 /* 메모는 계산 값과 섞이지 않게 옅은 우물에 담고, 두 줄까지만 미리 보인다. */
 .memo {
   display: flex;

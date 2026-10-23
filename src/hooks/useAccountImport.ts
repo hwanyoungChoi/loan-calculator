@@ -15,8 +15,14 @@ import type {
 } from "@/lib/types/accountImport";
 import type { Listing, ListingSnapshot, ListingStore } from "@/lib/types/listing";
 
-/** `/api/listings/import` 한 요청의 최대 개수(서버 계약 1~100개) */
-const IMPORT_BATCH_SIZE = 100;
+/**
+ * `/api/listings/import` 한 요청의 개수(서버 계약 1~100개, 본문 512KB = 524,288바이트).
+ * 개수가 아니라 크기가 먼저 찬다. 매물 하나(import 항목)는 최악 10,628바이트다: 추가 비용 30줄 × (55 + 이름 30자 × 6바이트)
+ * + 키·대괄호 16 = 7,065, 기존 필드(이름 40자·메모 500자를 6바이트로) 3,403, id·시각 160(스펙 extra-costs "크기 상한 계산").
+ * 40개 × 10,628 = 425,120바이트(+ 봉투)라 약 97KB 여유가 있다. 49개까지 들어가고 50개는 넘으며, 100개는 한글만으로도 넘는다.
+ * 추가 비용 상한(`EXTRA_COST_MAX_ITEMS`·이름 길이)이나 메모·이름 상한을 올리면 다시 계산한다(ADR-024 D4).
+ */
+const IMPORT_BATCH_SIZE = 40;
 
 export type AccountImport = {
   /** 아직 이 사용자의 이전을 시작하지 않았으면 null */
@@ -52,7 +58,7 @@ type ImportLocalListingsOptions = {
 };
 
 /**
- * 이 기기의 로컬 매물 중 이 계정으로 아직 옮기지 않은 것을 100개 단위로 보낸다.
+ * 이 기기의 로컬 매물 중 이 계정으로 아직 옮기지 않은 것을 40개 단위로 보낸다.
  * 로컬 목록은 읽기만 한다(AC-0). 요청이 성공할 때마다 그 id를 기록해, 서버에서 지운 매물이 다시 로그인할 때 되살아나지 않는다.
  * 이 기기에 다른 계정의 기록이 있고 이 계정은 처음이면 한 번 묻는다(한 기기를 둘이 쓰는 경우, 스펙 U6).
  */

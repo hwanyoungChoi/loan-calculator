@@ -12,6 +12,8 @@ type ListingPreviewProps = {
   isEditing: boolean;
   /** LTV 직접 입력이 이미 기본값(켜짐·70)인지. 아니면 적용 때 기본값으로 돌아간다는 것을 알린다. */
   isLtvDefault: boolean;
+  /** 지금 추가 비용 줄 수. 적용하면 비워진다(스펙 U6). */
+  extraCostCount: number;
 };
 
 const NOT_FOUND = "찾지 못함";
@@ -22,6 +24,7 @@ function ListingPreview({
   currentSalePrice,
   isEditing,
   isLtvDefault,
+  extraCostCount,
 }: ListingPreviewProps) {
   const salePriceText = formatManwon(parsed.salePrice);
   const current = validateAmount(currentSalePrice);
@@ -35,6 +38,7 @@ function ListingPreview({
     ...(parsed.complexName === null ? [] : ["실거래가 단지명 칸에도 채웁니다"]),
     ...(isEditing ? ["불러온 매물에 덮어쓰지 않고 새 매물로 계산합니다"] : []),
     ...(isLtvDefault ? [] : [`LTV는 기본 ${DEFAULT_CUSTOM_LTV}%로 돌아갑니다`]),
+    ...(extraCostCount === 0 ? [] : [`추가 비용 ${extraCostCount}줄이 비워집니다`]),
   ];
 
   return (

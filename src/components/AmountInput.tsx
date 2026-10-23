@@ -13,11 +13,24 @@ type AmountInputProps = {
   error: string | null;
   onChange: (value: string) => void;
   onBlur: () => void;
+  /**
+   * 목록의 줄처럼 칸이 여러 개 반복되는 자리. 라벨은 보조기기에만 남기고 힌트 줄을 빼 높이를 줄인다.
+   * 쉼표와 "만원" 단위는 칸 안에 그대로 보인다.
+   */
+  isCompact?: boolean;
 };
 
 const HINT_PLACEHOLDER = "만원 단위로 입력";
 
-function AmountInput({ id, label, value, error, onChange, onBlur }: AmountInputProps) {
+function AmountInput({
+  id,
+  label,
+  value,
+  error,
+  onChange,
+  onBlur,
+  isCompact = false,
+}: AmountInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingCaretChars = useRef<number | null>(null);
 
@@ -41,11 +54,11 @@ function AmountInput({ id, label, value, error, onChange, onBlur }: AmountInputP
   const hint = validation.status === "valid" ? formatManwon(validation.value) : HINT_PLACEHOLDER;
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
-  const describedBy = error === null ? hintId : `${hintId} ${errorId}`;
+  const describedIds = [...(isCompact ? [] : [hintId]), ...(error === null ? [] : [errorId])];
 
   return (
     <div className={styles.field}>
-      <label className={styles.label} htmlFor={id}>
+      <label className={isCompact ? styles.visuallyHidden : styles.label} htmlFor={id}>
         {label}
       </label>
       <div className={styles.control}>
@@ -59,7 +72,7 @@ function AmountInput({ id, label, value, error, onChange, onBlur }: AmountInputP
           enterKeyHint="next"
           value={toAmountInputText(value)}
           aria-invalid={error !== null}
-          aria-describedby={describedBy}
+          aria-describedby={describedIds.length === 0 ? undefined : describedIds.join(" ")}
           onChange={handleChange}
           onBlur={onBlur}
         />
@@ -67,9 +80,11 @@ function AmountInput({ id, label, value, error, onChange, onBlur }: AmountInputP
           만원
         </span>
       </div>
-      <p id={hintId} className={styles.hint}>
-        {hint}
-      </p>
+      {!isCompact && (
+        <p id={hintId} className={styles.hint}>
+          {hint}
+        </p>
+      )}
       {error !== null && (
         <p id={errorId} className={styles.error}>
           {error}

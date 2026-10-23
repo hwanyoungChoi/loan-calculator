@@ -13,6 +13,7 @@ const DRAFT: Draft = {
   customLtv: "",
   isCustomLtvInput: false,
   isAreaOver85: false,
+  extraCosts: [],
 };
 
 describe("describeEmptyResult (결과 카드 빈 상태 안내)", () => {

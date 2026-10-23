@@ -55,3 +55,11 @@
   color: var(--color-text);
   font-weight: 600;
 }
+
+.extraCosts {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  overflow-wrap: anywhere;
+}

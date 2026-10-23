@@ -19,6 +19,8 @@ type ScreenshotSheetProps = {
   isEditing: boolean;
   /** LTV 직접 입력이 이미 기본값인지. 아니면 적용 때 기본값으로 돌아간다는 것을 알린다. */
   isLtvDefault: boolean;
+  /** 지금 추가 비용 줄 수. 적용하면 비워지므로 0이 아니면 알린다(ADR-024 C3). */
+  extraCostCount: number;
   onApply: (parsed: ParsedListingText) => void;
   onClose: () => void;
 };
@@ -42,6 +44,7 @@ function ScreenshotSheet({
   currentSalePrice,
   isEditing,
   isLtvDefault,
+  extraCostCount,
   onApply,
   onClose,
 }: ScreenshotSheetProps) {
@@ -92,6 +95,7 @@ function ScreenshotSheet({
             currentSalePrice={currentSalePrice}
             isEditing={isEditing}
             isLtvDefault={isLtvDefault}
+            extraCostCount={extraCostCount}
           />
         )}
         {parsed?.ok === false && <p className={styles.error}>{FAILURE_MESSAGES[parsed.reason]}</p>}

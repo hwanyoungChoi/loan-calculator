@@ -190,7 +190,8 @@ describe("계산 화면 (통합)", () => {
     expect(screen.getByRole("radio", { name: "규제지역" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "무주택" })).toBeChecked();
     expect(screen.getByRole("radio", { name: "70%" })).toBeChecked();
-    expect(screen.getAllByRole("radio", { checked: true })).toHaveLength(3);
+    // 넷째는 추가 비용 분류(기본 인테리어, ADR-024)
+    expect(screen.getAllByRole("radio", { checked: true })).toHaveLength(4);
 
     // 보유 상태 라디오는 5개이고 화면 순서가 스펙과 같다.
     const borrowerRadios = within(screen.getByRole("group", { name: "보유 상태" })).getAllByRole(

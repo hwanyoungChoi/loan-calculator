@@ -19,4 +19,5 @@ export const DEFAULT_DRAFT: Draft = {
   customLtv: DEFAULT_CUSTOM_LTV,
   isCustomLtvInput: false,
   isAreaOver85: false,
+  extraCosts: [],
 };

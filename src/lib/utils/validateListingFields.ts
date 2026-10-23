@@ -6,8 +6,14 @@ import { MAX_AMOUNT } from "./amount";
 import { isOneOf } from "./isOneOf";
 import { LISTING_MEMO_MAX_LENGTH } from "./validateListingMemo";
 import { countChars, LISTING_NAME_MAX_LENGTH } from "./validateListingName";
+import {
+  EXTRA_COST_CATEGORIES,
+  EXTRA_COST_LABEL_MAX_LENGTH,
+  EXTRA_COST_MAX_ITEMS,
+} from "../constants/extraCosts";
 import { BORROWERS, REGIONS } from "../constants/loanConditions";
 
+import type { ExtraCost } from "../types/extraCost";
 import type { Listing, ListingInput } from "../types/listing";
 
 const LISTING_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -31,6 +37,47 @@ function isLtvRate(value: unknown): value is number {
 }
 
 /**
+ * 추가 비용 항목 이름: trim 후 1~30자(코드포인트). 성공하면 trim한 이름을 돌려준다.
+ * 클라이언트 줄 입력과 저장 값 검증(`validateListingFields`)이 함께 쓰는 규칙의 원본이다.
+ */
+export function validateExtraCostLabel(
+  raw: string,
+): { ok: true; label: string } | { ok: false; message: string } {
+  const label = raw.trim();
+  const length = countChars(label);
+  if (length === 0) return { ok: false, message: "항목 이름을 입력하세요" };
+  if (length > EXTRA_COST_LABEL_MAX_LENGTH) {
+    return {
+      ok: false,
+      message: `${EXTRA_COST_LABEL_MAX_LENGTH}자 이하로 입력하세요(현재 ${length}자)`,
+    };
+  }
+  return { ok: true, label };
+}
+
+/**
+ * 저장 값의 추가 비용 줄을 검증하고 알려진 세 키만 담은 새 배열을 돌려준다. 어긋나면 null(null·객체 포함).
+ * 이름은 trim하지 않고 원문을 저장하므로(클라이언트가 먼저 걷는다) 원문 길이도 상한 안이어야 한다.
+ */
+function parseExtraCosts(value: unknown): ExtraCost[] | null {
+  if (!Array.isArray(value) || value.length > EXTRA_COST_MAX_ITEMS) return null;
+  const extraCosts: ExtraCost[] = [];
+  for (const item of value as unknown[]) {
+    if (!isRecord(item)) return null;
+    const { category, label, amount } = item;
+    const isValid =
+      isOneOf(EXTRA_COST_CATEGORIES, category) &&
+      typeof label === "string" &&
+      countChars(label) <= EXTRA_COST_LABEL_MAX_LENGTH &&
+      validateExtraCostLabel(label).ok &&
+      isPrice(amount);
+    if (!isValid) return null;
+    extraCosts.push({ category, label, amount });
+  }
+  return extraCosts;
+}
+
+/**
  * 서버 경계의 매물 id 규칙(ADR-023). 로컬 id(16바이트 hex, ADR-010)를 서버 id로 그대로 쓰므로 hex로 좁히지 않는다.
  * 서버·공유 수신에만 쓴다. 로컬 저장소 읽기(`isListing`)에는 넣지 않는다(기존 데이터를 새로 거부하지 않게, AC-0).
  */
@@ -51,12 +98,14 @@ export function isIsoDateString(value: unknown): value is string {
 /**
  * 매물 필드(id·시각 제외)를 검증하고, 알려진 키만 골라 새 객체로 돌려준다. 어긋나면 null.
  * 선택 필드는 키 없음 = 기본이다(ADR-012). 키가 있으면 값이 유효해야 한다.
- * 판정 규칙은 로컬 저장소 파서가 쓰던 그대로다(AC-0). 빈 메모는 받되 돌려주는 객체에는 키를 쓰지 않는다
- * (스토어의 `toListingFields`와 같은 규칙, 서버·공유에는 빈 메모가 저장되지 않는다).
+ * 판정 규칙은 로컬 저장소 파서가 쓰던 그대로다(AC-0). 빈 메모·빈 추가 비용은 받되 돌려주는 객체에는 키를 쓰지 않는다
+ * (스토어의 `toListingFields`와 같은 규칙, 서버·공유에는 빈 메모·빈 배열이 저장되지 않는다).
  */
 export function validateListingFields(value: unknown): ListingInput | null {
   if (!isRecord(value)) return null;
   const { name, salePrice, kbPrice, region, borrower } = value;
+  // 추가 비용은 키 없음 = 없음(1·2·3차 형식 전부). 키가 있으면 0~30줄 배열이어야 한다(null은 거부).
+  const extraCosts = Object.hasOwn(value, "extraCosts") ? parseExtraCosts(value.extraCosts) : [];
   const isValid =
     typeof name === "string" &&
     countChars(name) >= 1 &&
@@ -71,7 +120,8 @@ export function validateListingFields(value: unknown): ListingInput | null {
     (!Object.hasOwn(value, "isAreaOver85") || value.isAreaOver85 === true) &&
     // 메모는 키 없음 = 메모 없음. 키가 있으면 500자 이하 문자열이어야 한다.
     (!Object.hasOwn(value, "memo") ||
-      (typeof value.memo === "string" && countChars(value.memo) <= LISTING_MEMO_MAX_LENGTH));
+      (typeof value.memo === "string" && countChars(value.memo) <= LISTING_MEMO_MAX_LENGTH)) &&
+    extraCosts !== null;
   if (!isValid) return null;
   return {
     name,
@@ -82,6 +132,8 @@ export function validateListingFields(value: unknown): ListingInput | null {
     ...(Object.hasOwn(value, "customLtvRate") && { customLtvRate: value.customLtvRate as number }),
     ...(Object.hasOwn(value, "isAreaOver85") && { isAreaOver85: true as const }),
     ...(typeof value.memo === "string" && value.memo !== "" && { memo: value.memo }),
+    // 빈 배열은 받되 키를 쓰지 않는다(빈 메모와 같은 규칙).
+    ...(extraCosts.length > 0 && { extraCosts }),
   };
 }
 
