@@ -42,6 +42,10 @@
   font-weight: 600;
 }
 
+.editButton:disabled {
+  color: var(--color-text-muted);
+}
+
 .form {
   display: flex;
   flex: 1;
@@ -76,4 +80,14 @@
 .secondaryButton {
   border: 1px solid var(--color-control);
   background: var(--color-surface);
+}
+
+.errorText {
+  color: var(--color-error);
+  font-size: var(--fs-body);
+}
+
+.saveError {
+  color: var(--color-error);
+  font-size: var(--fs-small);
 }

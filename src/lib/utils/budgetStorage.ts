@@ -1,4 +1,4 @@
-import { MAX_AMOUNT } from "./amount";
+import { isBudgetAmount } from "./isBudgetAmount";
 
 import type { BudgetStore } from "@/lib/types/budget";
 
@@ -13,9 +13,7 @@ export function parseBudget(raw: string | null): number | null {
   } catch {
     return null;
   }
-  return Number.isInteger(value) && (value as number) >= 1 && (value as number) <= MAX_AMOUNT
-    ? (value as number)
-    : null;
+  return isBudgetAmount(value) ? value : null;
 }
 
 function loadBudget(storage: Storage): number | null {
