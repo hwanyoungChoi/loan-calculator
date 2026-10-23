@@ -108,7 +108,7 @@ describe("1차 형식 저장 목록 회귀 (AC-3a)", () => {
 
   it("키 없는 매물을 sortListings에 넣어도 규제 LTV 자기자금으로 정렬된다", () => {
     expect(
-      sortListings(loadLegacy(), "ownFunds", LOAN_REGULATIONS).map((listing) => listing.id),
+      sortListings(loadLegacy(), "ownFunds", "asc", LOAN_REGULATIONS).map((listing) => listing.id),
     ).toEqual(["legacy-d", "legacy-c", "legacy-a", "legacy-b"]);
   });
 

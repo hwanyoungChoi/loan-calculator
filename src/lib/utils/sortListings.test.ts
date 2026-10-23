@@ -42,7 +42,12 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
   });
 
   it("자기자금 오름차순이다", () => {
-    const sorted = sortListings([OWN_80000, OWN_30000, OWN_60000], "ownFunds", LOAN_REGULATIONS);
+    const sorted = sortListings(
+      [OWN_80000, OWN_30000, OWN_60000],
+      "ownFunds",
+      "asc",
+      LOAN_REGULATIONS,
+    );
     expect(ids(sorted)).toEqual(["own-30000", "own-60000", "own-80000"]);
   });
 
@@ -50,6 +55,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
     const sorted = sortListings(
       [OWN_80000, ZERO_LTV, OWN_30000, OWN_60000],
       "ownFunds",
+      "asc",
       LOAN_REGULATIONS,
     );
     expect(ids(sorted)).toEqual(["own-30000", "own-60000", "zero-ltv", "own-80000"]);
@@ -73,7 +79,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
       expect(calculateLoan(listing, LOAN_REGULATIONS).ownFunds).toBe(30750);
     }
 
-    expect(ids(sortListings(listings, "ownFunds", LOAN_REGULATIONS))).toEqual([
+    expect(ids(sortListings(listings, "ownFunds", "asc", LOAN_REGULATIONS))).toEqual([
       "newest",
       "mid-first",
       "mid-second",
@@ -86,7 +92,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
       makeListing({ id: "created-old", createdAt: day(1), updatedAt: day(20) }),
       makeListing({ id: "created-new", createdAt: day(2), updatedAt: day(2) }),
     ];
-    expect(ids(sortListings(listings, "ownFunds", LOAN_REGULATIONS))).toEqual([
+    expect(ids(sortListings(listings, "ownFunds", "asc", LOAN_REGULATIONS))).toEqual([
       "created-new",
       "created-old",
     ]);
@@ -129,6 +135,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
       const sorted = sortListings(
         [unconfirmedOld, OWN_80000, unconfirmedMid, ZERO_LTV, unconfirmedNew, OWN_30000],
         "ownFunds",
+        "asc",
         regulations,
       );
       expect(ids(sorted)).toEqual([
@@ -143,11 +150,11 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
 
     it("결과는 인자로 받은 규제로 다시 계산한 값 기준이다(ADR-007)", () => {
       const listings = [OWN_30000, unconfirmedOld];
-      expect(ids(sortListings(listings, "ownFunds", LOAN_REGULATIONS))).toEqual([
+      expect(ids(sortListings(listings, "ownFunds", "asc", LOAN_REGULATIONS))).toEqual([
         "unconfirmed-old",
         "own-30000",
       ]);
-      expect(ids(sortListings(listings, "ownFunds", regulations))).toEqual([
+      expect(ids(sortListings(listings, "ownFunds", "asc", regulations))).toEqual([
         "own-30000",
         "unconfirmed-old",
       ]);
@@ -157,6 +164,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
       const sorted = sortListings(
         [OWN_30000, unconfirmedNew, unconfirmedOld],
         "recent",
+        "desc",
         regulations,
       );
       // OWN_30000.updatedAt = 10-01, unconfirmedNew = 10-09, unconfirmedOld = 10-30
@@ -167,7 +175,7 @@ describe("sortListings: 자기자금순 (AC-7)", () => {
   it("삭제 후 남은 목록도 같은 규칙으로 정렬된다", () => {
     const listings = [OWN_80000, ZERO_LTV, OWN_30000, OWN_60000];
     const afterDelete = listings.filter((listing) => listing.id !== "own-60000");
-    expect(ids(sortListings(afterDelete, "ownFunds", LOAN_REGULATIONS))).toEqual([
+    expect(ids(sortListings(afterDelete, "ownFunds", "asc", LOAN_REGULATIONS))).toEqual([
       "own-30000",
       "zero-ltv",
       "own-80000",
@@ -231,6 +239,7 @@ describe("sortListings: 요건 미충족·사용자 지정 (AC-3d)", () => {
         OWN_30000,
       ],
       "ownFunds",
+      "asc",
       regulations,
     );
     expect(ids(sorted)).toEqual([
@@ -256,7 +265,7 @@ describe("sortListings: 가나다순 (ADR-022 AC-7)", () => {
       makeListing({ id: "raemian-2-new", name: "래미안 2단지", createdAt: day(5) }),
     ];
     // 영문은 한글 뒤다(ko 로캘 기본)
-    expect(ids(sortListings(listings, "name", LOAN_REGULATIONS))).toEqual([
+    expect(ids(sortListings(listings, "name", "asc", LOAN_REGULATIONS))).toEqual([
       "raemian-2-new",
       "raemian-2-old",
       "raemian-10",
@@ -273,7 +282,11 @@ describe("sortListings: 최근 저장순 (AC-7)", () => {
       makeListing({ id: "b", createdAt: day(1), updatedAt: day(20), salePrice: 999999 }),
       makeListing({ id: "c", createdAt: day(5), updatedAt: day(10) }),
     ];
-    expect(ids(sortListings(listings, "recent", LOAN_REGULATIONS))).toEqual(["b", "c", "a"]);
+    expect(ids(sortListings(listings, "recent", "desc", LOAN_REGULATIONS))).toEqual([
+      "b",
+      "c",
+      "a",
+    ]);
   });
 
   it("updatedAt이 같으면 입력 순서다", () => {
@@ -281,13 +294,16 @@ describe("sortListings: 최근 저장순 (AC-7)", () => {
       makeListing({ id: "first", updatedAt: day(3) }),
       makeListing({ id: "second", updatedAt: day(3) }),
     ];
-    expect(ids(sortListings(listings, "recent", LOAN_REGULATIONS))).toEqual(["first", "second"]);
+    expect(ids(sortListings(listings, "recent", "desc", LOAN_REGULATIONS))).toEqual([
+      "first",
+      "second",
+    ]);
   });
 });
 
 it("입력 배열을 바꾸지 않는다", () => {
   const listings = [OWN_80000, OWN_30000];
-  sortListings(listings, "ownFunds", LOAN_REGULATIONS);
-  sortListings(listings, "recent", LOAN_REGULATIONS);
+  sortListings(listings, "ownFunds", "asc", LOAN_REGULATIONS);
+  sortListings(listings, "recent", "desc", LOAN_REGULATIONS);
   expect(ids(listings)).toEqual(["own-80000", "own-30000"]);
 });

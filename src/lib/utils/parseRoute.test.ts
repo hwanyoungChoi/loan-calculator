@@ -11,14 +11,14 @@ describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
     ["", { name: "calculator" }],
     ["#", { name: "calculator" }],
     ["#/", { name: "calculator" }],
-    ["#/listings", { name: "listings", sort: "ownFunds", view: "card" }],
-    ["#/listings?sort=recent", { name: "listings", sort: "recent", view: "card" }],
-    ["#/listings?sort=ownFunds", { name: "listings", sort: "ownFunds", view: "card" }],
-    ["#/listings?sort=name", { name: "listings", sort: "name", view: "card" }],
-    ["#/listings?sort=foo", { name: "listings", sort: "ownFunds", view: "card" }],
-    ["#/listings?sort=", { name: "listings", sort: "ownFunds", view: "card" }],
-    ["#/listings?sort=RECENT", { name: "listings", sort: "ownFunds", view: "card" }],
-    ["#/listings?other=1", { name: "listings", sort: "ownFunds", view: "card" }],
+    ["#/listings", { name: "listings" }],
+    ["#/listings?sort=recent", { name: "listings", sort: "recent" }],
+    ["#/listings?sort=ownFunds", { name: "listings", sort: "ownFunds" }],
+    ["#/listings?sort=name", { name: "listings", sort: "name" }],
+    ["#/listings?sort=foo", { name: "listings" }],
+    ["#/listings?sort=", { name: "listings" }],
+    ["#/listings?sort=RECENT", { name: "listings" }],
+    ["#/listings?other=1", { name: "listings" }],
     // 알 수 없는 해시
     ["#/listing/abc", { name: "calculator" }],
     ["#/x", { name: "calculator" }],
@@ -34,13 +34,11 @@ describe("parseRoute 라우트 규칙표 (AC-8c)", () => {
 describe("toRoutePath 정규 경로", () => {
   it("라우트별 정규 경로는 PATHS와 같다", () => {
     expect(toRoutePath({ name: "calculator" })).toBe("#/");
-    expect(toRoutePath({ name: "listings", sort: "ownFunds", view: "card" })).toBe("#/listings");
-    expect(toRoutePath({ name: "listings", sort: "recent", view: "card" })).toBe(
-      "#/listings?sort=recent",
-    );
+    expect(toRoutePath({ name: "listings" })).toBe("#/listings");
+    expect(toRoutePath({ name: "listings", sort: "recent" })).toBe("#/listings?sort=recent");
     expect(PATHS.calculator).toBe("#/");
     expect(PATHS.listings()).toBe("#/listings");
-    expect(PATHS.listings("recent")).toBe("#/listings?sort=recent");
+    expect(PATHS.listings({ sort: "recent" })).toBe("#/listings?sort=recent");
   });
 
   // useHashRoute는 현재 해시와 이 값이 다르면 replace한다.

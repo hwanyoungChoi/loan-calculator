@@ -15,6 +15,7 @@ import { createBudgetStore } from "@/lib/utils/budgetStorage";
 import { createRandomId } from "@/lib/utils/createRandomId";
 import { createDraftStore } from "@/lib/utils/draftStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
+import { createListingsViewStore } from "@/lib/utils/listingsViewStorage";
 import { createSentShareStore } from "@/lib/utils/sentShareStorage";
 import { createSessionHintStore } from "@/lib/utils/sessionHintStorage";
 import { createTradeLookupStore } from "@/lib/utils/tradeLookupStorage";
@@ -41,6 +42,7 @@ function createStores(storage: Storage) {
     sentShareStore: createSentShareStore({ storage, now: Date.now }),
     sessionHintStore: createSessionHintStore({ storage }),
     accountImportStore: createAccountImportStore({ storage }),
+    listingsViewStore: createListingsViewStore({ storage }),
   };
 }
 
@@ -55,6 +57,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       sentShareStore,
       sessionHintStore,
       accountImportStore,
+      listingsViewStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -101,9 +104,9 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           draftStore={draftStore}
           budgetStore={budgetStore}
           sentShareStore={sentShareStore}
+          listingsViewStore={listingsViewStore}
           regulations={regulations}
-          sort={route.sort}
-          view={route.view}
+          addressView={{ sort: route.sort, order: route.order, view: route.view }}
           login={route.login}
           onSuggestedNameChange={setSuggestedName}
           notice={listingsNotice}

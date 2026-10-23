@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
+import { DEFAULT_SORT_ORDER, OPPOSITE_SORT_ORDER } from "@/lib/constants/listingsView";
 import { PATHS } from "@/lib/constants/paths";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
@@ -16,9 +17,11 @@ import BudgetBar from "./components/BudgetBar";
 import CompactListingRow from "./components/CompactListingRow";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
 import ListingCard from "./components/ListingCard";
+import ListingSortGroup from "./components/ListingSortGroup";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudget } from "./hooks/useBudget";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
+import { useListingsView } from "./hooks/useListingsView";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { BudgetStore } from "@/lib/types/budget";
@@ -30,6 +33,7 @@ import type {
   ListingStore,
   ListingView,
 } from "@/lib/types/listing";
+import type { ListingsViewState, ListingsViewStore } from "@/lib/types/listingsView";
 import type { Regulations } from "@/lib/types/regulation";
 import type { LoginResult } from "@/lib/types/route";
 import type { SentShareStore } from "@/lib/types/sentShare";
@@ -44,11 +48,11 @@ type MortgageListingsProps = {
   draftStore: DraftStore;
   budgetStore: BudgetStore;
   sentShareStore: SentShareStore;
+  /** 마지막으로 보여 준 정렬·방향·보기. 주소에 없는 값을 채운다. */
+  listingsViewStore: ListingsViewStore;
   regulations: Regulations;
-  /** 주소(`#/listings?sort=`)에서 읽은 정렬. 정렬의 단일 출처다. */
-  sort: ListingSort;
-  /** 주소(`#/listings?view=`)에서 읽은 보기. */
-  view: ListingView;
+  /** 주소(`#/listings?sort=&order=&view=`)에 있던 값. 기억보다 우선한다(ADR-025 D2). */
+  addressView: Partial<ListingsViewState>;
   /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 계정 줄에 보이고 주소에서 지운다. */
   login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
@@ -57,12 +61,6 @@ type MortgageListingsProps = {
   notice: string | null;
   onNoticeChange: (notice: string | null) => void;
 };
-
-const SORT_OPTIONS: { value: ListingSort; label: string }[] = [
-  { value: "ownFunds", label: "자기자금순" },
-  { value: "recent", label: "최근 저장순" },
-  { value: "name", label: "가나다순" },
-];
 
 const VIEW_OPTIONS: { value: ListingView; label: string }[] = [
   { value: "card", label: "상세히" },
@@ -94,9 +92,9 @@ function MortgageListings({
   draftStore,
   budgetStore,
   sentShareStore,
+  listingsViewStore,
   regulations,
-  sort,
-  view,
+  addressView,
   login,
   onSuggestedNameChange,
   notice,
@@ -105,6 +103,7 @@ function MortgageListings({
   const source = useListingSource({ listingStore, sessionHintStore, accountImport });
   const { list } = source;
   const budget = useBudget(budgetStore);
+  const { sort, order, view } = useListingsView(listingsViewStore, addressView);
   const [writeError, setWriteError] = useState<string | null>(null);
   const sheet = useOpenSheet<ShareTarget>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
@@ -122,21 +121,26 @@ function MortgageListings({
   }, [notice, onNoticeChange]);
 
   useEffect(() => {
-    if (login !== undefined) window.location.replace(PATHS.listings(sort, view));
-  }, [login, sort, view]);
+    if (login !== undefined) window.location.replace(PATHS.listings({ sort, order, view }));
+  }, [login, sort, order, view]);
 
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
     source.status === "loggedIn" ? accountImportProblem(accountImport.state) : null;
-  const sortedListings = list.status === "ok" ? sortListings(list.listings, sort, regulations) : [];
+  const sortedListings =
+    list.status === "ok" ? sortListings(list.listings, sort, order, regulations) : [];
 
-  /** 정렬·보기는 새로고침해도 남게 주소에 두고, 바꿀 때 히스토리는 쌓지 않는다. */
-  const handleSortChange = (nextSort: ListingSort) => {
-    window.location.replace(PATHS.listings(nextSort, view));
+  /**
+   * 정렬·방향·보기는 새로고침해도 남게 세 값을 모두 주소에 두고(기본값도 생략하지 않음), 히스토리는 쌓지 않는다.
+   * 선택된 정렬을 다시 누르면 방향을 바꾸고, 다른 정렬은 그 정렬의 기본 방향으로 시작한다.
+   */
+  const handleSortSelect = (nextSort: ListingSort) => {
+    const nextOrder = nextSort === sort ? OPPOSITE_SORT_ORDER[order] : DEFAULT_SORT_ORDER[nextSort];
+    window.location.replace(PATHS.listings({ sort: nextSort, order: nextOrder, view }));
   };
 
   const handleViewChange = (nextView: ListingView) => {
-    window.location.replace(PATHS.listings(sort, nextView));
+    window.location.replace(PATHS.listings({ sort, order, view: nextView }));
   };
 
   /** 카드 본문·"수정" 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
@@ -228,14 +232,7 @@ function MortgageListings({
     return (
       <>
         <BudgetBar budget={budget} overBudgetCount={overBudgetCount} onChange={budgetStore.set} />
-        <ChoiceGroup
-          name="listingSort"
-          legend="정렬"
-          options={SORT_OPTIONS}
-          value={sort}
-          columns={3}
-          onChange={handleSortChange}
-        />
+        <ListingSortGroup sort={sort} order={order} onSelect={handleSortSelect} />
         <ChoiceGroup
           name="listingView"
           legend="보기"

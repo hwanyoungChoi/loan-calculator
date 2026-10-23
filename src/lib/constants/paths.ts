@@ -1,13 +1,18 @@
-import type { ListingSort, ListingView } from "@/lib/types/listing";
-import type { LoginResult } from "@/lib/types/route";
+import type { Route } from "@/lib/types/route";
+
+type ListingsPathParams = Omit<Extract<Route, { name: "listings" }>, "name">;
 
 export const PATHS = {
   calculator: "#/",
-  /** 기본값(자기자금순, 카드)은 쿼리에 쓰지 않는다. `login`은 로그인에서 돌아온 결과(서버가 붙인다). */
-  listings: (sort: ListingSort = "ownFunds", view: ListingView = "card", login?: LoginResult) => {
+  /**
+   * 받은 값만 쿼리에 쓰고 기본값이어도 생략하지 않는다(값 없음 = 기억 사용, ADR-025 D2). 인자가 없으면 `#/listings`.
+   * `login`은 로그인에서 돌아온 결과(서버가 붙인다).
+   */
+  listings: ({ sort, order, view, login }: ListingsPathParams = {}) => {
     const query = new URLSearchParams({
-      ...(sort !== "ownFunds" && { sort }),
-      ...(view !== "card" && { view }),
+      ...(sort !== undefined && { sort }),
+      ...(order !== undefined && { order }),
+      ...(view !== undefined && { view }),
       ...(login !== undefined && { login }),
     }).toString();
     return query === "" ? "#/listings" : `#/listings?${query}`;

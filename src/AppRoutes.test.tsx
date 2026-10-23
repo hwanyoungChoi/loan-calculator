@@ -220,19 +220,32 @@ describe("저장 흐름 (통합)", () => {
     expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
     expect(window.scrollY).toBe(0);
 
-    // 정렬 변경은 주소(#/listings?sort=)에 replace로 남고, 주소의 정렬이 화면에 반영된다.
+    // 정렬 변경은 주소(#/listings?sort=&order=&view=)에 replace로 남고, 주소의 정렬이 화면에 반영된다.
     // 덮어쓰기로 래미안의 updatedAt이 가장 최근이다.
-    await user.click(screen.getByRole("radio", { name: "최근 저장순" }));
-    expect(window.location.hash).toBe("#/listings?sort=recent");
-    await waitFor(() => expect(screen.getByRole("radio", { name: "최근 저장순" })).toBeChecked());
-    expect(screen.getByRole("radio", { name: "자기자금순" })).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "최근 저장순" }));
+    expect(window.location.hash).toBe("#/listings?sort=recent&order=desc&view=card");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^최근 저장순/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      ),
+    );
+    expect(screen.getByRole("button", { name: "자기자금순" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
     expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
       "래미안 101동",
       "자이 3단지",
     ]);
-    await user.click(screen.getByRole("radio", { name: "자기자금순" }));
-    expect(window.location.hash).toBe("#/listings");
-    await waitFor(() => expect(screen.getByRole("radio", { name: "자기자금순" })).toBeChecked());
+    await user.click(screen.getByRole("button", { name: "자기자금순" }));
+    expect(window.location.hash).toBe("#/listings?sort=ownFunds&order=asc&view=card");
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /^자기자금순/ })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      ),
+    );
     expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
       "자이 3단지",
       "래미안 101동",
