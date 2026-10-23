@@ -66,3 +66,12 @@
 {"ts":"2026-10-23T04:54:53.438Z","type":"task","task":3,"from":"todo","to":"progress","owner":"fe"}
 {"ts":"2026-10-23T04:54:53.460Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-23T04:54:53.495Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T04:55:20.282Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T04:56:17.787Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-23T05:30:48.941Z","type":"status","status":"완료"}
+{"ts":"2026-10-23T05:31:12.676Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-23T05:31:37.319Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:36:34.992Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:37:17.505Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:38:36.424Z","type":"task","task":1,"from":"todo","to":"progress","owner":"fe"}
+{"ts":"2026-10-23T05:38:36.424Z","type":"task","task":2,"from":"todo","to":"progress","owner":"be"}
