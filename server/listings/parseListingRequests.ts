@@ -33,7 +33,7 @@ export function parseListingRequest(value: unknown): Parsed<ListingInput> {
     : { ok: true, value: fields };
 }
 
-/** PATCH 본문 `{ memo: string }`. 앞뒤 공백을 빼고 0~500자, 빈 문자열은 메모 지움 */
+/** PATCH 본문 `{ memo: string }`. 앞뒤 공백을 빼고 0~5,000자(`validateListingMemo`), 빈 문자열은 메모 지움 */
 export function parseMemoRequest(value: unknown): Parsed<string> {
   if (!isRecord(value) || typeof value.memo !== "string") {
     return { ok: false, message: "요청 본문은 { memo: string } 객체여야 합니다" };

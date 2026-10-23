@@ -118,7 +118,7 @@ export function validateListingFields(value: unknown): ListingInput | null {
     (!Object.hasOwn(value, "customLtvRate") || isLtvRate(value.customLtvRate)) &&
     // 85㎡ 초과는 true일 때만 키를 쓴다. 키가 없는 1·2차 형식은 85㎡ 이하다(ADR-022).
     (!Object.hasOwn(value, "isAreaOver85") || value.isAreaOver85 === true) &&
-    // 메모는 키 없음 = 메모 없음. 키가 있으면 500자 이하 문자열이어야 한다.
+    // 메모는 키 없음 = 메모 없음. 키가 있으면 LISTING_MEMO_MAX_LENGTH(5,000자) 이하 문자열이어야 한다.
     (!Object.hasOwn(value, "memo") ||
       (typeof value.memo === "string" && countChars(value.memo) <= LISTING_MEMO_MAX_LENGTH)) &&
     extraCosts !== null;

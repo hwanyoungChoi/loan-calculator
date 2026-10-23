@@ -87,3 +87,11 @@
 {"ts":"2026-10-23T05:48:30.235Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T05:55:57.521Z","type":"task","task":3,"from":"progress","to":"review","owner":"리드"}
 {"ts":"2026-10-23T05:55:57.558Z","type":"task","task":3,"from":"review","to":"done","owner":null}
+{"ts":"2026-10-23T05:56:36.823Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:57:07.910Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:57:54.497Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T05:58:15.965Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-23T12:21:45.704Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-23T12:22:08.994Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T12:29:15.186Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T12:29:36.629Z","type":"hook","hook":"board-on-stop","decision":"block"}

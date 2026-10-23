@@ -30,7 +30,7 @@ const TITLES: Record<ShareKind, (listings: Listing[]) => string> = {
 const MEMO_HINT_ID = "share-memo-hint";
 
 /**
- * 128KB를 넘었을 때(413 payloadTooLarge). 매물 하나는 최악에도 들어가므로 하나씩 보내기를 권하고,
+ * 128KB를 넘었을 때(413 payloadTooLarge). 매물 하나는 최악(메모 5,000자 포함 약 37.5KB)에도 들어가므로 하나씩 보내기를 권하고,
  * 메모를 보내는 중이면 메모 빼기도 권한다(ADR-024 D3·C5). 서버 문구("요청 본문은 128KB 이하…")는 보이지 않는다.
  */
 function describePayloadTooLarge(includeMemo: boolean): string {

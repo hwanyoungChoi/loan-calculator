@@ -1,7 +1,7 @@
 // /api/shares 계약. 서버(server/)도 type-only import로 이 파일을 쓴다(계약의 원본은 한 곳).
 import type { ListingInput } from "./listing";
 
-/** 공유 스냅샷 한 항목. 메모는 1~500자이고 빈 문자열은 없다(키 없음 = 메모 없음). */
+/** 공유 스냅샷 한 항목. 메모는 1~5,000자이고 빈 문자열은 없다(키 없음 = 메모 없음). */
 export type ShareListing = ListingInput;
 
 /** listing: 매물 정확히 1개 / list: 저장 목록 1~100개 */

@@ -183,7 +183,7 @@
   overflow-wrap: anywhere;
 }
 
-/* 메모는 계산 값과 섞이지 않게 옅은 우물에 담고, 두 줄까지만 미리 보인다. */
+/* 메모는 계산 값과 섞이지 않게 옅은 우물에 담는다. 자르지 않고 전부, 입력한 줄바꿈·공백 그대로 보인다. */
 .memo {
   display: flex;
   flex-direction: column;
@@ -201,14 +201,9 @@
 }
 
 .memoText {
-  display: -webkit-box;
-  overflow: hidden;
   font-size: var(--fs-small);
-  white-space: pre-line;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
 }
 
 /*
