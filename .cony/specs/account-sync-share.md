@@ -361,7 +361,7 @@ be와 fe가 병렬로 일해도 같은 파일을 건드리지 않도록 소유�
 
 ### 태스크 목록
 
-- [ ] 1. **공유 링크(로그인 없이 만들기·받기, 카카오 키 불필요)** — AC-1~AC-5
+- [x] 1. **공유 링크(로그인 없이 만들기·받기, 카카오 키 불필요)** — AC-1~AC-5
   - [ ] 1-1. **선행·be 단독(공유 계약 파일 정리)**
     - 공유 검증 함수를 `listingStorage.ts`에서 새 파일 `src/lib/utils/validateListingFields.ts`로 분리(`validateListingFields`·`isListingId`·`isIsoDateString`·`isListing`). `listingStorage.ts`는 그 파일을 import(`Storage` 사용 코드는 남김).
     - 공유 검증 파일과 전이 의존의 `@/` 별칭 import를 상대 경로로, DOM 타입 의존 제거. `pnpm build`의 `tsc -b`(worker 프로젝트)가 통과하는지 확인한다.
