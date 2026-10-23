@@ -95,3 +95,6 @@
 {"ts":"2026-10-23T12:22:08.994Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T12:29:15.186Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T12:29:36.629Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T12:30:58.472Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T12:32:40.527Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-23T12:44:13.975Z","type":"status","status":"진행 중"}

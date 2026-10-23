@@ -1,6 +1,6 @@
 # 정렬 방향 · 마지막 보기 기억 · 예산 동기화
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-23 21:21
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-23 21:44
 
 ## 태스크
 
@@ -18,15 +18,16 @@
 
 ## 지금 하는 일
 
-fe가 메모 전체 보기·상한 5,000자 구현 중 (브랜치 cony/memo-full)
+be(순서 저장 API)와 fe(직접 정렬·드래그) 병렬 구현 중 (브랜치 cony/custom-order)
 
 ## 최근 결정
 
+- [ADR-026 직접 정렬(드래그 순서)의 저장 위치와 라이브러리](decisions/026-custom-order.md): 저장 A, 드래그 A
 - [ADR-025 예산 저장 위치, 정렬 주소와 기억의 우선순위, 방향 표기](decisions/025-sort-order-budget-sync.md): D1 A, D2 A, D3 A
 
 ## 사용자 확인 필요
 
-- 메모 상한 5,000자로 할지(제안 기본값)
+- 직접 정렬 기본값: 새 매물은 직접 순서 맨 위, 다른 정렬에서 끌면 [직접]으로 전환
 - 정렬·예산 U1~U5, 추가 비용 U1~U9, 계정·공유 U1~U11, 개인정보처리방침·탈퇴
 
 ## 막힌 것
@@ -35,7 +36,7 @@ fe가 메모 전체 보기·상한 5,000자 구현 중 (브랜치 cony/memo-full
 
 ## PR
 
-[#22](https://github.com/hwanyoungChoi/mortgage-fit/pull/22) 머지
+[#23](https://github.com/hwanyoungChoi/mortgage-fit/pull/23) 머지
 
 <!-- spec: specs/sort-order-budget-sync.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->
