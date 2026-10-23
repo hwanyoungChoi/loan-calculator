@@ -283,3 +283,17 @@
 ## README 사진 새 디자인으로 교체
 
 - 요청: 리디자인(#17) 후 README 사진 6장을 운영 주소에서 다시 캡처해 교체
+- 요청: 사용자가 taste 리디자인 확인("맘에 듦") → 디자인 취향 확인 항목 닫음
+
+# 계정 동기화 · 공유 링크
+
+## 기획
+
+- 요청: 카카오 로그인으로 어느 기기에서든 저장 유지 / 업데이트로 기존 로컬 데이터가 사라지지 않게 서버로 이전 / 저장 목록·매물 단위 공유
+- 요청: 로그인 없이도 계속 쓸 수 있게(예). 공유 링크를 받은 사람은 원본과 연결되지 않고 값만 가져와 자기 목록에서 따로 관리
+- 요청: D1은 wrangler로 생성. 카카오 키는 나중에 사용자가 전달
+- 요청: qa는 이전 지시("테스트코드는 짜지마", qa 단계 생략)대로 `team.json`에서 off
+- 요청: wrangler로 D1 `mortgage-fit`(APAC, id bb8c4c21-…) 생성, `wrangler.jsonc`에 바인딩 `DB` 추가
+- 요청: 사용자가 카카오 REST API 키 전달 → Worker 런타임 시크릿 `KAKAO_REST_API_KEY`로 등록(`wrangler secret put`). 로컬 `.dev.vars`는 hook이 막아 사용자가 직접 추가
+- 요청: 사용자가 카카오 Client Secret 전달 → Worker 런타임 시크릿 `KAKAO_CLIENT_SECRET`로 등록
+- 토론: be·fe 스펙 검토(둘 다 조건부 통과) → D1~D5 모두 A로 결정, 조건 반영([ADR-023](decisions/023-account-sync-share.md))
