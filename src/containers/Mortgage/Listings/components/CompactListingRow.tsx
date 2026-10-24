@@ -17,9 +17,10 @@ const ROLE_DESCRIPTION = "순서를 바꿀 수 있는 버튼";
 /**
  * 간단히 보기의 한 줄: 이름과 필요한 자기자금. 누르면 아래로 상세 카드를 펼치고, 다시 누르면 접는다.
  * 꾹 누르거나(스페이스 키) 들어 끌면 순서를 바꾼다(ADR-026). 펼친 줄은 들 수 없고(접은 뒤 끈다) 다른 줄이 지나갈 자리는 된다.
+ * 가리기 모드에서는 펼친 카드의 [보기]로 이 줄과 카드를 잠깐 보이고, 접으면 다시 가린다.
  */
 function CompactListingRow({ canReorder, ...props }: CompactListingRowProps) {
-  const { listing, regulations, budget } = props;
+  const { listing, regulations, budget, isPrivacyMode, revealedId, onRevealChange } = props;
   const [isExpanded, setIsExpanded] = useState(false);
   const isDraggable = canReorder && !isExpanded;
   const {
@@ -37,6 +38,12 @@ function CompactListingRow({ canReorder, ...props }: CompactListingRowProps) {
   });
   // 들 수 없을 때는 끌기 속성(aria-disabled 등)을 붙이지 않는다. 펼치기 버튼으로는 계속 쓸 수 있다.
   const dragProps = isDraggable ? { ...attributes, ...listeners } : {};
+  const isRevealed = revealedId === listing.id;
+
+  const handleToggle = () => {
+    if (isExpanded && isRevealed) onRevealChange(null);
+    setIsExpanded((isOpen) => !isOpen);
+  };
 
   return (
     <li
@@ -50,13 +57,14 @@ function CompactListingRow({ canReorder, ...props }: CompactListingRowProps) {
         {...dragProps}
         className={isDraggable ? styles.draggableRow : styles.row}
         aria-expanded={isExpanded}
-        onClick={() => setIsExpanded((isOpen) => !isOpen)}
+        onClick={handleToggle}
       >
         <CompactListingSummary
           listing={listing}
           regulations={regulations}
           budget={budget}
           isExpanded={isExpanded}
+          isMasked={isPrivacyMode && !isRevealed}
         />
       </button>
       {isExpanded && (

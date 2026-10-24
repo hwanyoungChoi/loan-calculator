@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import ChoiceGroup from "@/components/ChoiceGroup";
 import { useListingSource } from "@/hooks/useListingSource";
@@ -40,6 +40,7 @@ import type {
   ListingOrderStore,
 } from "@/lib/types/listingOrder";
 import type { ListingsViewState, ListingsViewStore } from "@/lib/types/listingsView";
+import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { Regulations } from "@/lib/types/regulation";
 import type { LoginResult } from "@/lib/types/route";
 import type { SentShareStore } from "@/lib/types/sentShare";
@@ -61,6 +62,8 @@ type MortgageListingsProps = {
   sentShareStore: SentShareStore;
   /** 마지막으로 보여 준 정렬·방향·보기. 주소에 없는 값을 채운다. */
   listingsViewStore: ListingsViewStore;
+  /** 가리기 모드(이 기기). 켜면 금액과 메모를 가린다. */
+  privacyModeStore: PrivacyModeStore;
   regulations: Regulations;
   /** 주소(`#/listings?sort=&order=&view=`)에 있던 값. 기억보다 우선한다(ADR-025 D2). */
   addressView: Partial<ListingsViewState>;
@@ -117,6 +120,7 @@ function MortgageListings({
   listingOrderImportStore,
   sentShareStore,
   listingsViewStore,
+  privacyModeStore,
   regulations,
   addressView,
   login,
@@ -145,6 +149,12 @@ function MortgageListings({
   const [writeError, setWriteError] = useState<string | null>(null);
   // 끄는 손이 있는 목록 바로 위에 보인다(목록 위쪽 알림은 스크롤해 내려와 있으면 보이지 않는다).
   const [orderError, setOrderError] = useState<string | null>(null);
+  const isPrivacyMode = useSyncExternalStore(
+    privacyModeStore.subscribe,
+    privacyModeStore.getSnapshot,
+  );
+  // 가리기 모드에서 잠깐 보이는 카드 하나. 목록을 떠나거나 가리기를 다시 누르면 다시 가린다.
+  const [revealedId, setRevealedId] = useState<string | null>(null);
   const sheet = useOpenSheet<ShareTarget>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
@@ -214,6 +224,11 @@ function MortgageListings({
     }
     setPendingOrder(null);
     if (previousView.sort !== "custom") window.location.replace(PATHS.listings(previousView));
+  };
+
+  const handlePrivacyToggle = () => {
+    privacyModeStore.set(!isPrivacyMode);
+    setRevealedId(null);
   };
 
   const handleViewChange = (nextView: ListingView) => {
@@ -316,6 +331,7 @@ function MortgageListings({
           onSave={budgetSource.save}
           onRetry={budgetSource.retry}
           isRetrying={budgetSource.isRetrying}
+          isMasked={isPrivacyMode}
         />
         <ListingSortGroup sort={displayedSort} order={order} onSelect={handleSortSelect} />
         <ChoiceGroup
@@ -382,6 +398,9 @@ function MortgageListings({
           onDelete={handleDelete}
           onShare={handleShare}
           onSaveMemo={handleSaveMemo}
+          isPrivacyMode={isPrivacyMode}
+          revealedId={revealedId}
+          onRevealChange={setRevealedId}
         />
       </div>
     ) : (
@@ -397,6 +416,9 @@ function MortgageListings({
               onDelete={handleDelete}
               onShare={handleShare}
               onSaveMemo={handleSaveMemo}
+              isPrivacyMode={isPrivacyMode}
+              revealedId={revealedId}
+              onRevealChange={setRevealedId}
             />
           </li>
         ))}
@@ -412,14 +434,25 @@ function MortgageListings({
           <div className={styles.titleRow}>
             <h1 className={styles.title}>저장 목록</h1>
             {sortedListings.length > 0 && (
-              <button
-                ref={shareListButtonRef}
-                type="button"
-                className={styles.shareListButton}
-                onClick={handleShareList}
-              >
-                목록 공유
-              </button>
+              <div className={styles.titleActions}>
+                {/* 켜짐은 aria-pressed와 채운 색으로 보인다. 이름은 바꾸지 않는다(토글 버튼 규칙). */}
+                <button
+                  type="button"
+                  className={styles.privacyButton}
+                  aria-pressed={isPrivacyMode}
+                  onClick={handlePrivacyToggle}
+                >
+                  가리기
+                </button>
+                <button
+                  ref={shareListButtonRef}
+                  type="button"
+                  className={styles.shareListButton}
+                  onClick={handleShareList}
+                >
+                  목록 공유
+                </button>
+              </div>
             )}
           </div>
           <p className={styles.baseDate}>

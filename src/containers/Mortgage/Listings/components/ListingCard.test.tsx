@@ -58,6 +58,9 @@ function renderCards(listings: Listing[]) {
             onDelete={() => {}}
             onShare={() => {}}
             onSaveMemo={async () => ({ ok: true })}
+            isPrivacyMode={false}
+            revealedId={null}
+            onRevealChange={() => {}}
           />
         </li>
       ))}

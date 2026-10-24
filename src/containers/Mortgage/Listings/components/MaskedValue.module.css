@@ -1,0 +1,9 @@
+/* 화면에는 보이지 않고 보조기기만 읽는다. */
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

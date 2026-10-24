@@ -19,6 +19,7 @@ import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportSto
 import { createListingOrderStore } from "@/lib/utils/listingOrderStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
 import { createListingsViewStore } from "@/lib/utils/listingsViewStorage";
+import { createPrivacyModeStore } from "@/lib/utils/privacyModeStorage";
 import { createSentShareStore } from "@/lib/utils/sentShareStorage";
 import { createSessionHintStore } from "@/lib/utils/sessionHintStorage";
 import { createTradeLookupStore } from "@/lib/utils/tradeLookupStorage";
@@ -49,6 +50,7 @@ function createStores(storage: Storage) {
     sessionHintStore: createSessionHintStore({ storage }),
     accountImportStore: createAccountImportStore({ storage }),
     listingsViewStore: createListingsViewStore({ storage }),
+    privacyModeStore: createPrivacyModeStore({ storage }),
   };
 }
 
@@ -67,6 +69,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       sessionHintStore,
       accountImportStore,
       listingsViewStore,
+      privacyModeStore,
     },
   ] = useState(() => createStores(storage ?? getBrowserStorage()));
   const route = useHashRoute();
@@ -117,6 +120,7 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           listingOrderImportStore={listingOrderImportStore}
           sentShareStore={sentShareStore}
           listingsViewStore={listingsViewStore}
+          privacyModeStore={privacyModeStore}
           regulations={regulations}
           addressView={{ sort: route.sort, order: route.order, view: route.view }}
           login={route.login}

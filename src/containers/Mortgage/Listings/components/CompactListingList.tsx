@@ -130,6 +130,7 @@ function CompactListingList({
               regulations={cardProps.regulations}
               budget={cardProps.budget}
               isExpanded={false}
+              isMasked={cardProps.isPrivacyMode}
             />
           </div>
         )}
