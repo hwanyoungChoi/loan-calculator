@@ -16,6 +16,9 @@ export type ListingMemoRequest = { memo: string };
 /** PATCH /api/listings/{id} 요청(ADR-027). null이면 상태를 지운다(미지정). */
 export type ListingStatusRequest = { status: ListingStatus | null };
 
+/** PATCH /api/listings/{id} 요청. 앞뒤 공백을 빼고 1~40자, 지울 수 없다(null 불가). memo·status와 함께 보낼 수 있다. */
+export type ListingNameRequest = { name: string };
+
 /** POST(201)·PUT·PATCH(200) /api/listings 응답 */
 export type ListingResponse = { listing: Listing };
 

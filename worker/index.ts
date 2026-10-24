@@ -15,7 +15,7 @@ import {
   importListings,
   listListings,
   replaceListing,
-  updateListingMemo,
+  updateListingFields,
 } from "../server/listings/handleListings";
 import { createShare, getShare, revokeShare } from "../server/shares/handleShares";
 
@@ -93,7 +93,7 @@ const API_ROUTES: ApiRoute<Env>[] = [
         ),
       PATCH: (request, env, { id }) =>
         withSession(request, env.DB, now, (userId) =>
-          updateListingMemo(request, id, env.DB, userId, now),
+          updateListingFields(request, id, env.DB, userId, now),
         ),
       DELETE: (request, env, { id }) =>
         withSession(request, env.DB, now, (userId) => deleteListing(id, env.DB, userId)),

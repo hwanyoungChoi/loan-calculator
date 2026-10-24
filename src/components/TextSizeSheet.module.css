@@ -1,0 +1,36 @@
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* 상태 고르기 시트(ListingStatusSheet)와 같은 넓은 줄. 지금 크기는 진한 테두리로 표시한다. */
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  text-align: left;
+}
+
+.option[aria-pressed="true"] {
+  border: 2px solid var(--color-text);
+  padding: 0 calc(var(--space-4) - 1px);
+}
+
+.current {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}
+
+.note {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+}

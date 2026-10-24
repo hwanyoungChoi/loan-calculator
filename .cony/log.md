@@ -391,3 +391,11 @@
 - AI(be): `ListingStatus`·`listingStatus.ts`·`isListingStatus`, PATCH `{memo?, status?}`(json_patch 한 문장), PUT은 memo·status 보존. 로컬 curl 확인, 마이그레이션 없음
 - AI(fe): 간단히 줄 초과 배지 제거, `ListingMemo`(렌더 높이로 3줄 초과 시 접기), 상태 칩·시트(후보 파랑 채움·보류 회색·비후보 테두리), 로컬 update는 status 보존, 공유에서 status 제외, 복사에 미포함. 360px 37/37, 기존 키 원문 불변
 - AI(리드): 상태 변경도 메모처럼 updatedAt 갱신(최근 저장순에서 위로 올라감) — 기존 메모 동작과 같아 유지, 사용자 확인 항목으로
+
+# 목록에서 이름 바로 바꾸기 · 글자 크기 설정
+
+- 요청: 목록에서 제목을 수정 페이지로 가지 않고 바로 바꾸기
+- 요청: 글자가 전체적으로 커서 불편, 몰래 보고 싶은데 너무 잘 보임 → 리드 제안: 글자 크기 [기본·작게·더 작게](기기별), 입력칸은 iOS 확대 방지로 16px 유지, 가리기와 함께 쓰기
+- AI(리드): 사용자 속도 요청으로 pm·검토 생략. 이름은 상태·메모와 같은 전용 PATCH(ADR-027 확장)
+- AI(be): PATCH에 name 추가(validateListingName, trim, null 거부), 핸들러 updateListingFields로 이름 변경. 로컬 curl 확인. ADR-027 개정
+- AI(fe): 카드 [이름] 버튼으로 인라인 이름 편집(Enter 저장·Esc 확인·실패 시 입력 유지, 로그인 PATCH name), 글자 크기 [기본·작게·더 작게](탭바 [가가] → 시트, 새 키 `text-size`, `<html data-text-size>`, 렌더 전 적용, 입력칸 16px 고정, 여백·줄 높이 토큰 함께 축소). 360px 60/60, 기존 키 원문 불변

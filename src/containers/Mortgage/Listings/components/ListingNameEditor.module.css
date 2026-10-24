@@ -1,0 +1,84 @@
+/* 카드 머리(이름 자리)에 앉는 입력칸. 카드 본문과 같은 좌우 여백이다. */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.count {
+  color: var(--color-text-muted);
+  font-size: var(--fs-small);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 글자는 --fs-input(16px): 글자 크기 설정과 상관없이 iOS 확대를 막는다. */
+.input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-control);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  font-size: var(--fs-input);
+  font-weight: 600;
+}
+
+.input:focus {
+  outline: 2px solid var(--color-text);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.error {
+  color: var(--color-error);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.primaryButton,
+.secondaryButton {
+  flex: 1;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.primaryButton {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.primaryButton:disabled {
+  background: var(--color-raised);
+  color: var(--color-text-muted);
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-control);
+  background: var(--color-surface);
+}
