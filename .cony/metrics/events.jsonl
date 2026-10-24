@@ -101,3 +101,9 @@
 {"ts":"2026-10-23T12:44:56.547Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-23T12:45:44.728Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; R=/Users/hwanyoungchoi/cony-sandbox/loan-calculator; cd $S/wr && rm -rf sta"}
 {"ts":"2026-10-23T13:02:31.464Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T13:22:40.802Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-23T13:23:51.687Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T11:20:34.198Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T11:21:01.749Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:25:35.389Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
+{"ts":"2026-10-24T11:26:11.876Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Listings/components/MemoEditor.tsx"}

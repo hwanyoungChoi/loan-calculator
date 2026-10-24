@@ -1,12 +1,51 @@
+/*
+ * 화면 전체를 덮는 투명한 대화상자. 어두운 막은 ::backdrop이 그리고, 편집기(.form)만 아래에 띄운다.
+ * 편집기 밖을 누르면 대화상자 자신이 눌려 취소가 된다.
+ */
+.dialog {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.dialog::backdrop {
+  background: var(--color-scrim);
+}
+
+/*
+ * 편집기는 보이는 영역 맨 아래(키보드 위)에 붙는다. bottom·max-height는 visualViewport로 맞추고(인라인 style),
+ * 그 값이 없으면 화면 아래에 붙는다. 시트(Sheet)와 같은 면·모서리이고 그림자는 쓰지 않는다(어두운 막이 띄운다).
+ */
 .form {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-4);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-4) calc(var(--space-4) + env(safe-area-inset-bottom));
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: var(--color-surface);
 }
 
 .labelRow {
   display: flex;
+  flex: none;
   justify-content: space-between;
   gap: var(--space-2);
 }
@@ -26,18 +65,20 @@
 }
 
 /*
- * 긴 메모(최대 5,000자)를 고칠 수 있게 내용만큼 늘어나되(field-sizing을 지원하는 브라우저), 6줄보다 작아지지 않고
- * 화면 절반을 넘으면 안에서 스크롤한다(저장 버튼이 멀어지지 않게). 지원하지 않는 브라우저는 rows(6줄) + 손잡이 크기 조절.
+ * 4줄로 작게 시작해 내용만큼 늘어나고(field-sizing을 지원하는 브라우저), 편집기가 보이는 영역을 다 차면
+ * 안에서 스크롤한다(저장 버튼이 키보드 뒤로 밀리지 않게). 지원하지 않는 브라우저는 rows(4줄) + 손잡이 크기 조절.
+ * 글자는 16px 아래로 줄이지 않는다: iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다.
  */
 .textarea {
+  flex: 0 1 auto;
   width: 100%;
-  min-height: calc(6lh + 2 * var(--space-2) + 2px);
-  max-height: 50vh;
+  min-height: calc(4lh + 2 * var(--space-2) + 2px);
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-control);
   border-radius: var(--radius-control);
   background: var(--color-surface);
   font: inherit;
+  font-size: var(--fs-section);
   field-sizing: content;
   resize: vertical;
 }
@@ -53,6 +94,7 @@
 }
 
 .error {
+  flex: none;
   color: var(--color-error);
   font-size: var(--fs-body);
   overflow-wrap: anywhere;
@@ -60,6 +102,7 @@
 
 .actions {
   display: flex;
+  flex: none;
   gap: var(--space-2);
 }
 

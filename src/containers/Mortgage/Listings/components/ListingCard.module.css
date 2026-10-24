@@ -1,4 +1,8 @@
 .card {
+  /* 가리기 모드의 [보기]는 본문 링크 밖 형제라 카드 기준으로 머리 오른쪽에 앉힌다. */
+  --reveal-button-width: 56px;
+
+  position: relative;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
@@ -23,6 +27,35 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+}
+
+/* [보기] 자리를 비워 이름·배지가 버튼 밑으로 들어가지 않게 한다. 높이는 버튼과 같다. */
+.headingWithReveal {
+  composes: heading;
+  min-height: 40px;
+  padding-right: calc(var(--reveal-button-width) + var(--space-2));
+}
+
+/* 이 카드만 잠깐 보이기. 누른 동안(보이는 중)은 주 동작 색으로 채운다. */
+.revealButton {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+  min-width: var(--reveal-button-width);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: var(--color-raised);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.revealButton[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .name {

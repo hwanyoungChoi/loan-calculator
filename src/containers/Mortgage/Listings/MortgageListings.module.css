@@ -14,12 +14,18 @@
   margin-bottom: var(--space-1);
 }
 
-/* 제목 오른쪽에 [목록 공유]. 360px에서도 제목과 한 줄에 둔다. */
+/* 제목 오른쪽에 [가리기]·[목록 공유]. 360px에서도 제목과 한 줄에 둔다. */
 .titleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
+}
+
+.titleActions {
+  display: flex;
+  flex: none;
+  gap: var(--space-2);
 }
 
 .shareListButton {
@@ -32,6 +38,16 @@
   font-size: var(--fs-body);
   font-weight: 600;
   white-space: nowrap;
+}
+
+/* 가리기: 켜진 동안 주 동작 색으로 채운다. */
+.privacyButton {
+  composes: shareListButton;
+}
+
+.privacyButton[aria-pressed="true"] {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
 }
 
 .addedNotice {

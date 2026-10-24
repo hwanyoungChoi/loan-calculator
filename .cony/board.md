@@ -1,6 +1,6 @@
 # 정렬 방향 · 마지막 보기 기억 · 예산 동기화
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-23 21:44
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 20:20
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-be(순서 저장 API)와 fe(직접 정렬·드래그) 병렬 구현 중 (브랜치 cony/custom-order)
+fe가 가리기 모드·메모 집중 입력 구현 중 (브랜치 cony/privacy-mode)
 
 ## 최근 결정
 
@@ -36,7 +36,7 @@ be(순서 저장 API)와 fe(직접 정렬·드래그) 병렬 구현 중 (브랜�
 
 ## PR
 
-[#23](https://github.com/hwanyoungChoi/mortgage-fit/pull/23) 머지
+[#24](https://github.com/hwanyoungChoi/mortgage-fit/pull/24) 머지
 
 <!-- spec: specs/sort-order-budget-sync.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->
