@@ -70,12 +70,6 @@
   font-size: var(--fs-small);
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
 .notice {
   padding: var(--space-4);
   border: 1px solid var(--color-border);
@@ -133,7 +127,7 @@
   text-decoration: none;
 }
 
-/* 간단히 보기: 흰 카드 한 장 안에 줄을 쌓는다. */
+/* 목록: 흰 카드 한 장 안에 줄을 쌓는다. */
 .compactTable {
   display: flex;
   flex-direction: column;

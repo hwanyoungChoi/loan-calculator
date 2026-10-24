@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
-import ChoiceGroup from "@/components/ChoiceGroup";
 import { useListingSource } from "@/hooks/useListingSource";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
-import { DEFAULT_SORT_ORDER, OPPOSITE_SORT_ORDER } from "@/lib/constants/listingsView";
 import { PATHS } from "@/lib/constants/paths";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
 import { copiedListingName, listingToCopyDraft, listingToDraft } from "@/lib/utils/listingDraft";
@@ -16,32 +14,27 @@ import AccountBar from "./components/AccountBar";
 import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
-import ListingCard, { type ListingStatusFailure } from "./components/ListingCard";
-import ListingSortGroup from "./components/ListingSortGroup";
+import { type ListingStatusFailure } from "./components/ListingCard";
 import ListingStatusSheet from "./components/ListingStatusSheet";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
 import { useListingOrderSource } from "./hooks/useListingOrderSource";
 import { useListingsScrollRestoration } from "./hooks/useListingsScrollRestoration";
-import { useListingsView } from "./hooks/useListingsView";
 
 import type { AccountImport } from "@/hooks/useAccountImport";
 import type { BudgetImportStore, BudgetStore } from "@/lib/types/budget";
 import type { DraftStore } from "@/lib/types/draft";
 import type {
   Listing,
-  ListingSort,
   ListingSourceWriteFailure,
   ListingStatus,
   ListingStore,
-  ListingView,
 } from "@/lib/types/listing";
 import type {
   ListingOrderImportStore,
   ListingOrderSaveFailure,
   ListingOrderStore,
 } from "@/lib/types/listingOrder";
-import type { ListingsViewState, ListingsViewStore } from "@/lib/types/listingsView";
 import type { PrivacyModeStore } from "@/lib/types/privacyMode";
 import type { Regulations } from "@/lib/types/regulation";
 import type { LoginResult } from "@/lib/types/route";
@@ -62,13 +55,9 @@ type MortgageListingsProps = {
   listingOrderStore: ListingOrderStore;
   listingOrderImportStore: ListingOrderImportStore;
   sentShareStore: SentShareStore;
-  /** 마지막으로 보여 준 정렬·방향·보기. 주소에 없는 값을 채운다. */
-  listingsViewStore: ListingsViewStore;
   /** 가리기 모드(이 기기). 켜면 금액과 메모를 가린다. */
   privacyModeStore: PrivacyModeStore;
   regulations: Regulations;
-  /** 주소(`#/listings?sort=&order=&view=`)에 있던 값. 기억보다 우선한다(ADR-025 D2). */
-  addressView: Partial<ListingsViewState>;
   /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 계정 줄에 보이고 주소에서 지운다. */
   login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
@@ -77,11 +66,6 @@ type MortgageListingsProps = {
   notice: string | null;
   onNoticeChange: (notice: string | null) => void;
 };
-
-const VIEW_OPTIONS: { value: ListingView; label: string }[] = [
-  { value: "card", label: "상세히" },
-  { value: "compact", label: "간단히" },
-];
 
 /**
  * notFound는 다른 탭에서 이미 지운 경우라 목록이 그대로 맞으므로 알리지 않는다.
@@ -123,12 +107,12 @@ const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
 /** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기 */
 type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; listing: Listing };
 
-/** 끌어 놓은 순서. 저장이 끝나고 주소가 직접 정렬로 바뀔 때까지 이 순서로 보인다(되돌아가 깜빡이지 않게). */
-type PendingOrder = { ids: string[]; isSaved: boolean };
-
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
 
-/** 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007). */
+/**
+ * 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007).
+ * 한 줄씩(이름과 필요한 자기자금) 보이고 줄을 누르면 상세 카드를 펼친다. 순서는 직접 정한 순서 하나다(ADR-026).
+ */
 function MortgageListings({
   listingStore,
   sessionHintStore,
@@ -139,10 +123,8 @@ function MortgageListings({
   listingOrderStore,
   listingOrderImportStore,
   sentShareStore,
-  listingsViewStore,
   privacyModeStore,
   regulations,
-  addressView,
   login,
   onSuggestedNameChange,
   notice,
@@ -164,8 +146,8 @@ function MortgageListings({
     listingOrderImportStore,
     onUnauthorized: source.expireSession,
   });
-  const { sort, order, view } = useListingsView(listingsViewStore, addressView);
-  const [pendingOrder, setPendingOrder] = useState<PendingOrder | null>(null);
+  // 끌어 놓은 순서. 저장이 끝날 때까지 이 순서로 보인다(되돌아가 깜빡이지 않게).
+  const [pendingOrder, setPendingOrder] = useState<string[] | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
   const [statusFailure, setStatusFailure] = useState<ListingStatusFailure | null>(null);
   // 끄는 손이 있는 목록 바로 위에 보인다(목록 위쪽 알림은 스크롤해 내려와 있으면 보이지 않는다).
@@ -192,59 +174,26 @@ function MortgageListings({
   }, [notice, onNoticeChange]);
 
   useEffect(() => {
-    if (login !== undefined) window.location.replace(PATHS.listings({ sort, order, view }));
-  }, [login, sort, order, view]);
-
-  useEffect(() => {
-    if (pendingOrder?.isSaved && sort === "custom") setPendingOrder(null);
-  }, [pendingOrder, sort]);
+    if (login !== undefined) window.location.replace(PATHS.listings());
+  }, [login]);
 
   // 로그인 상태일 때만 보인다(로그아웃하면 로컬 목록이 원본이라 옮기지 못한 것이 없다).
   const importProblem =
     source.status === "loggedIn" ? accountImportProblem(accountImport.state) : null;
-  const displayedSort = pendingOrder === null ? sort : "custom";
   const savedOrder = orderSource.state.status === "ok" ? orderSource.state.ids : null;
   const sortedListings =
-    list.status === "ok"
-      ? sortListings(
-          list.listings,
-          displayedSort,
-          order,
-          regulations,
-          pendingOrder?.ids ?? savedOrder,
-        )
-      : [];
-  // 직접 정렬인데 계정 순서를 아직 못 받았으면 다른 순서로 대신 보이지 않는다.
-  const isCustomOrderMissing =
-    displayedSort === "custom" && pendingOrder === null && orderSource.state.status !== "ok";
+    list.status === "ok" ? sortListings(list.listings, pendingOrder ?? savedOrder) : [];
+  // 계정 순서를 아직 못 받았으면 다른 순서로 대신 보이지 않는다.
+  const isOrderMissing = pendingOrder === null && orderSource.state.status !== "ok";
   const canReorder = orderSource.state.status === "ok" && pendingOrder === null;
 
-  /**
-   * 정렬·방향·보기는 새로고침해도 남게 세 값을 모두 주소에 두고(기본값도 생략하지 않음), 히스토리는 쌓지 않는다.
-   * 선택된 정렬을 다시 누르면 방향을 바꾸고, 다른 정렬은 그 정렬의 기본 방향으로 시작한다.
-   */
-  const handleSortSelect = (nextSort: ListingSort) => {
-    const nextOrder = nextSort === sort ? OPPOSITE_SORT_ORDER[order] : DEFAULT_SORT_ORDER[nextSort];
-    window.location.replace(PATHS.listings({ sort: nextSort, order: nextOrder, view }));
-  };
-
-  /**
-   * 끌어 놓은 순서를 저장한다. 다른 정렬로 보던 중이면 보이던 순서에서 바꾼 순서로 직접 정렬이 된다.
-   * 저장하지 못하면 순서(와 바꾼 정렬)를 되돌리고 한 줄로 알린다.
-   */
+  /** 끌어 놓은 순서를 저장한다. 저장하지 못하면 원래 순서로 되돌리고 한 줄로 알린다. */
   const handleReorder = async (ids: string[]) => {
-    const previousView = { sort, order, view };
-    setPendingOrder({ ids, isSaved: false });
-    if (sort !== "custom")
-      window.location.replace(PATHS.listings({ ...previousView, sort: "custom" }));
+    setPendingOrder(ids);
     const result = await orderSource.save(ids);
     setOrderError(result.ok ? null : ORDER_FAILURE_MESSAGES[result.reason]);
-    if (result.ok) {
-      setPendingOrder((pending) => (pending?.ids === ids ? { ids, isSaved: true } : pending));
-      return;
-    }
-    setPendingOrder(null);
-    if (previousView.sort !== "custom") window.location.replace(PATHS.listings(previousView));
+    // 저장에 성공하면 순서 출처(기기 순서·계정 순서 캐시)가 이 순서가 되어 있다.
+    setPendingOrder((pending) => (pending === ids ? null : pending));
   };
 
   const handlePrivacyToggle = () => {
@@ -252,11 +201,7 @@ function MortgageListings({
     setRevealedId(null);
   };
 
-  const handleViewChange = (nextView: ListingView) => {
-    window.location.replace(PATHS.listings({ sort, order, view: nextView }));
-  };
-
-  /** 카드 본문·"수정" 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
+  /** "수정" 링크가 `#/`로 push하기 전에 draft를 이 매물로 바꾼다(ADR-004). */
   const handleOpen = (listing: Listing) => {
     draftStore.update(listingToDraft(listing));
     onSuggestedNameChange("");
@@ -401,15 +346,6 @@ function MortgageListings({
           isRetrying={budgetSource.isRetrying}
           isMasked={isPrivacyMode}
         />
-        <ListingSortGroup sort={displayedSort} order={order} onSelect={handleSortSelect} />
-        <ChoiceGroup
-          name="listingView"
-          legend="보기"
-          options={VIEW_OPTIONS}
-          value={view}
-          columns={2}
-          onChange={handleViewChange}
-        />
         {source.isRefreshFailed && (
           <p className={styles.warning}>
             최신 목록을 불러오지 못했습니다. 마지막으로 불러온 목록입니다
@@ -426,7 +362,7 @@ function MortgageListings({
   };
 
   const renderListings = (listLabel: string) => {
-    if (isCustomOrderMissing) {
+    if (isOrderMissing) {
       if (orderSource.state.status === "loadFailed") {
         return (
           <div className={styles.notice}>
@@ -448,7 +384,7 @@ function MortgageListings({
         </p>
       );
     }
-    return view === "compact" ? (
+    return (
       <div className={styles.compactTable}>
         <div className={styles.compactHeader} aria-hidden="true">
           <span>이름</span>
@@ -474,29 +410,6 @@ function MortgageListings({
           onRevealChange={setRevealedId}
         />
       </div>
-    ) : (
-      <ul className={styles.list} aria-label={listLabel}>
-        {sortedListings.map((listing) => (
-          <li key={listing.id}>
-            <ListingCard
-              listing={listing}
-              regulations={regulations}
-              budget={budget}
-              onOpen={handleOpen}
-              onCopy={handleCopy}
-              onDelete={handleDelete}
-              onShare={handleShare}
-              onSaveMemo={handleSaveMemo}
-              onSaveName={handleSaveName}
-              onStatusOpen={handleStatusOpen}
-              statusFailure={statusFailure}
-              isPrivacyMode={isPrivacyMode}
-              revealedId={revealedId}
-              onRevealChange={setRevealedId}
-            />
-          </li>
-        ))}
-      </ul>
     );
   };
 

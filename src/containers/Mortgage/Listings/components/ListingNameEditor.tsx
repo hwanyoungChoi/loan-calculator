@@ -14,7 +14,7 @@ type ListingNameEditorProps = {
   /** 저장본의 이름. 입력칸의 처음 값으로만 쓴다: 창 포커스 재조회로 바뀌어도 입력 중인 문자열은 덮지 않는다. */
   initialName: string;
   onSave: (name: string) => Promise<ListingSourceWriteResult>;
-  /** 저장했거나 취소했다. 포커스 복귀는 여는 쪽([이름] 버튼)이 맡는다. */
+  /** 저장했거나 취소했다. 포커스 복귀는 여는 쪽(카드의 이름 버튼)이 맡는다. */
   onClose: () => void;
 };
 
@@ -53,7 +53,7 @@ function ListingNameEditor({ initialName, onSave, onClose }: ListingNameEditorPr
   const countId = `${id}-count`;
   const errorId = `${id}-error`;
 
-  // 커서는 기존 이름 끝에 둔다(이어 쓰거나 지우기 쉽게). 아래쪽 [이름]을 눌러 열어도 라벨까지 보이게 칸 전체를 화면에 들인다.
+  // 커서는 기존 이름 끝에 둔다(이어 쓰거나 지우기 쉽게). 라벨부터 버튼까지 칸 전체를 화면에 들인다.
   useEffect(() => {
     const input = inputRef.current;
     if (input === null) return;

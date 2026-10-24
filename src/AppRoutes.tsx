@@ -20,7 +20,6 @@ import { createDraftStore } from "@/lib/utils/draftStorage";
 import { createListingOrderImportStore } from "@/lib/utils/listingOrderImportStorage";
 import { createListingOrderStore } from "@/lib/utils/listingOrderStorage";
 import { createListingStore } from "@/lib/utils/listingStore";
-import { createListingsViewStore } from "@/lib/utils/listingsViewStorage";
 import { createPrivacyModeStore } from "@/lib/utils/privacyModeStorage";
 import { createSentShareStore } from "@/lib/utils/sentShareStorage";
 import { createSessionHintStore } from "@/lib/utils/sessionHintStorage";
@@ -52,7 +51,6 @@ function createStores(storage: Storage) {
     sentShareStore: createSentShareStore({ storage, now: Date.now }),
     sessionHintStore: createSessionHintStore({ storage }),
     accountImportStore: createAccountImportStore({ storage }),
-    listingsViewStore: createListingsViewStore({ storage }),
     privacyModeStore: createPrivacyModeStore({ storage }),
     textSizeStore: createTextSizeStore({ storage }),
   };
@@ -72,7 +70,6 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
       sentShareStore,
       sessionHintStore,
       accountImportStore,
-      listingsViewStore,
       privacyModeStore,
       textSizeStore,
     },
@@ -127,10 +124,8 @@ function AppRoutes({ storage, regulations = LOAN_REGULATIONS }: AppRoutesProps) 
           listingOrderStore={listingOrderStore}
           listingOrderImportStore={listingOrderImportStore}
           sentShareStore={sentShareStore}
-          listingsViewStore={listingsViewStore}
           privacyModeStore={privacyModeStore}
           regulations={regulations}
-          addressView={{ sort: route.sort, order: route.order, view: route.view }}
           login={route.login}
           onSuggestedNameChange={setSuggestedName}
           notice={listingsNotice}

@@ -20,7 +20,7 @@ import type { Listing, ListingSourceWriteResult } from "@/lib/types/listing";
 import type { LoanResult } from "@/lib/types/loan";
 import type { Regulations } from "@/lib/types/regulation";
 
-/** 상태를 바꾸지 못한 매물과 이유. 그 매물의 카드(간단히 보기면 줄)에 한 줄로 보인다. */
+/** 상태를 바꾸지 못한 매물과 이유. 그 매물의 펼친 카드(접혀 있으면 줄)에 한 줄로 보인다. */
 export type ListingStatusFailure = { listingId: string; message: string };
 
 type ListingCardProps = {
@@ -54,16 +54,16 @@ const STATUS_BADGES: Record<LoanResult["status"], string | null> = {
 };
 
 /**
- * 핵심 지표(매매가, KB시세, 예상 한도, 자기자금)와 조건 요약. 계산된 매물은 자기자금 아래에 내역(집값 중 내 돈, 취득세 등, 중개보수)을 작게 붙인다. 본문을 누르거나 "수정"을 누르면 계산 화면으로 열고, "복사"는 같은 값을 새 매물로 연다. "공유"는 이 매물의 공유 링크 시트를 연다.
+ * 핵심 지표(매매가, KB시세, 예상 한도, 자기자금)와 조건 요약. 계산된 매물은 자기자금 아래에 내역(집값 중 내 돈, 취득세 등, 중개보수)을 작게 붙인다. "수정"을 누르면 계산 화면으로 열고, "복사"는 같은 값을 새 매물로 연다. "공유"는 이 매물의 공유 링크 시트를 연다.
  * 이름 맨 앞에는 상태 칩(미지정이면 [상태])이 있고 누르면 고르기 시트가 뜬다(ADR-027). 가리기 모드에서도 보인다.
  * 예산을 넘으면 이름 앞에 "초과"와 넘는 금액을, 예산 안이면 남는 금액을 보이고, 메모가 있으면 아래에 세 줄까지 보이고(긴 메모는 펼치기) "메모"로 고친다.
- * 추가 비용이 있으면 자기자금 내역 뒤에 "추가 비용"·"총 필요 금액"을 붙이고, 본문 링크 밖에 [추가 비용 내역 n개] 펼침을 둔다.
- * 예산·정렬은 자기자금 기준 그대로라(스펙 U1) 그런 카드의 예산 문구는 "자기자금 기준"으로 한정한다(ADR-024 C4).
- * 본문 링크와 버튼 영역(상태 칩 포함)은 형제라 인터랙티브 요소가 겹치지 않는다(ADR-022 D7). 목록의 `<li>`는 부모가 감싼다(상세히 보기, 간단히 보기의 펼침).
- * 가리기 모드에서는 금액·메모를 `•••`로 그리고, 본문 링크 밖 카드 머리의 [보기]로 이 카드만 잠깐 보인다.
+ * 추가 비용이 있으면 자기자금 내역 뒤에 "추가 비용"·"총 필요 금액"을 붙이고, 그 아래에 [추가 비용 내역 n개] 펼침을 둔다.
+ * 예산은 자기자금 기준 그대로라(스펙 U1) 그런 카드의 예산 문구는 "자기자금 기준"으로 한정한다(ADR-024 C4).
+ * 본문은 링크가 아니다(누를 곳은 이름·상태 칩·[보기]·버튼 줄뿐이라 서로 겹치지 않는다). 목록의 `<li>`는 부모(펼친 줄)가 감싼다.
+ * 가리기 모드에서는 금액·메모를 `•••`로 그리고, 카드 머리의 [보기]로 이 카드만 잠깐 보인다.
  * "메모"는 화면을 어둡게 덮는 편집기를 열고, 닫으면 포커스를 "메모"로 돌려준다.
- * "이름"은 카드 머리(이름 자리)를 입력칸으로 바꿔 그 자리에서 이름만 고친다. 고치는 동안 상태 칩·[보기]·버튼 줄은 숨기고
- * 입력칸의 [취소]·[이름 저장]만 두고 본문 링크는 누를 수 없게(inert) 하며, 닫으면 포커스를 "이름"으로 돌려준다.
+ * 이름을 누르면 카드 머리(이름 자리)를 입력칸으로 바꿔 그 자리에서 이름만 고친다. 고치는 동안 상태 칩·[보기]·버튼 줄은 숨기고
+ * 입력칸의 [취소]·[이름 저장]만 두며, 닫으면 포커스를 이름으로 돌려준다.
  */
 function ListingCard({
   listing,
@@ -106,7 +106,7 @@ function ListingCard({
     memoButtonRef.current?.focus();
   };
 
-  /** 입력칸이 내려가고 버튼 줄이 다시 그려진 뒤 "이름"으로 포커스를 돌려준다. */
+  /** 입력칸이 내려가고 이름이 다시 그려진 뒤 이름으로 포커스를 돌려준다. */
   const handleNameClose = () => {
     flushSync(() => setIsNameEditing(false));
     nameButtonRef.current?.focus();
@@ -132,7 +132,7 @@ function ListingCard({
           보기
         </button>
       )}
-      {/* 본문 링크 안에 버튼을 둘 수 없어 카드 기준으로 이름 앞 자리에 앉힌다(가리기의 [보기]와 같은 방식). */}
+      {/* 카드 기준으로 이름 앞 자리에 앉힌다(가리기의 [보기]와 같은 방식). */}
       {!isNameEditing && (
         <ListingStatusButton
           listing={listing}
@@ -140,17 +140,19 @@ function ListingCard({
           onClick={(button) => onStatusOpen(listing, button)}
         />
       )}
-      <a
-        className={isNameEditing ? styles.linkUnderNameEditor : styles.link}
-        href={PATHS.calculator}
-        // 고치는 동안 본문을 잘못 눌러 쓰던 이름을 두고 계산 화면으로 떠나지 않게 한다.
-        inert={isNameEditing}
-        onClick={() => onOpen(listing)}
-      >
+      <div className={isNameEditing ? styles.bodyUnderNameEditor : styles.body}>
         {!isNameEditing && (
           <span className={isPrivacyMode ? styles.headingWithReveal : styles.heading}>
             {excess !== null && <span className={styles.overBadge}>초과</span>}
-            <strong className={styles.name}>{listing.name}</strong>
+            <button
+              ref={nameButtonRef}
+              type="button"
+              className={styles.nameButton}
+              aria-label={`이름 바꾸기: ${listing.name}`}
+              onClick={() => setIsNameEditing(true)}
+            >
+              <strong className={styles.name}>{listing.name}</strong>
+            </button>
             {statusBadge !== null && <span className={styles.badge}>{statusBadge}</span>}
             {isCustomLtv && <span className={styles.customBadge}>사용자 지정</span>}
             {hasUnconfirmedOwnFunds(result) && <span className={styles.badge}>농특세 미확인</span>}
@@ -247,7 +249,7 @@ function ListingCard({
             </>
           )}
         </dl>
-      </a>
+      </div>
       {statusFailure?.listingId === listing.id && (
         <p role="alert" className={styles.statusError}>
           {statusFailure.message}
@@ -266,16 +268,6 @@ function ListingCard({
           >
             수정
           </a>
-          <button
-            ref={nameButtonRef}
-            type="button"
-            className={styles.nameButton}
-            aria-label={`${listing.name} 이름 바꾸기`}
-            aria-expanded={isNameEditing}
-            onClick={() => setIsNameEditing(true)}
-          >
-            이름
-          </button>
           <a
             className={styles.copyButton}
             href={PATHS.calculator}
