@@ -1,5 +1,5 @@
 .card {
-  /* 가리기 모드의 [보기]는 본문 링크 밖 형제라 카드 기준으로 머리 오른쪽에 앉힌다. */
+  /* 가리기 모드의 [보기]는 카드 기준으로 머리 오른쪽에 앉힌다. */
   --reveal-button-width: 56px;
   /* 상태 칩(ListingStatusChip .chip의 min-width)도 같은 방식으로 머리 왼쪽, 이름 맨 앞에 앉힌다. */
   --status-chip-width: 56px;
@@ -10,7 +10,7 @@
   background: var(--color-surface);
 }
 
-.link {
+.body {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -20,14 +20,9 @@
 }
 
 /* 이름을 고치는 동안 머리는 입력칸(ListingNameEditor)이 맡으므로 본문은 조건부터 붙여 시작한다. */
-.linkUnderNameEditor {
-  composes: link;
+.bodyUnderNameEditor {
+  composes: body;
   padding-top: var(--space-2);
-}
-
-.link:focus-visible {
-  border-radius: var(--radius-card);
-  outline-offset: -2px;
 }
 
 .heading {
@@ -96,6 +91,23 @@
 .revealButton[aria-pressed="true"] {
   background: var(--color-primary);
   color: var(--color-on-primary);
+}
+
+/*
+ * 이름을 누르면 그 자리에서 고친다. 글자 모양은 그대로 두고 점선 밑줄로 누를 수 있음을 보인다.
+ * 누르는 자리는 위아래로 넓히되 음수 여백으로 줄 높이는 그대로 둔다(상태 칩 위치가 흔들리지 않게).
+ */
+.nameButton {
+  min-width: 0;
+  margin: calc(-1 * var(--space-2)) 0;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--color-control);
+  text-underline-offset: 4px;
 }
 
 .name {
@@ -257,8 +269,8 @@
 }
 
 /*
- * 수정·이름·복사·메모·공유·삭제는 카드 아래 한 줄에 같은 폭으로 둔다. 360px의 간단히 보기 펼침(가장 좁은 자리)에서도
- * 줄이 넘치거나 잘리지 않게 버튼이 줄어든다. 이름 자리는 줄이지 않는다.
+ * 수정·복사·메모·공유·삭제는 카드 아래 한 줄에 같은 폭으로 둔다. 360px의 펼친 카드(가장 좁은 자리)에서도
+ * 줄이 넘치거나 잘리지 않게 버튼이 줄어든다.
  */
 .actions {
   display: flex;
@@ -294,10 +306,6 @@
 }
 
 .memoButton {
-  composes: editButton;
-}
-
-.nameButton {
   composes: editButton;
 }
 

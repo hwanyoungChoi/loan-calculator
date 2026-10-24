@@ -45,15 +45,6 @@ export type ListingInput = Pick<
   memo?: string;
 };
 
-/** custom은 사용자가 끌어 정한 순서(ADR-026). 방향이 없다. */
-export type ListingSort = "ownFunds" | "recent" | "name" | "custom";
-
-/** 정렬 방향. 첫째 기준에만 적용한다(ADR-025). asc = 작은·이른·가 쪽부터 */
-export type ListingSortOrder = "asc" | "desc";
-
-/** 목록 보기: card는 카드, compact는 이름과 필요한 자기자금만 한 줄씩 */
-export type ListingView = "card" | "compact";
-
 export type LoadListingsResult =
   | { ok: true; listings: Listing[] }
   | { ok: false; reason: "corrupt"; rawText: string }

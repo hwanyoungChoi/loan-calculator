@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -12,9 +12,6 @@ import { createMemoryStorage } from "@/test/memoryStorage";
 import { renderWithQueryClient } from "@/test/renderWithQueryClient";
 
 import type { Listing } from "@/lib/types/listing";
-
-/** 래미안 카드 본문 링크. 같은 카드의 "래미안 101동 수정" 링크는 제외한다 */
-const CARD_BODY_LINK = /^래미안 101동(?! (수정|복사)$)/;
 
 const RESET_CONFIRM_MESSAGE =
   "손상된 저장 데이터를 삭제하고 빈 목록으로 시작합니다. 되돌릴 수 없으니 원문을 먼저 복사하세요";
@@ -31,10 +28,23 @@ function baseDateText() {
   return screen.getByText(new RegExp(`규제 기준일 ${REGULATION_BASE_DATE}`));
 }
 
-function listingNames(list: HTMLElement) {
+/** 접힌 줄 버튼의 글자(이름 + 필요한 자기자금) */
+function listingRows(list: HTMLElement) {
   return within(list)
     .getAllByRole("listitem")
-    .map((item) => within(item).getByRole("strong").textContent);
+    .map((item) => within(item).getByRole("button", { expanded: false }).textContent);
+}
+
+/** 줄을 펼치고 펼친 카드의 [수정]을 누른다(계산 화면으로 push). */
+async function openListing(
+  user: ReturnType<typeof userEvent.setup>,
+  list: HTMLElement,
+  name: string,
+) {
+  await user.click(
+    within(list).getByRole("button", { name: new RegExp(`^${name}`), expanded: false }),
+  );
+  await user.click(within(list).getByRole("link", { name: `${name} 수정` }));
 }
 
 /** jsdom의 scrollY는 늘 0이다. 브라우저처럼 scrollTo가 scrollY를 바꾸게 해서 복원 순서까지 본다. */
@@ -145,16 +155,19 @@ describe("저장 흐름 (통합)", () => {
     const scrollTo = mockBrowserScroll();
     renderWithQueryClient(<AppRoutes storage={storage} />);
 
-    // 목록: 기준일, 2개, 자기자금순
+    // 목록: 기준일, 2개, 직접 순서가 없어 최근 저장순
     expect(baseDateText()).toBeInTheDocument();
     // 로그인 확인(/api/me)이 끝나 출처가 정해진 뒤에 목록이 뜬다.
     let list = await screen.findByRole("list", { name: "저장한 매물 2개" });
-    expect(listingNames(list)).toEqual(["자이 3단지", "래미안 101동"]);
+    expect(listingRows(list)).toEqual([
+      expect.stringMatching(/^자이 3단지/),
+      expect.stringMatching(/^래미안 101동/),
+    ]);
 
     // 스크롤 복원 (AC-8e): 목록 → 카드(push) → 계산 화면은 맨 위 → 뒤로 가기 → 같은 위치
     setScrollY(1500);
     const historyBeforeCard = window.history.length;
-    await user.click(within(list).getByRole("link", { name: CARD_BODY_LINK }));
+    await openListing(user, list, "래미안 101동");
     expect(await screen.findByLabelText("KB시세")).toBeInTheDocument();
     expect(window.location.hash).toBe("#/");
     expect(window.history.length).toBe(historyBeforeCard + 1);
@@ -167,8 +180,8 @@ describe("저장 흐름 (통합)", () => {
     expect(scrollTo).toHaveBeenLastCalledWith(0, 1500);
     expect(window.scrollY).toBe(1500);
 
-    // 카드를 누르면 계산 화면에 그 매물 값이 채워지고 "저장됨"
-    await user.click(within(list).getByRole("link", { name: CARD_BODY_LINK }));
+    // [수정]을 누르면 계산 화면에 그 매물 값이 채워지고 "저장됨"
+    await openListing(user, list, "래미안 101동");
     const kbPrice = await screen.findByLabelText("KB시세");
     expect(screen.getByLabelText("매매가")).toHaveValue("125,000");
     expect(kbPrice).toHaveValue("120,000");
@@ -213,44 +226,12 @@ describe("저장 흐름 (통합)", () => {
     const historyBeforeTab = window.history.length;
     scrollTo.mockClear();
     await user.click(screen.getByRole("link", { name: "저장 목록" }));
-    list = await screen.findByRole("list", { name: "저장한 매물 2개" });
+    expect(await screen.findByRole("list", { name: "저장한 매물 2개" })).toBeInTheDocument();
     expect(baseDateText()).toBeInTheDocument();
     expect(window.location.hash).toBe("#/listings");
     expect(window.history.length).toBe(historyBeforeTab);
     expect(scrollTo).toHaveBeenLastCalledWith(0, 0);
     expect(window.scrollY).toBe(0);
-
-    // 정렬 변경은 주소(#/listings?sort=&order=&view=)에 replace로 남고, 주소의 정렬이 화면에 반영된다.
-    // 덮어쓰기로 래미안의 updatedAt이 가장 최근이다.
-    await user.click(screen.getByRole("button", { name: "최근 저장순" }));
-    expect(window.location.hash).toBe("#/listings?sort=recent&order=desc&view=card");
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /^최근 저장순/ })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      ),
-    );
-    expect(screen.getByRole("button", { name: "자기자금순" })).toHaveAttribute(
-      "aria-pressed",
-      "false",
-    );
-    expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
-      "래미안 101동",
-      "자이 3단지",
-    ]);
-    await user.click(screen.getByRole("button", { name: "자기자금순" }));
-    expect(window.location.hash).toBe("#/listings?sort=ownFunds&order=asc&view=card");
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /^자기자금순/ })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      ),
-    );
-    expect(listingNames(screen.getByRole("list", { name: "저장한 매물 2개" }))).toEqual([
-      "자이 3단지",
-      "래미안 101동",
-    ]);
-    expect(window.history.length).toBe(historyBeforeTab);
 
     // "새 계산"은 금액과 listingId를 비우고 조건은 유지한다:
     // 같은 값을 다시 입력해도 더는 그 매물의 "저장됨"이 아니다.

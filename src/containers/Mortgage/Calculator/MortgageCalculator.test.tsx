@@ -533,7 +533,9 @@ describe("계산 화면 (통합)", () => {
     await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "저장" }));
     expect(screen.getByLabelText("매매가")).toHaveValue("");
     await user.click(screen.getByRole("link", { name: "저장 목록" }));
-    await user.click(await screen.findByRole("link", { name: "이전 매물 수정" }));
+    // 목록은 한 줄씩이라 줄을 펼친 뒤 [수정]을 누른다.
+    await user.click(await screen.findByRole("button", { name: /^이전 매물/, expanded: false }));
+    await user.click(screen.getByRole("link", { name: "이전 매물 수정" }));
     const salePrice = await screen.findByLabelText("매매가");
     const kbPrice = screen.getByLabelText("KB시세");
     await user.click(screen.getByRole("radio", { name: "직접 입력" }));

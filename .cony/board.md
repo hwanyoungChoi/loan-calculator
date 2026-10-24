@@ -1,6 +1,6 @@
 # 정렬 방향 · 마지막 보기 기억 · 예산 동기화
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 20:57
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 21:37
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-be(PATCH name)와 fe(이름 바로 바꾸기·글자 크기) 병렬 구현 중 (브랜치 cony/rename-text-size)
+fe가 정렬·보기 옵션 제거와 제목 눌러 이름 수정 구현 중 (브랜치 cony/simplify-list)
 
 ## 최근 결정
 
@@ -36,7 +36,7 @@ be(PATCH name)와 fe(이름 바로 바꾸기·글자 크기) 병렬 구현 중 (
 
 ## PR
 
-[#26](https://github.com/hwanyoungChoi/mortgage-fit/pull/26) 머지
+[#27](https://github.com/hwanyoungChoi/mortgage-fit/pull/27) 머지
 
 <!-- spec: specs/sort-order-budget-sync.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->
