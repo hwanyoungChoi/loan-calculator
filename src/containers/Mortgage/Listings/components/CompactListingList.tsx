@@ -24,6 +24,7 @@ import { useState, type ComponentProps } from "react";
 import styles from "./CompactListingList.module.css";
 import CompactListingRow from "./CompactListingRow";
 import CompactListingSummary from "./CompactListingSummary";
+import ListingStatusChip from "./ListingStatusChip";
 
 import type ListingCard from "./ListingCard";
 import type { Listing } from "@/lib/types/listing";
@@ -125,10 +126,12 @@ function CompactListingList({
       <DragOverlay>
         {activeListing !== null && (
           <div className={styles.lifted}>
+            {activeListing.status !== undefined && (
+              <ListingStatusChip status={activeListing.status} />
+            )}
             <CompactListingSummary
               listing={activeListing}
               regulations={cardProps.regulations}
-              budget={cardProps.budget}
               isExpanded={false}
               isMasked={cardProps.isPrivacyMode}
             />

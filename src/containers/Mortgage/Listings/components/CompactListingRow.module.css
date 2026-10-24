@@ -18,10 +18,35 @@
   opacity: 0;
 }
 
+/* 상태 칩 버튼과 줄 버튼이 형제로 한 줄에 앉는다. 칩을 눌러도 펼치거나 들지 않는다. */
+.line {
+  display: flex;
+  align-items: stretch;
+}
+
+.lineWithStatus {
+  composes: line;
+}
+
+/* 칩 버튼은 줄 높이 전체가 누르는 자리다. */
+.statusButton {
+  display: flex;
+  flex: none;
+  align-items: center;
+  padding: 0 0 0 var(--space-4);
+  border: 0;
+  background: none;
+}
+
+.statusButton:focus-visible {
+  outline-offset: -2px;
+}
+
 .row {
   display: flex;
+  flex: 1;
   align-items: center;
-  width: 100%;
+  min-width: 0;
   min-height: 52px;
   padding: var(--space-2) var(--space-4);
   border: 0;
@@ -44,6 +69,17 @@
 
 .row:focus-visible {
   outline-offset: -2px;
+}
+
+.lineWithStatus .row {
+  padding-left: var(--space-2);
+}
+
+.statusError {
+  padding: 0 var(--space-4) var(--space-2);
+  color: var(--color-error);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
 }
 
 /* 펼친 상세 카드. 바탕색 우물 위에 흰 카드로 앉혀 줄과 구분한다. */

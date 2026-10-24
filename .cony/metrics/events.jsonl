@@ -110,3 +110,6 @@
 {"ts":"2026-10-24T11:31:16.560Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T11:32:11.464Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-24T11:37:03.065Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T11:37:51.353Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:41:40.448Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:41:51.280Z","type":"hook","hook":"board-on-stop","decision":"block"}

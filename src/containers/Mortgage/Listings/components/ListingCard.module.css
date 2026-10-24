@@ -1,6 +1,8 @@
 .card {
   /* 가리기 모드의 [보기]는 본문 링크 밖 형제라 카드 기준으로 머리 오른쪽에 앉힌다. */
   --reveal-button-width: 56px;
+  /* 상태 칩(ListingStatusChip .chip의 min-width)도 같은 방식으로 머리 왼쪽, 이름 맨 앞에 앉힌다. */
+  --status-chip-width: 56px;
 
   position: relative;
   border: 1px solid var(--color-border);
@@ -27,6 +29,38 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
+  /* 상태 칩 자리를 비운다. */
+  padding-left: calc(var(--status-chip-width) + var(--space-2));
+}
+
+/*
+ * 이름 앞의 상태 칩 버튼. 칩은 이름 첫 줄(24px)에 맞추고 누르는 자리는 40px로 위아래·왼쪽으로 넓힌다.
+ * 가리기 모드는 머리 높이가 40px이라 그 가운데에 맞춘다.
+ */
+.statusButton {
+  position: absolute;
+  top: calc(var(--space-4) - var(--space-2));
+  left: calc(var(--space-4) - var(--space-2));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+}
+
+.statusButtonWithReveal {
+  composes: statusButton;
+  top: var(--space-4);
+}
+
+.statusError {
+  margin: 0 var(--space-4) var(--space-3);
+  color: var(--color-error);
+  font-size: var(--fs-small);
+  overflow-wrap: anywhere;
 }
 
 /* [보기] 자리를 비워 이름·배지가 버튼 밑으로 들어가지 않게 한다. 높이는 버튼과 같다. */
@@ -213,29 +247,6 @@
 .extraCostItems {
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
-  overflow-wrap: anywhere;
-}
-
-/* 메모는 계산 값과 섞이지 않게 옅은 우물에 담는다. 자르지 않고 전부, 입력한 줄바꿈·공백 그대로 보인다. */
-.memo {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 0 var(--space-4) var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-control);
-  background: var(--color-bg);
-}
-
-.memoLabel {
-  color: var(--color-text-muted);
-  font-size: var(--fs-tiny);
-  font-weight: 600;
-}
-
-.memoText {
-  font-size: var(--fs-small);
-  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 

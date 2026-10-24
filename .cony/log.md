@@ -388,3 +388,6 @@
 - 요청: 긴 메모는 다 펼쳐져 있으면 불편 → 메모 영역 화살표로 열고 닫기
 - 요청: 후보·보류·비후보 상태를 목록에서 바꾸고 이름 맨 앞에 보이게
 - AI(리드): 사용자 속도 요청으로 pm·검토 생략, [ADR-027](decisions/027-listing-status.md)
+- AI(be): `ListingStatus`·`listingStatus.ts`·`isListingStatus`, PATCH `{memo?, status?}`(json_patch 한 문장), PUT은 memo·status 보존. 로컬 curl 확인, 마이그레이션 없음
+- AI(fe): 간단히 줄 초과 배지 제거, `ListingMemo`(렌더 높이로 3줄 초과 시 접기), 상태 칩·시트(후보 파랑 채움·보류 회색·비후보 테두리), 로컬 update는 status 보존, 공유에서 status 제외, 복사에 미포함. 360px 37/37, 기존 키 원문 불변
+- AI(리드): 상태 변경도 메모처럼 updatedAt 갱신(최근 저장순에서 위로 올라감) — 기존 메모 동작과 같아 유지, 사용자 확인 항목으로

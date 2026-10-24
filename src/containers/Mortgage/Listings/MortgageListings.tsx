@@ -16,8 +16,9 @@ import AccountBar from "./components/AccountBar";
 import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
-import ListingCard from "./components/ListingCard";
+import ListingCard, { type ListingStatusFailure } from "./components/ListingCard";
 import ListingSortGroup from "./components/ListingSortGroup";
+import ListingStatusSheet from "./components/ListingStatusSheet";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
 import { useBudgetSource } from "./hooks/useBudgetSource";
 import { useListingOrderSource } from "./hooks/useListingOrderSource";
@@ -31,6 +32,7 @@ import type {
   Listing,
   ListingSort,
   ListingSourceWriteFailure,
+  ListingStatus,
   ListingStore,
   ListingView,
 } from "@/lib/types/listing";
@@ -103,6 +105,24 @@ const ORDER_FAILURE_MESSAGES: Record<ListingOrderSaveFailure["reason"], string |
   network: "순서를 저장하지 못해 원래 순서로 되돌렸습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
+/**
+ * 상태를 바꾸지 못하면 그대로 두고(서버는 먼저 보인 칩을 되돌린다) 그 카드에 한 줄로 알린다.
+ * notFound는 다른 탭에서 지운 경우라 알리지 않는다. unauthorized는 계정 줄이 알린다.
+ */
+const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string | null> = {
+  unavailable: "상태를 바꾸지 못했습니다. 이 브라우저에서 저장소를 사용할 수 없습니다",
+  corrupt: "저장된 목록이 손상되어 상태를 바꿀 수 없습니다",
+  notFound: null,
+  notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
+  unauthorized: null,
+  deletedElsewhere: "다른 기기에서 삭제된 매물입니다",
+  limit: "상태를 바꾸지 못했습니다. 다시 시도해 주세요",
+  network: "상태를 바꾸지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
+};
+
+/** 저장 목록 화면의 시트(한 번에 하나, ADR-017): 공유 링크, 상태 고르기 */
+type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; listing: Listing };
+
 /** 끌어 놓은 순서. 저장이 끝나고 주소가 직접 정렬로 바뀔 때까지 이 순서로 보인다(되돌아가 깜빡이지 않게). */
 type PendingOrder = { ids: string[]; isSaved: boolean };
 
@@ -147,6 +167,7 @@ function MortgageListings({
   const { sort, order, view } = useListingsView(listingsViewStore, addressView);
   const [pendingOrder, setPendingOrder] = useState<PendingOrder | null>(null);
   const [writeError, setWriteError] = useState<string | null>(null);
+  const [statusFailure, setStatusFailure] = useState<ListingStatusFailure | null>(null);
   // 끄는 손이 있는 목록 바로 위에 보인다(목록 위쪽 알림은 스크롤해 내려와 있으면 보이지 않는다).
   const [orderError, setOrderError] = useState<string | null>(null);
   const isPrivacyMode = useSyncExternalStore(
@@ -155,7 +176,7 @@ function MortgageListings({
   );
   // 가리기 모드에서 잠깐 보이는 카드 하나. 목록을 떠나거나 가리기를 다시 누르면 다시 가린다.
   const [revealedId, setRevealedId] = useState<string | null>(null);
-  const sheet = useOpenSheet<ShareTarget>();
+  const sheet = useOpenSheet<ListingsSheet>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
@@ -266,11 +287,49 @@ function MortgageListings({
 
   /** 시트는 연 시점의 매물을 담는다(링크는 만든 시점의 스냅샷). */
   const handleShare = (listing: Listing, button: HTMLButtonElement) => {
-    sheet.open({ kind: "listing", listings: [listing] }, button);
+    sheet.open({ name: "share", target: { kind: "listing", listings: [listing] } }, button);
   };
 
   const handleShareList = () => {
-    sheet.open({ kind: "list", listings: sortedListings }, shareListButtonRef.current);
+    sheet.open(
+      { name: "share", target: { kind: "list", listings: sortedListings } },
+      shareListButtonRef.current,
+    );
+  };
+
+  const handleStatusOpen = (listing: Listing, returnFocusTo: HTMLElement | null) => {
+    sheet.open({ name: "status", listing }, returnFocusTo);
+  };
+
+  /** 상태만 바꾼다(다른 필드는 그대로). 시트는 바로 닫고, 지금 상태를 다시 고르면 쓰지 않는다. */
+  const handleStatusSelect = async (listing: Listing, status: ListingStatus | null) => {
+    sheet.close();
+    if ((listing.status ?? null) === status) return;
+    setStatusFailure(null);
+    const result = await source.updateStatus(listing, status);
+    const message = result.ok ? null : STATUS_FAILURE_MESSAGES[result.reason];
+    if (message !== null) setStatusFailure({ listingId: listing.id, message });
+  };
+
+  const renderSheet = () => {
+    const openSheet = sheet.openSheet;
+    if (openSheet === null) return null;
+    if (openSheet.name === "share") {
+      return (
+        <ShareSheet
+          target={openSheet.target}
+          sentShareStore={sentShareStore}
+          onClose={sheet.close}
+        />
+      );
+    }
+    return (
+      <ListingStatusSheet
+        listing={openSheet.listing}
+        onSelect={(status) => void handleStatusSelect(openSheet.listing, status)}
+        onClose={sheet.close}
+      />
+    );
   };
 
   const renderBody = () => {
@@ -398,6 +457,8 @@ function MortgageListings({
           onDelete={handleDelete}
           onShare={handleShare}
           onSaveMemo={handleSaveMemo}
+          onStatusOpen={handleStatusOpen}
+          statusFailure={statusFailure}
           isPrivacyMode={isPrivacyMode}
           revealedId={revealedId}
           onRevealChange={setRevealedId}
@@ -416,6 +477,8 @@ function MortgageListings({
               onDelete={handleDelete}
               onShare={handleShare}
               onSaveMemo={handleSaveMemo}
+              onStatusOpen={handleStatusOpen}
+              statusFailure={statusFailure}
               isPrivacyMode={isPrivacyMode}
               revealedId={revealedId}
               onRevealChange={setRevealedId}
@@ -490,13 +553,7 @@ function MortgageListings({
         )}
         {renderBody()}
       </div>
-      {sheet.openSheet !== null && (
-        <ShareSheet
-          target={sheet.openSheet}
-          sentShareStore={sentShareStore}
-          onClose={sheet.close}
-        />
-      )}
+      {renderSheet()}
     </>
   );
 }

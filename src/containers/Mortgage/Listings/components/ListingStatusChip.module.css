@@ -1,0 +1,44 @@
+/* 세 상태가 같은 폭이라 목록에서 이름이 같은 자리에서 시작한다. 카드 머리의 자리(ListingCard --status-chip-width)와 같다. */
+.chip {
+  display: inline-block;
+  flex: none;
+  min-width: 56px;
+  padding: 1px var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* 후보: 데이터 신호(강조 파랑)로 채운다. 목록에서 가장 먼저 눈에 띈다. */
+.candidate {
+  composes: chip;
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-on-primary);
+}
+
+.hold {
+  composes: chip;
+  background: var(--color-badge-bg);
+  color: var(--color-badge-text);
+}
+
+/* 비후보: 채우지 않고 흐리게. 취소선은 쓰지 않는다(이름이 읽혀야 한다). */
+.rejected {
+  composes: chip;
+  border-color: var(--color-control);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+}
+
+/* 미지정: 칩 대신 정하라는 작은 버튼 모양. 점선으로 상태 칩과 구분한다. */
+.unset {
+  composes: chip;
+  border: 1px dashed var(--color-control);
+  background: none;
+  color: var(--color-text-muted);
+}
