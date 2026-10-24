@@ -107,3 +107,6 @@
 {"ts":"2026-10-24T11:21:01.749Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T11:25:35.389Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}
 {"ts":"2026-10-24T11:26:11.876Z","type":"hook","hook":"lint-on-edit","decision":"block","file":"src/containers/Mortgage/Listings/components/MemoEditor.tsx"}
+{"ts":"2026-10-24T11:31:16.560Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:32:11.464Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T11:37:03.065Z","type":"status","status":"진행 중"}
