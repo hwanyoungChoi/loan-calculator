@@ -15,6 +15,7 @@ import { useListings } from "./useListings";
 import { useMe } from "./useMe";
 import { useUpdateListing } from "./useUpdateListing";
 import { useUpdateListingMemo } from "./useUpdateListingMemo";
+import { useUpdateListingStatus } from "./useUpdateListingStatus";
 
 import type { MeResponse } from "@/lib/types/account";
 import type {
@@ -24,6 +25,7 @@ import type {
   ListingSourceStatus,
   ListingSourceWriteFailure,
   ListingSourceWriteResult,
+  ListingStatus,
   ListingStore,
   ListingWriteFailure,
   ListingWriteResult,
@@ -59,6 +61,11 @@ export type ListingSource = {
   update: (id: string, input: ListingInput) => Promise<ListingSourceWriteResult>;
   /** 빈 문자열이면 메모를 지운다. */
   updateMemo: (listing: Listing, memo: string) => Promise<ListingSourceWriteResult>;
+  /** 상태만 바꾼다. null이면 지운다(미지정). 다른 필드는 그대로 둔다. */
+  updateStatus: (
+    listing: Listing,
+    status: ListingStatus | null,
+  ) => Promise<ListingSourceWriteResult>;
   remove: (id: string) => Promise<ListingSourceWriteResult>;
 };
 
@@ -120,6 +127,7 @@ export function useListingSource({
   const createListing = useCreateListing();
   const updateListing = useUpdateListing();
   const updateListingMemo = useUpdateListingMemo();
+  const updateListingStatus = useUpdateListingStatus();
   const deleteListing = useDeleteListing();
   const importListings = useImportListings();
 
@@ -223,6 +231,12 @@ export function useListingSource({
       writeBySource(
         () => listingStore.update(listing.id, { ...listing, memo }),
         () => writeServer(() => updateListingMemo.mutateAsync({ id: listing.id, memo })),
+      ),
+    updateStatus: (listing, status) =>
+      writeBySource(
+        // status 키를 넘겨야 스토어가 기존 상태를 잇지 않고 바꾼다(undefined면 지움).
+        () => listingStore.update(listing.id, { ...listing, status: status ?? undefined }),
+        () => writeServer(() => updateListingStatus.mutateAsync({ id: listing.id, status })),
       ),
     remove: (id) =>
       writeBySource(

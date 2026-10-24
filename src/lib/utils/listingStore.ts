@@ -28,9 +28,10 @@ function toSnapshot(result: LoadListingsResult): ListingSnapshot {
 
 /**
  * 호출 쪽 객체에 다른 키가 섞여 있어도 저장 필드만 옮긴다.
- * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를, 추가 비용이 없으면(빈 배열 포함) `extraCosts` 키를 쓰지 않는다.
+ * 규제 LTV면 `customLtvRate` 키를, 85㎡ 이하면 `isAreaOver85` 키를, 메모가 비면 `memo` 키를, 추가 비용이 없으면(빈 배열 포함) `extraCosts` 키를,
+ * 상태가 미지정이면 `status` 키를 쓰지 않는다(ADR-027).
  * 로컬 저장·서버 POST·PUT·로그인 이전·공유 스냅샷이 모두 이 함수를 거친다. 여기서 빠지는 필드는 그 경로 모두에서 사라진다.
- * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022). 메모만 `update`가 따로 이어 준다.
+ * 덮어쓰기도 이전 값을 펼치지 않으므로 키가 남지 않는다(ADR-012, ADR-022). 메모와 상태만 `update`가 따로 이어 준다.
  */
 export function toListingFields({
   name,
@@ -42,6 +43,7 @@ export function toListingFields({
   isAreaOver85,
   memo,
   extraCosts,
+  status,
 }: ListingInput): ListingInput {
   return {
     name,
@@ -53,6 +55,7 @@ export function toListingFields({
     ...(isAreaOver85 === true && { isAreaOver85 }),
     ...(typeof memo === "string" && memo !== "" && { memo }),
     ...(extraCosts !== undefined && extraCosts.length > 0 && { extraCosts }),
+    ...(status !== undefined && { status }),
   };
 }
 
@@ -139,9 +142,14 @@ export function createListingStore({ storage, createId, now }: ListingStoreOptio
       if (!current.ok) return current;
       const index = current.listings.findIndex((listing) => listing.id === id);
       if (index === -1) return { ok: false, reason: "notFound" };
-      const { createdAt, memo } = current.listings[index];
-      // 계산 화면의 덮어쓰기는 memo 키를 넘기지 않으므로 기존 메모를 둔다. 메모 편집만 memo 키를 넘긴다.
-      const fields = toListingFields(Object.hasOwn(input, "memo") ? input : { ...input, memo });
+      const { createdAt, memo, status } = current.listings[index];
+      // 계산 화면의 덮어쓰기는 memo·status 키를 넘기지 않으므로 기존 메모와 상태를 둔다.
+      // 메모 편집·상태 바꾸기만 그 키를 넘긴다(값이 비거나 undefined면 지움).
+      const fields = toListingFields({
+        ...input,
+        ...(!Object.hasOwn(input, "memo") && { memo }),
+        ...(!Object.hasOwn(input, "status") && { status }),
+      });
       const updated: Listing = { id, ...fields, createdAt, updatedAt: now() };
       return commit(current.listings.with(index, updated));
     },

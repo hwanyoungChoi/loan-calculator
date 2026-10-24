@@ -11,10 +11,11 @@ import {
   EXTRA_COST_LABEL_MAX_LENGTH,
   EXTRA_COST_MAX_ITEMS,
 } from "../constants/extraCosts";
+import { LISTING_STATUSES } from "../constants/listingStatus";
 import { BORROWERS, REGIONS } from "../constants/loanConditions";
 
 import type { ExtraCost } from "../types/extraCost";
-import type { Listing, ListingInput } from "../types/listing";
+import type { Listing, ListingInput, ListingStatus } from "../types/listing";
 
 const LISTING_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
@@ -77,6 +78,11 @@ function parseExtraCosts(value: unknown): ExtraCost[] | null {
   return extraCosts;
 }
 
+/** 매물 상태 세 값 중 하나인지(ADR-027). null·빈 문자열은 아니다. 저장 값 검증과 서버 PATCH가 함께 쓴다. */
+export function isListingStatus(value: unknown): value is ListingStatus {
+  return isOneOf(LISTING_STATUSES, value);
+}
+
 /**
  * 서버 경계의 매물 id 규칙(ADR-023). 로컬 id(16바이트 hex, ADR-010)를 서버 id로 그대로 쓰므로 hex로 좁히지 않는다.
  * 서버·공유 수신에만 쓴다. 로컬 저장소 읽기(`isListing`)에는 넣지 않는다(기존 데이터를 새로 거부하지 않게, AC-0).
@@ -121,6 +127,8 @@ export function validateListingFields(value: unknown): ListingInput | null {
     // 메모는 키 없음 = 메모 없음. 키가 있으면 LISTING_MEMO_MAX_LENGTH(5,000자) 이하 문자열이어야 한다.
     (!Object.hasOwn(value, "memo") ||
       (typeof value.memo === "string" && countChars(value.memo) <= LISTING_MEMO_MAX_LENGTH)) &&
+    // 상태는 키 없음 = 미지정(ADR-027). 키가 있으면 세 값 중 하나여야 한다(null·빈 문자열 거부).
+    (!Object.hasOwn(value, "status") || isListingStatus(value.status)) &&
     extraCosts !== null;
   if (!isValid) return null;
   return {
@@ -134,6 +142,7 @@ export function validateListingFields(value: unknown): ListingInput | null {
     ...(typeof value.memo === "string" && value.memo !== "" && { memo: value.memo }),
     // 빈 배열은 받되 키를 쓰지 않는다(빈 메모와 같은 규칙).
     ...(extraCosts.length > 0 && { extraCosts }),
+    ...(Object.hasOwn(value, "status") && { status: value.status as ListingStatus }),
   };
 }
 

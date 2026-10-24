@@ -1,6 +1,10 @@
 // 로그인 사용자의 저장 목록(ADR-023 D3·D4). 행마다 `data`에 ListingInput JSON을 둔다.
 // POST·PUT·PATCH의 updatedAt은 서버 시각, import는 넘어온 시각을 그대로 쓴다.
-import { parseImportRequest, parseListingRequest, parseMemoRequest } from "./parseListingRequests";
+import {
+  parseImportRequest,
+  parseListingPatchRequest,
+  parseListingRequest,
+} from "./parseListingRequests";
 import { createRandomId } from "../../src/lib/utils/createRandomId";
 import { isListingId } from "../../src/lib/utils/validateListingFields";
 import { readJsonBody } from "../http/readJsonBody";
@@ -81,8 +85,9 @@ export async function createListing(
 }
 
 /**
- * PUT /api/listings/{id}. 본문의 `memo`는 읽지 않고 기존 메모를 그대로 둔다.
- * SELECT 후 UPDATE를 하지 않고 한 문장으로 해서, 다른 기기가 그 사이 쓴 메모를 지우지 않는다.
+ * PUT /api/listings/{id}. 본문의 `memo`·`status`는 읽지 않고 기존 값을 그대로 둔다(ADR-027).
+ * SELECT 후 UPDATE를 하지 않고 한 문장으로 해서, 다른 기기가 그 사이 쓴 메모·상태를 지우지 않는다.
+ * 기존 값이 없으면 `json_extract`가 NULL이라 merge patch가 그 키를 쓰지 않는다(빈 키를 만들지 않음).
  */
 export async function replaceListing(
   request: Request,
@@ -99,13 +104,17 @@ export async function replaceListing(
 
   const fields: ListingInput = { ...parsed.value };
   delete fields.memo;
+  delete fields.status;
   const row = await db
     .prepare(
       `UPDATE listings
-       SET data = CASE
-             WHEN json_type(data, '$.memo') IS NULL THEN json(?3)
-             ELSE json_set(?3, '$.memo', json_extract(data, '$.memo'))
-           END,
+       SET data = json_patch(
+             ?3,
+             json_object(
+               'memo', json_extract(data, '$.memo'),
+               'status', json_extract(data, '$.status')
+             )
+           ),
            updated_at = ?4
        WHERE user_id = ?1 AND id = ?2
        RETURNING id, data, created_at, updated_at`,
@@ -116,8 +125,8 @@ export async function replaceListing(
 }
 
 /**
- * PATCH /api/listings/{id} `{ memo }`. `memo` 키만 바꾸거나(빈 문자열이면) 지운다.
- * 한 문장 UPDATE라 다른 기기가 바꾼 가격 등 다른 필드를 되돌리지 않는다.
+ * PATCH /api/listings/{id} `{ memo?, status? }`. 보낸 키만 바꾸거나 지운다(빈 메모·null 상태는 지움).
+ * merge patch 한 문장 UPDATE라 다른 기기가 바꾼 가격 등 다른 필드를 되돌리지 않는다.
  */
 export async function updateListingMemo(
   request: Request,
@@ -129,18 +138,18 @@ export async function updateListingMemo(
   if (!isListingId(id)) return invalidId();
   const body = await readJsonBody(request, LISTING_MAX_BYTES);
   if (!body.ok) return body.response;
-  const parsed = parseMemoRequest(body.value);
+  const parsed = parseListingPatchRequest(body.value);
   if (!parsed.ok) return invalidParams(parsed.message);
 
   const row = await db
     .prepare(
       `UPDATE listings
-       SET data = CASE WHEN ?3 = '' THEN json_remove(data, '$.memo') ELSE json_set(data, '$.memo', ?3) END,
+       SET data = json_patch(data, ?3),
            updated_at = ?4
        WHERE user_id = ?1 AND id = ?2
        RETURNING id, data, created_at, updated_at`,
     )
-    .bind(userId, id, parsed.value, now().toISOString())
+    .bind(userId, id, JSON.stringify(parsed.value), now().toISOString())
     .first<ListingRow>();
   return row === null ? listingNotFound() : listingResponse(200, toListing(row));
 }

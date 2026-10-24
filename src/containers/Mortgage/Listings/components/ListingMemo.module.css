@@ -1,0 +1,76 @@
+/* 메모는 계산 값과 섞이지 않게 옅은 우물에 담는다. 입력한 줄바꿈·공백 그대로 보인다. */
+.memo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 var(--space-4) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--fs-tiny);
+  font-weight: 600;
+}
+
+/* 누르는 자리는 40px이지만 우물 높이를 늘리지 않게 위아래·오른쪽 여백으로 넘친다. */
+.toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 40px;
+  margin: -12px calc(var(--space-3) * -1) -12px 0;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--fs-small);
+  font-weight: 600;
+}
+
+.toggle:focus-visible {
+  outline-offset: -2px;
+}
+
+.chevron {
+  color: var(--color-text-muted);
+  transition: transform 0.15s;
+}
+
+.chevronOpen {
+  composes: chevron;
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}
+
+.text {
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.collapsedText {
+  composes: text;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}

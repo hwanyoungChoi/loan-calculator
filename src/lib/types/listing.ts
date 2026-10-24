@@ -2,6 +2,9 @@ import type { ExtraCost } from "./extraCost";
 import type { Borrower, Region } from "./regulation";
 import type { StorageWriteResult } from "./storage";
 
+/** 매물 상태(ADR-027). candidate 후보 · hold 보류 · rejected 비후보. 라벨은 `constants/listingStatus.ts` */
+export type ListingStatus = "candidate" | "hold" | "rejected";
+
 export type Listing = {
   id: string;
   name: string;
@@ -17,6 +20,8 @@ export type Listing = {
   memo?: string;
   /** 1~30줄. 없으면 키를 쓰지 않는다(ADR-012 규칙, 빈 배열도 저장하지 않음). 순서 = 입력 순서(ADR-024) */
   extraCosts?: ExtraCost[];
+  /** 없으면 미지정이고 키를 쓰지 않는다(ADR-027, ADR-012 규칙). 덮어쓰기(PUT·로컬 update)는 메모처럼 기존 상태를 둔다. */
+  status?: ListingStatus;
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */
@@ -34,6 +39,7 @@ export type ListingInput = Pick<
   | "customLtvRate"
   | "isAreaOver85"
   | "extraCosts"
+  | "status"
 > & {
   /** 키가 있으면 메모를 이 값으로 바꾸고(빈 문자열이면 지움), 키가 없으면 덮어쓰기에서도 기존 메모를 둔다. */
   memo?: string;
