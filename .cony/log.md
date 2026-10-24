@@ -416,3 +416,8 @@
 - AI(리드): 규제 기준일은 CLAUDE.md 제약상 화면에 유지(작은 한 줄), 폰트는 @fontsource로 자가 호스팅(외부 요청 없음). fe 단독
 - AI(fe): AccountBar 삭제, 제목 줄 작은 버튼 [가리기][목록 공유][카카오로 로그인/로그아웃], 안내는 HeaderNotices로 있을 때만 한 줄, 규제 기준일 12px 한 줄 유지, 예산 바 한 줄, 계산 화면 [새 계산] 작은 버튼, IBM Plex Sans KR(@fontsource 5.3.0, 400·600·700). 360px 확인, 기존 키 원문 불변
 - AI(리드): 폰트 비용(메인 CSS 49KB→277KB, gzip 약 104KB, 첫 방문 woff2 약 0.9MB 추정, 이후 캐시)은 우선 수용. 첫 화면이 느리면 비차단 로딩으로 재검토
+
+# 폰트 Pretendard로
+
+- 되돌림: IBM Plex Sans KR 가독성이 별로 → 리드가 Pretendard(추천)·시스템 폰트 제안, 사용자가 Pretendard 선택
+- AI(리드): `pretendard@1.3.9` 가변 굵기 dynamic subset 자가 호스팅, `@fontsource/ibm-plex-sans-kr` 제거. 메인 CSS 277KB→97KB(gzip 104→23KB), dist 22.9→18MB. 화면에서 Pretendard Variable 적용·외부 폰트 요청 0 확인

@@ -1,6 +1,6 @@
 # 정렬 방향 · 마지막 보기 기억 · 예산 동기화
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 23:02
+> 상태: 사용자 대기 · 마지막 업데이트: 2026-10-24 23:16
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-fe가 상단 정리·계정 버튼 축소·IBM Plex Sans KR 적용 중 (브랜치 cony/clean-header-font)
+상단 정리·폰트(#29) 머지. B 전환·README 사진 갱신 여부 대기
 
 ## 최근 결정
 
@@ -37,7 +37,7 @@ fe가 상단 정리·계정 버튼 축소·IBM Plex Sans KR 적용 중 (브랜�
 
 ## PR
 
-[#28](https://github.com/hwanyoungChoi/mortgage-fit/pull/28) 머지
+[#29](https://github.com/hwanyoungChoi/mortgage-fit/pull/29) 머지
 
 <!-- spec: specs/sort-order-budget-sync.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->

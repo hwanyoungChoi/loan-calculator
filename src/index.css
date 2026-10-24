@@ -65,9 +65,9 @@
   /* 위에 붙어 있는 탭(TabNav) 높이. 포커스·스크롤로 옮긴 요소가 탭 밑에 가리지 않게 그만큼 비운다. */
   --tab-nav-height: 48px;
 
-  /* IBM Plex Sans KR은 main.tsx에서 자가 호스팅 파일로 불러온다(외부 CDN 요청 없음). 받기 전·없는 글자는 아래 글꼴로. */
+  /* Pretendard(가변 굵기, 글자 범위별 분할)는 main.tsx에서 자가 호스팅 파일로 불러온다(외부 CDN 요청 없음). 받기 전·없는 글자는 아래 글꼴로. */
   font-family:
-    "IBM Plex Sans KR",
+    "Pretendard Variable",
     system-ui,
     -apple-system,
     "Apple SD Gothic Neo",
