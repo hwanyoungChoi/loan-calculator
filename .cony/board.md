@@ -1,6 +1,6 @@
 # 정렬 방향 · 마지막 보기 기억 · 예산 동기화
 
-> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 21:37
+> 상태: 진행 중 · 마지막 업데이트: 2026-10-24 23:02
 
 ## 태스크
 
@@ -18,7 +18,7 @@
 
 ## 지금 하는 일
 
-fe가 정렬·보기 옵션 제거와 제목 눌러 이름 수정 구현 중 (브랜치 cony/simplify-list)
+fe가 상단 정리·계정 버튼 축소·IBM Plex Sans KR 적용 중 (브랜치 cony/clean-header-font)
 
 ## 최근 결정
 
@@ -28,7 +28,8 @@ fe가 정렬·보기 옵션 제거와 제목 눌러 이름 수정 구현 중 (�
 
 ## 사용자 확인 필요
 
-- 상태 기본값: 새 매물 미지정, 복사·공유에는 상태 안 넘김, 긴 메모는 3줄 넘으면 접힘
+- 디자인 B(부드러운 생활 앱) 전환 여부
+- README 사진 새 화면으로 갱신 여부
 
 ## 막힌 것
 
@@ -36,7 +37,7 @@ fe가 정렬·보기 옵션 제거와 제목 눌러 이름 수정 구현 중 (�
 
 ## PR
 
-[#27](https://github.com/hwanyoungChoi/mortgage-fit/pull/27) 머지
+[#28](https://github.com/hwanyoungChoi/mortgage-fit/pull/28) 머지
 
 <!-- spec: specs/sort-order-budget-sync.md -->
 <!-- lead: local_87d4390f-e2ba-4e87-a5d7-a3648355a974 -->

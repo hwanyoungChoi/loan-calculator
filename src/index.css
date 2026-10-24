@@ -11,6 +11,8 @@
   --color-surface: #fff;
   /* 흰 면 위의 보조 버튼·중립 배지 */
   --color-raised: #ededed;
+  /* 바탕(--color-bg) 위의 작은 보조 버튼(화면 머리글) */
+  --color-raised-on-bg: #e5e5e5;
   --color-border: #e3e5e8;
   --color-rule: #eef0f2;
   --color-control: #d0d3d8;
@@ -41,7 +43,7 @@
   --space-5: 24px;
 
   /* 글자 크기: 큰 것 하나(답), 작은 것 몇 개 */
-  --fs-title: 24px;
+  --fs-title: 22px;
   --fs-answer: 28px;
   --fs-figure: 18px;
   --fs-section: 16px;
@@ -63,7 +65,9 @@
   /* 위에 붙어 있는 탭(TabNav) 높이. 포커스·스크롤로 옮긴 요소가 탭 밑에 가리지 않게 그만큼 비운다. */
   --tab-nav-height: 48px;
 
+  /* IBM Plex Sans KR은 main.tsx에서 자가 호스팅 파일로 불러온다(외부 CDN 요청 없음). 받기 전·없는 글자는 아래 글꼴로. */
   font-family:
+    "IBM Plex Sans KR",
     system-ui,
     -apple-system,
     "Apple SD Gothic Neo",
@@ -84,7 +88,7 @@
  * 버튼 높이(40~44px)와 입력칸 글자(--fs-input)는 그대로다.
  */
 :root[data-text-size="small"] {
-  --fs-title: 22px;
+  --fs-title: 20px;
   --fs-answer: 25px;
   --fs-figure: 16px;
   --fs-section: 15px;
@@ -101,7 +105,7 @@
 }
 
 :root[data-text-size="smaller"] {
-  --fs-title: 20px;
+  --fs-title: 18px;
   --fs-answer: 22px;
   --fs-figure: 15px;
   --fs-section: 14px;
