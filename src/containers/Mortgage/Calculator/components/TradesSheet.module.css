@@ -39,6 +39,7 @@
   background: var(--color-surface);
   color: inherit;
   font: inherit;
+  font-size: var(--fs-input);
 }
 
 .control:focus {

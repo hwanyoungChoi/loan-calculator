@@ -58,6 +58,7 @@ function renderCards(listings: Listing[]) {
             onDelete={() => {}}
             onShare={() => {}}
             onSaveMemo={async () => ({ ok: true })}
+            onSaveName={async () => ({ ok: true })}
             onStatusOpen={() => {}}
             statusFailure={null}
             isPrivacyMode={false}

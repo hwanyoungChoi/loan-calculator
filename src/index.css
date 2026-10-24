@@ -48,8 +48,20 @@
   --fs-body: 14px;
   --fs-small: 13px;
   --fs-tiny: 12px;
+  /* 화면 기본 글자(따로 정하지 않은 글자). 글자 크기 설정이 함께 줄인다. */
+  --fs-base: 16px;
+  /*
+   * 입력칸(input·textarea·select) 글자. 글자 크기 설정과 상관없이 16px을 지킨다:
+   * iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다.
+   */
+  --fs-input: 16px;
+
+  /* 간단히 보기 한 줄 높이. 누르는 자리라 44px 아래로 줄이지 않는다. */
+  --row-min-height: 52px;
 
   --summary-bar-height: 72px;
+  /* 위에 붙어 있는 탭(TabNav) 높이. 포커스·스크롤로 옮긴 요소가 탭 밑에 가리지 않게 그만큼 비운다. */
+  --tab-nav-height: 48px;
 
   font-family:
     system-ui,
@@ -57,13 +69,52 @@
     "Apple SD Gothic Neo",
     "Noto Sans KR",
     sans-serif;
-  font-size: 16px;
+  font-size: var(--fs-base);
   line-height: 1.5;
   color: var(--color-text);
   background: var(--color-bg);
   color-scheme: light;
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
+  scroll-padding-top: calc(var(--tab-nav-height) + var(--space-2));
+}
+
+/*
+ * 글자 크기 설정(이 기기, `<html data-text-size>`). 글자를 한두 단계, 여백·간격을 조금 줄여 한 화면에 더 많이 보이게 한다.
+ * 버튼 높이(40~44px)와 입력칸 글자(--fs-input)는 그대로다.
+ */
+:root[data-text-size="small"] {
+  --fs-title: 22px;
+  --fs-answer: 25px;
+  --fs-figure: 16px;
+  --fs-section: 15px;
+  --fs-body: 13px;
+  --fs-small: 12px;
+  --fs-tiny: 11px;
+  --fs-base: 15px;
+
+  --space-3: 10px;
+  --space-4: 14px;
+  --space-5: 20px;
+
+  --row-min-height: 48px;
+}
+
+:root[data-text-size="smaller"] {
+  --fs-title: 20px;
+  --fs-answer: 22px;
+  --fs-figure: 15px;
+  --fs-section: 14px;
+  --fs-body: 12px;
+  --fs-small: 11px;
+  --fs-tiny: 11px;
+  --fs-base: 14px;
+
+  --space-3: 10px;
+  --space-4: 12px;
+  --space-5: 16px;
+
+  --row-min-height: 44px;
 }
 
 *,
@@ -95,11 +146,17 @@ ul {
   list-style: none;
 }
 
-/* iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다. */
 input,
 button {
   font: inherit;
   color: inherit;
+}
+
+/* 입력칸은 글자 크기 설정과 상관없이 16px(iOS 확대 방지). 컴포넌트가 글자를 정할 때도 이 토큰을 쓴다. */
+input,
+textarea,
+select {
+  font-size: var(--fs-input);
 }
 
 button {

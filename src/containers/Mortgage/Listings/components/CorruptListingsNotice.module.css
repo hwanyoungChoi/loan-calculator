@@ -27,7 +27,7 @@
   background: var(--color-bg);
   font-family: ui-monospace, monospace;
   /* iOS는 16px보다 작은 입력에 포커스하면 화면을 확대한다. */
-  font-size: 16px;
+  font-size: var(--fs-input);
   resize: vertical;
 }
 

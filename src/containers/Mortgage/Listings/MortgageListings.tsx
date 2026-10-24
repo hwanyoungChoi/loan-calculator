@@ -279,6 +279,15 @@ function MortgageListings({
     return result;
   };
 
+  /** 이름만 바꾼다. 로그인이 끝나(401) 서버 매물 카드가 사라져도 쓰던 이름을 잃지 않게 목록 위에 남긴다. */
+  const handleSaveName = async (listing: Listing, name: string) => {
+    const result = await source.updateName(listing, name);
+    if (!result.ok && result.reason === "unauthorized") {
+      setWriteError(`'${listing.name}' 이름을 바꾸지 못했습니다. 쓰던 이름: ${name}`);
+    }
+    return result;
+  };
+
   const handleDelete = async (listing: Listing) => {
     if (!window.confirm(`'${listing.name}' 매물을 삭제할까요? 되돌릴 수 없습니다.`)) return;
     const result = await source.remove(listing.id);
@@ -457,6 +466,7 @@ function MortgageListings({
           onDelete={handleDelete}
           onShare={handleShare}
           onSaveMemo={handleSaveMemo}
+          onSaveName={handleSaveName}
           onStatusOpen={handleStatusOpen}
           statusFailure={statusFailure}
           isPrivacyMode={isPrivacyMode}
@@ -477,6 +487,7 @@ function MortgageListings({
               onDelete={handleDelete}
               onShare={handleShare}
               onSaveMemo={handleSaveMemo}
+              onSaveName={handleSaveName}
               onStatusOpen={handleStatusOpen}
               statusFailure={statusFailure}
               isPrivacyMode={isPrivacyMode}

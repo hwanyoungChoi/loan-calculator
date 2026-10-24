@@ -113,3 +113,10 @@
 {"ts":"2026-10-24T11:37:51.353Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T11:41:40.448Z","type":"hook","hook":"board-on-stop","decision":"block"}
 {"ts":"2026-10-24T11:41:51.280Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:51:25.579Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:51:33.712Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T11:52:17.622Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T11:57:23.751Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T11:57:59.259Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T12:00:11.849Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T12:03:05.857Z","type":"hook","hook":"guard-secrets","decision":"deny","target":"event.key"}

@@ -78,7 +78,7 @@
   border-radius: var(--radius-control);
   background: var(--color-surface);
   font: inherit;
-  font-size: var(--fs-section);
+  font-size: var(--fs-input);
   field-sizing: content;
   resize: vertical;
 }

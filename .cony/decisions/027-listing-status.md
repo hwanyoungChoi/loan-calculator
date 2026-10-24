@@ -12,3 +12,4 @@
   - PATCH `/api/listings/{id}`는 `{memo}` 또는 `{status}`(null=지움)를 받는다.
 - 제품 기본값(사용자 확인 전): 새 매물은 미지정, [복사]는 상태를 넘기지 않음, 공유 링크에는 상태를 빼고 보냄, 이전(import)은 그대로 옮김.
 - 뒤집을 조건: 상태별 필터·정렬이 필요해지면 그때 보기 설정에 추가한다.
+- 개정(2026-10-24): PATCH `/api/listings/{id}`가 `{ memo?, status?, name? }`(하나 이상)를 받는다. 이름은 `validateListingName`(trim, 1~40자)을 통과해야 하고 지울 수 없다. 핸들러 이름 `updateListingFields`.

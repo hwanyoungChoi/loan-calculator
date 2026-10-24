@@ -7,6 +7,7 @@ import {
   validateListingFields,
 } from "../../src/lib/utils/validateListingFields";
 import { validateListingMemo } from "../../src/lib/utils/validateListingMemo";
+import { validateListingName } from "../../src/lib/utils/validateListingName";
 
 import type { ListingInput, ListingStatus } from "../../src/lib/types/listing";
 
@@ -36,22 +37,28 @@ export function parseListingRequest(value: unknown): Parsed<ListingInput> {
 
 /**
  * PATCH로 `listings.data`에 합칠 JSON Merge Patch(RFC 7396). 키 없음 = 그대로, null = 키 지움.
- * 빈 메모는 null로 바꿔 둔다(저장 값에 빈 메모를 두지 않는다).
+ * 빈 메모는 null로 바꿔 둔다(저장 값에 빈 메모를 두지 않는다). 이름은 지울 수 없어 null이 없다.
  */
-export type ListingPatch = { memo?: string | null; status?: ListingStatus | null };
+export type ListingPatch = {
+  memo?: string | null;
+  status?: ListingStatus | null;
+  name?: string;
+};
 
 /**
- * PATCH 본문 `{ memo?: string, status?: ListingStatus | null }`. 둘 중 하나 이상 있어야 한다.
+ * PATCH 본문 `{ memo?: string, status?: ListingStatus | null, name?: string }`. 하나 이상 있어야 한다.
  * 메모는 앞뒤 공백을 빼고 0~5,000자(`validateListingMemo`), 빈 문자열은 메모 지움.
  * 상태는 세 값 중 하나(`isListingStatus`), null은 상태 지움(ADR-027).
+ * 이름은 앞뒤 공백을 빼고 1~40자(`validateListingName`, 저장 화면과 같은 규칙). null·빈 이름은 거부.
  */
 export function parseListingPatchRequest(value: unknown): Parsed<ListingPatch> {
   const hasMemo = isRecord(value) && Object.hasOwn(value, "memo");
   const hasStatus = isRecord(value) && Object.hasOwn(value, "status");
-  if (!isRecord(value) || (!hasMemo && !hasStatus)) {
+  const hasName = isRecord(value) && Object.hasOwn(value, "name");
+  if (!isRecord(value) || (!hasMemo && !hasStatus && !hasName)) {
     return {
       ok: false,
-      message: "요청 본문은 { memo } 또는 { status } 중 하나 이상을 담은 객체여야 합니다",
+      message: "요청 본문은 { memo }, { status }, { name } 중 하나 이상을 담은 객체여야 합니다",
     };
   }
 
@@ -69,6 +76,14 @@ export function parseListingPatchRequest(value: unknown): Parsed<ListingPatch> {
       return { ok: false, message: "status는 candidate, hold, rejected 또는 null이어야 합니다" };
     }
     patch.status = value.status;
+  }
+  if (hasName) {
+    if (typeof value.name !== "string") {
+      return { ok: false, message: "name은 문자열이어야 합니다" };
+    }
+    const name = validateListingName(value.name);
+    if (!name.ok) return { ok: false, message: name.message };
+    patch.name = name.name;
   }
   return { ok: true, value: patch };
 }

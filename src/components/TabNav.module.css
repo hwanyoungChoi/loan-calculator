@@ -6,10 +6,17 @@
   background: var(--color-surface);
 }
 
-.tabs {
+/* 탭 둘이 폭을 나누고 [가가]는 오른쪽 끝에 고정 폭으로 앉는다. */
+.bar {
   display: flex;
   max-width: 480px;
   margin: 0 auto;
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
 }
 
 .item {
@@ -21,7 +28,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  min-height: var(--tab-nav-height);
   margin-bottom: -1px;
   border-bottom: 2px solid transparent;
   color: var(--color-text-muted);
@@ -37,4 +44,30 @@
 
 .tab:focus-visible {
   outline-offset: -2px;
+}
+
+/* 작은 "가"와 큰 "가"를 나란히 둔 글자 크기 버튼. 탭과 같은 높이다. */
+.textSizeButton {
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  min-width: var(--tab-nav-height);
+  min-height: var(--tab-nav-height);
+  padding: 0 var(--space-3);
+  border: 0;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--fs-section);
+  font-weight: 600;
+  line-height: var(--tab-nav-height);
+}
+
+.textSizeButton:focus-visible {
+  outline-offset: -2px;
+}
+
+.smallGlyph {
+  font-size: var(--fs-tiny);
 }

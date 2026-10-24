@@ -11,6 +11,7 @@ import { budgetExcess, budgetLeft } from "../budgetExcess";
 import ExtraCostList from "./ExtraCostList";
 import styles from "./ListingCard.module.css";
 import ListingMemo from "./ListingMemo";
+import ListingNameEditor from "./ListingNameEditor";
 import ListingStatusButton from "./ListingStatusButton";
 import MaskedValue from "./MaskedValue";
 import MemoEditor from "./MemoEditor";
@@ -33,6 +34,8 @@ type ListingCardProps = {
   /** 공유 시트를 연다. 시트를 닫으면 포커스를 이 버튼으로 돌려준다. */
   onShare: (listing: Listing, button: HTMLButtonElement) => void;
   onSaveMemo: (listing: Listing, memo: string) => Promise<ListingSourceWriteResult>;
+  /** 이름만 바꾼다(검증된 1~40자). */
+  onSaveName: (listing: Listing, name: string) => Promise<ListingSourceWriteResult>;
   /** 상태 고르기 시트를 연다. 시트를 닫으면 포커스를 `returnFocusTo`로 돌려준다. */
   onStatusOpen: (listing: Listing, returnFocusTo: HTMLElement | null) => void;
   statusFailure: ListingStatusFailure | null;
@@ -59,6 +62,8 @@ const STATUS_BADGES: Record<LoanResult["status"], string | null> = {
  * 본문 링크와 버튼 영역(상태 칩 포함)은 형제라 인터랙티브 요소가 겹치지 않는다(ADR-022 D7). 목록의 `<li>`는 부모가 감싼다(상세히 보기, 간단히 보기의 펼침).
  * 가리기 모드에서는 금액·메모를 `•••`로 그리고, 본문 링크 밖 카드 머리의 [보기]로 이 카드만 잠깐 보인다.
  * "메모"는 화면을 어둡게 덮는 편집기를 열고, 닫으면 포커스를 "메모"로 돌려준다.
+ * "이름"은 카드 머리(이름 자리)를 입력칸으로 바꿔 그 자리에서 이름만 고친다. 고치는 동안 상태 칩·[보기]·버튼 줄은 숨기고
+ * 입력칸의 [취소]·[이름 저장]만 두고 본문 링크는 누를 수 없게(inert) 하며, 닫으면 포커스를 "이름"으로 돌려준다.
  */
 function ListingCard({
   listing,
@@ -69,6 +74,7 @@ function ListingCard({
   onDelete,
   onShare,
   onSaveMemo,
+  onSaveName,
   onStatusOpen,
   statusFailure,
   isPrivacyMode,
@@ -77,6 +83,8 @@ function ListingCard({
 }: ListingCardProps) {
   const [isMemoOpen, setIsMemoOpen] = useState(false);
   const memoButtonRef = useRef<HTMLButtonElement>(null);
+  const [isNameEditing, setIsNameEditing] = useState(false);
+  const nameButtonRef = useRef<HTMLButtonElement>(null);
   const isRevealed = revealedId === listing.id;
   const isMasked = isPrivacyMode && !isRevealed;
   // 1차 형식(customLtvRate 키 없음) 매물도 그대로 넘긴다. 키가 없으면 규제 LTV로 계산된다(ADR-012).
@@ -98,9 +106,22 @@ function ListingCard({
     memoButtonRef.current?.focus();
   };
 
+  /** 입력칸이 내려가고 버튼 줄이 다시 그려진 뒤 "이름"으로 포커스를 돌려준다. */
+  const handleNameClose = () => {
+    flushSync(() => setIsNameEditing(false));
+    nameButtonRef.current?.focus();
+  };
+
   return (
     <article className={styles.card}>
-      {isPrivacyMode && (
+      {isNameEditing && (
+        <ListingNameEditor
+          initialName={listing.name}
+          onSave={(nextName) => onSaveName(listing, nextName)}
+          onClose={handleNameClose}
+        />
+      )}
+      {isPrivacyMode && !isNameEditing && (
         <button
           type="button"
           className={styles.revealButton}
@@ -112,19 +133,29 @@ function ListingCard({
         </button>
       )}
       {/* 본문 링크 안에 버튼을 둘 수 없어 카드 기준으로 이름 앞 자리에 앉힌다(가리기의 [보기]와 같은 방식). */}
-      <ListingStatusButton
-        listing={listing}
-        className={isPrivacyMode ? styles.statusButtonWithReveal : styles.statusButton}
-        onClick={(button) => onStatusOpen(listing, button)}
-      />
-      <a className={styles.link} href={PATHS.calculator} onClick={() => onOpen(listing)}>
-        <span className={isPrivacyMode ? styles.headingWithReveal : styles.heading}>
-          {excess !== null && <span className={styles.overBadge}>초과</span>}
-          <strong className={styles.name}>{listing.name}</strong>
-          {statusBadge !== null && <span className={styles.badge}>{statusBadge}</span>}
-          {isCustomLtv && <span className={styles.customBadge}>사용자 지정</span>}
-          {hasUnconfirmedOwnFunds(result) && <span className={styles.badge}>농특세 미확인</span>}
-        </span>
+      {!isNameEditing && (
+        <ListingStatusButton
+          listing={listing}
+          className={isPrivacyMode ? styles.statusButtonWithReveal : styles.statusButton}
+          onClick={(button) => onStatusOpen(listing, button)}
+        />
+      )}
+      <a
+        className={isNameEditing ? styles.linkUnderNameEditor : styles.link}
+        href={PATHS.calculator}
+        // 고치는 동안 본문을 잘못 눌러 쓰던 이름을 두고 계산 화면으로 떠나지 않게 한다.
+        inert={isNameEditing}
+        onClick={() => onOpen(listing)}
+      >
+        {!isNameEditing && (
+          <span className={isPrivacyMode ? styles.headingWithReveal : styles.heading}>
+            {excess !== null && <span className={styles.overBadge}>초과</span>}
+            <strong className={styles.name}>{listing.name}</strong>
+            {statusBadge !== null && <span className={styles.badge}>{statusBadge}</span>}
+            {isCustomLtv && <span className={styles.customBadge}>사용자 지정</span>}
+            {hasUnconfirmedOwnFunds(result) && <span className={styles.badge}>농특세 미확인</span>}
+          </span>
+        )}
         <span className={styles.condition}>
           {describeCondition(listing.region, listing.borrower, listing.customLtvRate)}
         </span>
@@ -225,50 +256,62 @@ function ListingCard({
       {hasExtraCosts && <ExtraCostList extraCosts={extraCosts} isMasked={isMasked} />}
       {/* 편집기는 화면을 덮어 뜨므로 쓰는 동안에도 뒤 카드의 모양은 그대로 둔다. */}
       {memo !== "" && <ListingMemo memo={memo} isMasked={isMasked} />}
-      <div className={styles.actions}>
-        <a
-          className={styles.editButton}
-          href={PATHS.calculator}
-          aria-label={`${listing.name} 수정`}
-          onClick={() => onOpen(listing)}
-        >
-          수정
-        </a>
-        <a
-          className={styles.copyButton}
-          href={PATHS.calculator}
-          aria-label={`${listing.name} 복사`}
-          onClick={() => onCopy(listing)}
-        >
-          복사
-        </a>
-        <button
-          ref={memoButtonRef}
-          type="button"
-          className={styles.memoButton}
-          aria-label={`${listing.name} 메모`}
-          aria-expanded={isMemoOpen}
-          onClick={() => setIsMemoOpen((isOpen) => !isOpen)}
-        >
-          메모
-        </button>
-        <button
-          type="button"
-          className={styles.shareButton}
-          aria-label={`${listing.name} 공유`}
-          onClick={(event) => onShare(listing, event.currentTarget)}
-        >
-          공유
-        </button>
-        <button
-          type="button"
-          className={styles.deleteButton}
-          aria-label={`${listing.name} 삭제`}
-          onClick={() => onDelete(listing)}
-        >
-          삭제
-        </button>
-      </div>
+      {!isNameEditing && (
+        <div className={styles.actions}>
+          <a
+            className={styles.editButton}
+            href={PATHS.calculator}
+            aria-label={`${listing.name} 수정`}
+            onClick={() => onOpen(listing)}
+          >
+            수정
+          </a>
+          <button
+            ref={nameButtonRef}
+            type="button"
+            className={styles.nameButton}
+            aria-label={`${listing.name} 이름 바꾸기`}
+            aria-expanded={isNameEditing}
+            onClick={() => setIsNameEditing(true)}
+          >
+            이름
+          </button>
+          <a
+            className={styles.copyButton}
+            href={PATHS.calculator}
+            aria-label={`${listing.name} 복사`}
+            onClick={() => onCopy(listing)}
+          >
+            복사
+          </a>
+          <button
+            ref={memoButtonRef}
+            type="button"
+            className={styles.memoButton}
+            aria-label={`${listing.name} 메모`}
+            aria-expanded={isMemoOpen}
+            onClick={() => setIsMemoOpen((isOpen) => !isOpen)}
+          >
+            메모
+          </button>
+          <button
+            type="button"
+            className={styles.shareButton}
+            aria-label={`${listing.name} 공유`}
+            onClick={(event) => onShare(listing, event.currentTarget)}
+          >
+            공유
+          </button>
+          <button
+            type="button"
+            className={styles.deleteButton}
+            aria-label={`${listing.name} 삭제`}
+            onClick={() => onDelete(listing)}
+          >
+            삭제
+          </button>
+        </div>
+      )}
       {isMemoOpen && (
         <MemoEditor
           listingName={listing.name}

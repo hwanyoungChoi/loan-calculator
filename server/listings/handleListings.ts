@@ -125,10 +125,10 @@ export async function replaceListing(
 }
 
 /**
- * PATCH /api/listings/{id} `{ memo?, status? }`. 보낸 키만 바꾸거나 지운다(빈 메모·null 상태는 지움).
+ * PATCH /api/listings/{id} `{ memo?, status?, name? }`. 보낸 키만 바꾸거나 지운다(빈 메모·null 상태는 지움).
  * merge patch 한 문장 UPDATE라 다른 기기가 바꾼 가격 등 다른 필드를 되돌리지 않는다.
  */
-export async function updateListingMemo(
+export async function updateListingFields(
   request: Request,
   id: string,
   db: D1Database,

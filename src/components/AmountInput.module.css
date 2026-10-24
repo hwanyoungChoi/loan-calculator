@@ -30,7 +30,8 @@
   border: 1px solid var(--color-control);
   border-radius: var(--radius-control);
   background: var(--color-surface);
-  font-size: var(--fs-figure);
+  /* 글자 크기 설정으로 줄어도 16px 아래로 내려가지 않는다(iOS 확대 방지). */
+  font-size: max(var(--fs-input), var(--fs-figure));
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
