@@ -4,6 +4,10 @@ import { createRoot } from "react-dom/client";
 import { getBrowserStorage } from "@/lib/utils/browserStorage";
 import { applyTextSize, loadTextSize } from "@/lib/utils/textSizeStorage";
 
+// 앱이 쓰는 굵기만(400·600·700, 500은 쓰지 않음). 한글은 unicode-range로 나뉘어 화면에 나온 글자의 조각만 받는다.
+import "@fontsource/ibm-plex-sans-kr/400.css";
+import "@fontsource/ibm-plex-sans-kr/600.css";
+import "@fontsource/ibm-plex-sans-kr/700.css";
 import "./index.css";
 import App from "./App.tsx";
 

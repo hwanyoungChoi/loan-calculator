@@ -10,39 +10,44 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
   margin-bottom: var(--space-1);
 }
 
-/* 제목 오른쪽에 [가리기]·[목록 공유]. 360px에서도 제목과 한 줄에 둔다. */
+/* 제목 오른쪽에 작은 버튼 묶음([가리기]·[목록 공유]·로그인/로그아웃). 다 들어가지 않으면 제목 아래 줄로 내려간다. */
 .titleRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2) var(--space-3);
 }
 
 .titleActions {
   display: flex;
-  flex: none;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-.shareListButton {
+.headerButton {
   flex: none;
-  min-height: 40px;
+  min-height: 36px;
   padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius-control);
-  background: var(--color-raised);
-  font-size: var(--fs-body);
+  background: var(--color-raised-on-bg);
+  font-size: var(--fs-small);
   font-weight: 600;
   white-space: nowrap;
 }
 
+.headerButton:disabled {
+  color: var(--color-text-muted);
+}
+
 /* 가리기: 켜진 동안 주 동작 색으로 채운다. */
 .privacyButton {
-  composes: shareListButton;
+  composes: headerButton;
 }
 
 .privacyButton[aria-pressed="true"] {
@@ -50,13 +55,14 @@
   color: var(--color-on-primary);
 }
 
-.addedNotice {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-control);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  font-size: var(--fs-body);
-  overflow-wrap: anywhere;
+/* 화면에서는 숨기고 보조기기에는 읽힌다 */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .title {
@@ -67,7 +73,7 @@
 
 .baseDate {
   color: var(--color-text-muted);
-  font-size: var(--fs-small);
+  font-size: var(--fs-tiny);
 }
 
 .notice {

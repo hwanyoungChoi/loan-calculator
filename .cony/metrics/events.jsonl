@@ -124,3 +124,9 @@
 {"ts":"2026-10-24T12:11:48.613Z","type":"status","status":"사용자 대기"}
 {"ts":"2026-10-24T12:37:53.119Z","type":"status","status":"진행 중"}
 {"ts":"2026-10-24T12:38:22.470Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T12:50:33.338Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T12:51:29.787Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T13:59:01.683Z","type":"status","status":"사용자 대기"}
+{"ts":"2026-10-24T14:02:23.098Z","type":"status","status":"진행 중"}
+{"ts":"2026-10-24T14:02:51.726Z","type":"hook","hook":"board-on-stop","decision":"block"}
+{"ts":"2026-10-24T14:08:28.819Z","type":"hook","hook":"guard-bash","decision":"ask","command":"S=/private/tmp/claude-501/-Users-hwanyoungchoi-cony-sandbox-loan-calculator/5614d969-6b67-4d6e-ae1f-c225187fd9de/scratchpad; W=$S/wr-header; rm -rf $W; mkdir -p $W && rsync -a --exclude node_modules -"}

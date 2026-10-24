@@ -34,7 +34,7 @@ function toBudget(raw: string): number | null {
 
 /**
  * 저장 실패 문구. 폼은 닫지 않고 입력값을 남긴다.
- * unauthorized는 로그아웃 상태로 바뀌어 계정 줄이 "로그인이 끝났습니다"로 알리고 예산 줄은 기기 예산이 된다(폼을 닫는다).
+ * unauthorized는 로그아웃 상태로 바뀌어 제목 아래 안내가 "로그인이 끝났습니다"로 알리고 예산 줄은 기기 예산이 된다(폼을 닫는다).
  */
 const SAVE_FAILURE_MESSAGES: Record<BudgetSaveFailure["reason"], string | null> = {
   network: "예산을 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
@@ -129,30 +129,29 @@ function BudgetBar({
 
   if (isEditing && state.status === "ok") {
     return (
-      <section className={styles.bar} aria-label="내 예산">
+      <section className={styles.formBar} aria-label="내 예산">
         <BudgetForm budget={budget} onSave={onSave} onClose={() => setIsEditing(false)} />
       </section>
     );
   }
 
   const rows: Record<BudgetState["status"], () => ReactNode> = {
+    // 한 줄: 내 예산 · 초과 n건 … 금액 [수정]
     ok: () => (
       <>
-        <div className={styles.summary}>
-          {budget === null ? (
-            <p className={styles.empty}>예산을 입력하면 넘는 매물을 표시합니다</p>
-          ) : (
-            <p>
-              내 예산{" "}
-              <strong className={styles.amount}>
-                <MaskedValue isMasked={isMasked}>{formatManwon(budget)}</MaskedValue>
-              </strong>
-            </p>
-          )}
-          {budget !== null && overBudgetCount > 0 && (
-            <p className={styles.overCount}>예산 초과 {overBudgetCount}건</p>
-          )}
-        </div>
+        {budget === null ? (
+          <p className={styles.empty}>예산을 입력하면 넘는 매물을 표시합니다</p>
+        ) : (
+          <>
+            <p className={styles.label}>내 예산</p>
+            {overBudgetCount > 0 && (
+              <p className={styles.overCount}>예산 초과 {overBudgetCount}건</p>
+            )}
+            <strong className={styles.amount}>
+              <MaskedValue isMasked={isMasked}>{formatManwon(budget)}</MaskedValue>
+            </strong>
+          </>
+        )}
         <button type="button" className={styles.editButton} onClick={() => setIsEditing(true)}>
           {budget === null ? "예산 입력" : "수정"}
         </button>
@@ -166,7 +165,7 @@ function BudgetBar({
         </button>
       </>
     ),
-    // 계정 줄이 [다시 시도]를 보인다.
+    // 제목 아래 안내가 [다시 시도]를 보인다.
     accountError: () => <p className={styles.empty}>계정 상태를 확인한 뒤 다시 시도해 주세요</p>,
     loadFailed: () => (
       <>

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
+import KakaoLoginLink from "@/components/KakaoLoginLink";
 import { useListingSource } from "@/hooks/useListingSource";
+import { useLogout } from "@/hooks/useLogout";
 import { useOpenSheet } from "@/hooks/useOpenSheet";
 import { PATHS } from "@/lib/constants/paths";
 import { calculateLoan } from "@/lib/utils/calculateLoan";
@@ -10,10 +12,10 @@ import { sortListings } from "@/lib/utils/sortListings";
 import styles from "./MortgageListings.module.css";
 import { accountImportProblem } from "./accountImportProblem";
 import { budgetExcess } from "./budgetExcess";
-import AccountBar from "./components/AccountBar";
 import BudgetBar from "./components/BudgetBar";
 import CompactListingList from "./components/CompactListingList";
 import CorruptListingsNotice from "./components/CorruptListingsNotice";
+import HeaderNotices from "./components/HeaderNotices";
 import { type ListingStatusFailure } from "./components/ListingCard";
 import ListingStatusSheet from "./components/ListingStatusSheet";
 import ShareSheet, { type ShareTarget } from "./components/ShareSheet";
@@ -58,7 +60,7 @@ type MortgageListingsProps = {
   /** 가리기 모드(이 기기). 켜면 금액과 메모를 가린다. */
   privacyModeStore: PrivacyModeStore;
   regulations: Regulations;
-  /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 계정 줄에 보이고 주소에서 지운다. */
+  /** 카카오 로그인에서 돌아온 결과(`#/listings?login=`). 한 번 잡아 제목 아래 안내로 보이고 주소에서 지운다. */
   login: LoginResult | undefined;
   /** 저장 시트 이름 제안을 바꾼다. 복사는 "원래 이름 (복사)", 열기는 비운다. */
   onSuggestedNameChange: (name: string) => void;
@@ -69,7 +71,7 @@ type MortgageListingsProps = {
 
 /**
  * notFound는 다른 탭에서 이미 지운 경우라 목록이 그대로 맞으므로 알리지 않는다.
- * unauthorized는 계정 줄이 "로그인이 끝났습니다"로 알린다. 상한(limit)은 삭제에서 생기지 않는다.
+ * unauthorized는 제목 아래 안내가 "로그인이 끝났습니다"로 알린다. 상한(limit)은 삭제에서 생기지 않는다.
  */
 const DELETE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string | null> = {
   unavailable: "삭제하지 못했습니다. 이 브라우저에서 저장소를 사용할 수 없습니다",
@@ -82,7 +84,7 @@ const DELETE_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
   network: "삭제하지 못했습니다. 연결을 확인하고 다시 시도해 주세요",
 };
 
-/** 순서 저장 실패는 원래 순서로 되돌린 뒤 알린다. unauthorized는 계정 줄이 알린다. */
+/** 순서 저장 실패는 원래 순서로 되돌린 뒤 알린다. unauthorized는 제목 아래 안내가 알린다. */
 const ORDER_FAILURE_MESSAGES: Record<ListingOrderSaveFailure["reason"], string | null> = {
   notReady: "계정 상태를 확인한 뒤 다시 시도해 주세요",
   unauthorized: null,
@@ -91,7 +93,7 @@ const ORDER_FAILURE_MESSAGES: Record<ListingOrderSaveFailure["reason"], string |
 
 /**
  * 상태를 바꾸지 못하면 그대로 두고(서버는 먼저 보인 칩을 되돌린다) 그 카드에 한 줄로 알린다.
- * notFound는 다른 탭에서 지운 경우라 알리지 않는다. unauthorized는 계정 줄이 알린다.
+ * notFound는 다른 탭에서 지운 경우라 알리지 않는다. unauthorized는 제목 아래 안내가 알린다.
  */
 const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], string | null> = {
   unavailable: "상태를 바꾸지 못했습니다. 이 브라우저에서 저장소를 사용할 수 없습니다",
@@ -108,6 +110,8 @@ const STATUS_FAILURE_MESSAGES: Record<ListingSourceWriteFailure["reason"], strin
 type ListingsSheet = { name: "share"; target: ShareTarget } | { name: "status"; listing: Listing };
 
 const UNAVAILABLE_MESSAGE = "이 브라우저에서는 저장소를 사용할 수 없어 저장 목록을 쓸 수 없습니다";
+
+const LOGOUT_DESCRIPTION_ID = "logout-description";
 
 /**
  * 저장 매물 목록. 결과는 저장하지 않고 현재 규제로 다시 계산해 보여준다(ADR-007).
@@ -160,6 +164,7 @@ function MortgageListings({
   const [revealedId, setRevealedId] = useState<string | null>(null);
   const sheet = useOpenSheet<ListingsSheet>();
   const shareListButtonRef = useRef<HTMLButtonElement>(null);
+  const logout = useLogout(sessionHintStore);
   // 알림은 잡아 둔 뒤 위에서 비운다. 다른 화면을 거쳐 돌아와도 다시 뜨지 않는다.
   // 목록을 보는 중에 도착한 알림(이전 완료)도 잡는다.
   const [shownNotice, setShownNotice] = useState(notice);
@@ -297,7 +302,7 @@ function MortgageListings({
         </p>
       );
     }
-    // 계정 줄이 안내와 [다시 시도]를 보인다. 로컬 목록으로 대신 보이지 않는다.
+    // 제목 아래 안내가 [다시 시도]를 보인다. 로컬 목록으로 대신 보이지 않는다.
     if (list.status === "accountError") return null;
     if (list.status === "loadFailed") {
       return (
@@ -418,63 +423,68 @@ function MortgageListings({
     <>
       <div className={styles.page} inert={sheet.isOpen}>
         <header className={styles.header}>
+          {/* 버튼이 제목과 한 줄에 다 들어가지 않으면(360px 로그아웃 상태 등) 제목 아래 줄로 내려간다. */}
           <div className={styles.titleRow}>
             <h1 className={styles.title}>저장 목록</h1>
-            {sortedListings.length > 0 && (
-              <div className={styles.titleActions}>
-                {/* 켜짐은 aria-pressed와 채운 색으로 보인다. 이름은 바꾸지 않는다(토글 버튼 규칙). */}
-                <button
-                  type="button"
-                  className={styles.privacyButton}
-                  aria-pressed={isPrivacyMode}
-                  onClick={handlePrivacyToggle}
-                >
-                  가리기
-                </button>
-                <button
-                  ref={shareListButtonRef}
-                  type="button"
-                  className={styles.shareListButton}
-                  onClick={handleShareList}
-                >
-                  목록 공유
-                </button>
-              </div>
-            )}
+            <div className={styles.titleActions}>
+              {sortedListings.length > 0 && (
+                <>
+                  {/* 켜짐은 aria-pressed와 채운 색으로 보인다. 이름은 바꾸지 않는다(토글 버튼 규칙). */}
+                  <button
+                    type="button"
+                    className={styles.privacyButton}
+                    aria-pressed={isPrivacyMode}
+                    onClick={handlePrivacyToggle}
+                  >
+                    가리기
+                  </button>
+                  <button
+                    ref={shareListButtonRef}
+                    type="button"
+                    className={styles.headerButton}
+                    onClick={handleShareList}
+                  >
+                    목록 공유
+                  </button>
+                </>
+              )}
+              {source.status === "loggedOut" && <KakaoLoginLink />}
+              {source.status === "loggedIn" && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.headerButton}
+                    disabled={logout.isPending}
+                    aria-describedby={LOGOUT_DESCRIPTION_ID}
+                    onClick={() => logout.mutate()}
+                  >
+                    로그아웃
+                  </button>
+                  {/* 화면에는 두지 않고 보조기기에만 버튼 설명으로 읽힌다. */}
+                  <span id={LOGOUT_DESCRIPTION_ID} className={styles.visuallyHidden}>
+                    로그아웃하면 이 기기에 있던 목록으로 돌아갑니다
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <p className={styles.baseDate}>
             규제 기준일 {regulations.baseDate} · 현재 규제로 다시 계산한 값입니다
           </p>
         </header>
-        <AccountBar
-          status={source.status}
+        <HeaderNotices
+          accountStatus={source.status}
           loginResult={loginResult}
           isSessionExpired={source.isSessionExpired}
-          sessionHintStore={sessionHintStore}
-          onRetry={source.retry}
-          isRetrying={source.isRetrying}
+          // 로그아웃 실패는 아직 로그인 상태일 때만 의미가 있다(그 뒤 세션이 끝나면 지운다).
+          isLogoutFailed={source.status === "loggedIn" && logout.isError}
+          onAccountRetry={source.retry}
+          isAccountRetrying={source.isRetrying}
+          importProblem={importProblem}
+          onImportRetry={accountImport.retry}
+          notice={shownNotice}
+          writeError={writeError}
         />
-        {importProblem !== null && (
-          <div className={styles.notice}>
-            <p role="alert">{importProblem.message}</p>
-            {importProblem.canRetry && (
-              <button type="button" className={styles.retryButton} onClick={accountImport.retry}>
-                다시 시도
-              </button>
-            )}
-          </div>
-        )}
-        {shownNotice !== null && (
-          <p role="status" className={styles.addedNotice}>
-            {shownNotice}
-          </p>
-        )}
-        {/* 로그인이 끝나 서버 목록이 로컬 목록으로 바뀌어도 남도록 목록 밖에 둔다. */}
-        {writeError !== null && (
-          <p role="alert" className={styles.error}>
-            {writeError}
-          </p>
-        )}
         {renderBody()}
       </div>
       {renderSheet()}

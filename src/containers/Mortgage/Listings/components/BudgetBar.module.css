@@ -1,44 +1,56 @@
+/* 흰 카드 한 줄. 금액은 오른쪽 [수정] 옆에 붙인다. 좁으면 줄을 바꾼다. */
 .bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  flex-wrap: wrap;
+  /* 글자 크기가 다른 이름·초과 건수·금액·버튼 글자를 한 기준선에 둔다 */
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
-}
-
-.summary {
-  min-width: 0;
   font-size: var(--fs-body);
 }
 
+.formBar {
+  composes: bar;
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+}
+
+.label {
+  white-space: nowrap;
+}
+
 .amount {
-  font-size: var(--fs-figure);
+  margin-left: auto;
+  font-size: var(--fs-section);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .empty {
+  flex: 1;
+  min-width: 0;
   color: var(--color-text-muted);
+  font-size: var(--fs-small);
 }
 
 .overCount {
   color: var(--color-error);
-  font-size: var(--fs-small);
+  font-size: var(--fs-tiny);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .editButton {
   flex: none;
-  min-width: 48px;
-  min-height: 40px;
+  min-height: 36px;
   padding: 0 var(--space-3);
   border: 0;
   border-radius: var(--radius-control);
   background: var(--color-raised);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   font-weight: 600;
 }
 
@@ -83,8 +95,10 @@
 }
 
 .errorText {
+  flex: 1;
+  min-width: 0;
   color: var(--color-error);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
 }
 
 .saveError {

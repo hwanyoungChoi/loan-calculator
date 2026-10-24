@@ -1,15 +1,18 @@
-/* 카카오 로그인 버튼 가이드: 컨테이너 #FEE500, 레이블 #000 85%, 모서리 둥글게 */
+/*
+ * 카카오 로그인 버튼 가이드: 컨테이너 #FEE500, 레이블 #000 85%, 모서리 둥글게.
+ * 크기는 화면 머리글의 작은 보조 버튼과 같다(36px, 작은 글자).
+ */
 .link {
   display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 36px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-control);
   background: #fee500;
   color: rgb(0 0 0 / 85%);
-  font-size: var(--fs-body);
+  font-size: var(--fs-small);
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
